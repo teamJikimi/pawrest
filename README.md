@@ -1,31 +1,23 @@
 # Convention
 
 ## issue & Branch & PR Convention
-<br>
 
-## Issue Convention
+### Issue Convention
 
-<br>
-
-### 이슈 제목 규칙
+#### 이슈 제목 규칙
 
 - 형식: `[type] subject`
 - Commit / PR Convention과 동일하게 작성
----
 
-### 브랜치 네이밍 규칙
+#### 브랜치 네이밍 규칙
 
 - 형식: `type/short-description`
 - 소문자 + 하이픈(-) 사용
 
----
-
-### PR 제목 규칙
+#### PR 제목 규칙
 
 - 형식: `[type] subject`
 - Commit Convention과 동일하게 작성
-
----
 
 #### 규칙
 
