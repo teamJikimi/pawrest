@@ -1,5 +1,39 @@
 # Convention
 
+## issue & Branch & PR Convention
+<br>
+
+## Issue Convention
+
+<br>
+
+### 이슈 제목 규칙
+
+- 형식: `[type] subject`
+- Commit / PR Convention과 동일하게 작성
+---
+
+### 브랜치 네이밍 규칙
+
+- 형식: `type/short-description`
+- 소문자 + 하이픈(-) 사용
+
+---
+
+### PR 제목 규칙
+
+- 형식: `[type] subject`
+- Commit Convention과 동일하게 작성
+
+---
+
+#### 규칙
+
+- 브랜치와 PR 타입은 반드시 일치시킨다
+  - 예: `feat/login-api` → `[feat] add login API`
+- 하나의 브랜치는 하나의 기능만 담당한다
+- PR은 가능한 작게 나누어 생성한다
+
 ## Coding Convention
 
 <br>
