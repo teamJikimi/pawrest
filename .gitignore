@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Xcode
+DerivedData/
+build/
+*.xcworkspace
+!default.xcworkspace
+*.xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+Packages/
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+
+# 기타
+*.log
+*.tmp
