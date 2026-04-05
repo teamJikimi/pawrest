@@ -239,3 +239,46 @@ MARK 주석은 파일 성격에 맞게 필요한 항목만 사용
 ```
 
 # Folder Structure
+```bash
+Pawrest
+├── App
+│   ├── ProjectNameApp.swift
+│   ├── AppView.swift
+│   └── DIContainer.swift
+│
+├── Core
+│   ├── Firebase
+│   │   ├── FirebaseManager.swift
+│   │   └── FirebaseError.swift
+│   ├── LocalStorage
+│   │   └── SwiftDataStack.swift
+│   ├── DesignSystem
+│   ├── Extension
+│   └── Util
+│
+├── Features
+│   ├── Login
+│   │   ├── LoginView.swift
+│   │   ├── LoginFeature.swift
+│   │   ├── UserModel.swift
+│   │   ├── LoginUseCase.swift
+│   │   └── AuthService.swift
+│   │
+│   ├── Journal
+│   │   ├── JournalView.swift
+│   │   ├── JournalFeature.swift
+│   │   ├── JournalModel.swift
+│   │   ├── JournalUseCase.swift
+│   │   ├── JournalRemoteService.swift
+│   │   └── JournalLocalService.swift
+│   │
+│   └── Profile
+│       ├── ProfileView.swift
+│       ├── ProfileFeature.swift
+│       ├── ProfileModel.swift
+│       ├── ProfileUseCase.swift
+│       └── ProfileService.swift
+|       ...
+│
+└── Resources
+```
