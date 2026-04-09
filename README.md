@@ -1,19 +1,19 @@
 # Convention
 
-##  Libraries & Technologies
+## 📦Libraries & Technologies
 
 ### Architecture
-	•	TCA (The Composable Architecture)
-	•	Feature 기반 경량 아키텍처
+	TCA (The Composable Architecture)
+	Feature 기반 경량 아키텍처
 
 ### UI
-	•	SwiftUI
+	SwiftUI
 
 ### Data
-	•	Firebase (Auth, Firestore, Storage)
-	•	SwiftData
+	Firebase (Auth, Firestore, Storage)
+	SwiftData
 
-## Data Flow
+## 🔁 Data Flow
 ```swift
 View
 → Feature
@@ -25,7 +25,7 @@ View
 → View
 ```
 
-## issue & Branch & PR Convention
+## 📝 issue & Branch & PR Convention
 
 ### Issue Convention
 
@@ -263,7 +263,7 @@ MARK 주석은 파일 성격에 맞게 필요한 항목만 사용
 [fix] resolve crash on home screen
 ```
 
-# Folder Structure
+# 📁 Folder Structure
 ```bash
 Pawrest
 ├── App
