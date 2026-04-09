@@ -4,7 +4,7 @@
 
 ### Architecture
 	TCA (The Composable Architecture)
-	Feature 기반 경량 아키텍처
+	경량 Clean Architecture (Feature 기반 구조)
 
 ### UI
 	SwiftUI
