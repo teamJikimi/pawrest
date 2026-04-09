@@ -1,5 +1,30 @@
 # Convention
 
+##  Libraries & Technologies
+
+### Architecture
+	•	TCA (The Composable Architecture)
+	•	Feature 기반 경량 아키텍처
+
+### UI
+	•	SwiftUI
+
+### Data
+	•	Firebase (Auth, Firestore, Storage)
+	•	SwiftData
+
+## Data Flow
+```swift
+View
+→ Feature
+→ UseCase
+→ Service
+   ├── Remote (Firebase)
+   └── Local (SwiftData)
+→ State
+→ View
+```
+
 ## issue & Branch & PR Convention
 
 ### Issue Convention
