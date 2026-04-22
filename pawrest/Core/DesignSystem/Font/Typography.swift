@@ -109,14 +109,3 @@ extension View {
         modifier(TypographyModifier(style: style))
     }
 }
-
-// MARK: - Usage Example
-/*
- // Font만 쓸 때
- Text("헤드라인").font(.headlineBold)
-
- // tracking + lineSpacing까지 정확히 맞출 때
- Text("위로 메시지").typography(.messageSemibold)
- Text("본문 텍스트").typography(.bodyRegular)
- Text("버튼").typography(.buttonSemibold)
- */
