@@ -13,10 +13,8 @@ struct TabBarView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // 메인 콘텐츠
             contentView
             
-            // 커스텀 탭바
             CustomTabBar(
                 selectedTab: store.selectedTab,
                 onTabSelected: { tab in
