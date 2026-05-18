@@ -109,11 +109,3 @@ enum AppColor {
     }
 }
 
-// MARK: - Convenience Extension
-
-extension Color {
-    /// Initialize Color from AppColor enum
-    init(_ appColor: AppColor) {
-        self = appColor.color
-    }
-}
