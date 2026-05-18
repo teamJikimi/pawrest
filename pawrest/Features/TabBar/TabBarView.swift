@@ -104,7 +104,6 @@ struct TabBarButton: View {
                 Text(tab.title)
                     .font(.buttonRegular)
             }
-            //TODO: - 색 바꾸기
             .foregroundColor(isSelected ? Color(.pawPrimary) : Color.gray)
             .frame(maxWidth: .infinity)
         }
