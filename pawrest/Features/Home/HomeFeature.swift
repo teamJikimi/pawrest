@@ -13,7 +13,6 @@ struct HomeFeature: Reducer {
     
     @ObservableState
     struct State: Equatable {
-        // 필요한 상태 추가
     }
     
     // MARK: - Action
