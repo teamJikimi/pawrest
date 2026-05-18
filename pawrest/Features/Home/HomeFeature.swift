@@ -2,30 +2,31 @@
 //  HomeFeature.swift
 //  pawrest
 //
+//  Created by 소은 on 5/17/26.
+//
 
 import ComposableArchitecture
 
 struct HomeFeature: Reducer {
     
+    // MARK: - State
+    
     @ObservableState
     struct State: Equatable {
-        var count: Int = 0
-        var text: String = "홈 화면"
+        // 필요한 상태 추가
     }
     
+    // MARK: - Action
+    
     enum Action {
-        case incrementButtonTapped
-        case decrementButtonTapped
+        case onAppear
     }
+    
+    // MARK: - Reducer
     
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
-        case .incrementButtonTapped:
-            state.count += 1
-            return .none
-            
-        case .decrementButtonTapped:
-            state.count -= 1
+        case .onAppear:
             return .none
         }
     }
