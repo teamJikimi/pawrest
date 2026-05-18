@@ -7,7 +7,10 @@
 
 import SwiftUI
 import SwiftData
+
 import FirebaseCore
+
+import ComposableArchitecture
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
@@ -24,15 +27,16 @@ struct pawrestApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     var sharedModelContainer: ModelContainer = {
-            let schema = Schema([Item.self])
-            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-            return try! ModelContainer(for: schema, configurations: [config])
-        }()
-
+        let schema = Schema([Item.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        return try! ModelContainer(for: schema, configurations: [config])
+    }()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabBarView(store: Store(initialState: TabBarFeature.State()) {
+                TabBarFeature()
+            })
         }
-        .modelContainer(sharedModelContainer)
     }
 }

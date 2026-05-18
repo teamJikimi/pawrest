@@ -10,6 +10,7 @@
 		43956F0D2F894E60003FDE1F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F0C2F894E60003FDE1F /* FirebaseCore */; };
 		43956F0F2F894EB0003FDE1F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F0E2F894EB0003FDE1F /* FirebaseAuth */; };
 		43956F112F894EB7003FDE1F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F102F894EB7003FDE1F /* FirebaseFirestore */; };
+		F6CD1C7A2FB8E97E0065FFC9 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = F6CD1C792FB8E97E0065FFC9 /* ComposableArchitecture */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +45,7 @@
 			files = (
 				43956F0D2F894E60003FDE1F /* FirebaseCore in Frameworks */,
 				43956F0F2F894EB0003FDE1F /* FirebaseAuth in Frameworks */,
+				F6CD1C7A2FB8E97E0065FFC9 /* ComposableArchitecture in Frameworks */,
 				43956F112F894EB7003FDE1F /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -98,6 +100,7 @@
 				43956F0C2F894E60003FDE1F /* FirebaseCore */,
 				43956F0E2F894EB0003FDE1F /* FirebaseAuth */,
 				43956F102F894EB7003FDE1F /* FirebaseFirestore */,
+				F6CD1C792FB8E97E0065FFC9 /* ComposableArchitecture */,
 			);
 			productName = pawrest;
 			productReference = 43BA8D832F7E2F8700540947 /* pawrest.app */;
@@ -129,6 +132,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				43956F0A2F894D2D003FDE1F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				F6CD1C782FB8E97E0065FFC9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 43BA8D842F7E2F8700540947 /* Products */;
@@ -390,6 +394,14 @@
 				minimumVersion = 12.12.0;
 			};
 		};
+		F6CD1C782FB8E97E0065FFC9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.9.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -407,6 +419,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 43956F0A2F894D2D003FDE1F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		F6CD1C792FB8E97E0065FFC9 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F6CD1C782FB8E97E0065FFC9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
