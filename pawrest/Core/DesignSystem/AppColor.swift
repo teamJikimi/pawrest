@@ -73,7 +73,7 @@ enum AppColor {
         case .accent: return Color("accent")
         case .pawPrimary: return Color("paw_primary")
         case .primaryLight: return Color("primary_light")
-        case .secondary: return Color("secondary")
+        case .secondary: return Color("paw_secondary")
             
         // Button
         case .primaryButton: return Color("primary_button")
@@ -96,10 +96,10 @@ enum AppColor {
         case .gray90: return Color("gray90")
             
         // Semantic
-        case .black: return Color("black")
+        case .black: return Color("paw_black")
         case .border: return Color("border")
         case .dim: return Color("dim")
-        case .link: return Color("link")
+        case .link: return Color("paw_link")
             
         // Row
         case .rowBg: return Color("row_bg")
