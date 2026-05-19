@@ -18,6 +18,8 @@ struct CommunityView: View {
                     text: $text,
                     isFocused: $isFocused
                 )
+                .padding(.horizontal, 16) 
+                .padding(.top, 16)
             }
             .onTapGesture {
                 isFocused = false

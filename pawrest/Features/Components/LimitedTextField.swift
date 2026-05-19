@@ -35,7 +35,7 @@ struct LimitedTextField: View {
                 if text.isEmpty {
                     Text(placeholder)
                         .typography(.body2R2)
-                        .foregroundColor(.gray40)
+                        .foregroundColor(.gray50)
                         .padding()
                         .allowsHitTesting(false)
                 }
@@ -51,8 +51,6 @@ struct LimitedTextField: View {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(.gray20, lineWidth: 1)
             )
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
             .onChange(of: text) { oldValue, newValue in
                 if newValue.count > maxCharacters {
                     text = String(newValue.prefix(maxCharacters))
