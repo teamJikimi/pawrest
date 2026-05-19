@@ -34,14 +34,19 @@ struct TabBarView: View {
             })
             
         case .memorial:
-            MemorialView()
+            MemorialView(store: Store(initialState: MemorialState()) {
+                MemorialReducer()
+            })
             
         case .memory:
-            MemoryView()
+            MemoryView(store: Store(initialState: MemoryState()) {
+                MemoryReducer()
+            })
             
         case .community:
-            CommunityView()
-            
+            CommunityView(store: Store(initialState: CommunityState()) {
+                CommunityReducer()
+            })
         case .my:
             MyView()
         }
@@ -106,10 +111,4 @@ struct TabBarButton: View {
             .frame(maxWidth: .infinity)
         }
     }
-}
-
-#Preview {
-    TabBarView(store: Store(initialState: TabBarFeature.State()) {
-        TabBarFeature()
-    })
 }
