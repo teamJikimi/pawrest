@@ -6,31 +6,32 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
 
 struct CommunityView: View {
-    @State private var text: String = ""
+    @Bindable var store: StoreOf<CommunityReducer>
     @FocusState private var isFocused: Bool
     
     var body: some View {
         NavigationView {
             ScrollView {
                 LimitedTextField(
-                    text: $text,
+                    text: Binding(
+                        get: { store.text },
+                        set: { store.send(.textChanged($0)) }
+                    ),
                     isFocused: $isFocused
                 )
-                .padding(.horizontal, 16) 
+                .padding(.horizontal, 16)
                 .padding(.top, 16)
             }
             .onTapGesture {
                 isFocused = false
             }
-            .customNavigationBar(
-                NavigationBarConfiguration(
-                    left: .back,
-                    title: "커뮤니티",
-                    right: .editMenu,
-                    onEdit: { print("수정") },
-                    onDelete: { print("삭제") }
+            .navigationBar(
+                store: store.scope(
+                    state: \.navigationBar,
+                    action: \.navigationBar  
                 )
             )
         }

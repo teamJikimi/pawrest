@@ -6,19 +6,20 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
 
 struct MemoryView: View {
+    @Bindable var store: StoreOf<MemoryReducer>
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 Spacer()
             }
-            .customNavigationBar(
-                NavigationBarConfiguration(
-                    left: .none,
-                    title: "추억 앨범",
-                    right: .add,
-                    onTapRight: { print("추가") }
+            .navigationBar(
+                store: store.scope(
+                    state: \.navigationBar,
+                    action: \.navigationBar
                 )
             )
         }
