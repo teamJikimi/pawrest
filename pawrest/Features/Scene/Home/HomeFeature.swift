@@ -19,6 +19,7 @@ struct HomeFeature: Reducer {
     
     enum Action {
         case onAppear
+        case addButtonTapped
     }
     
     // MARK: - Reducer
@@ -26,6 +27,8 @@ struct HomeFeature: Reducer {
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .onAppear:
+            return .none
+        case .addButtonTapped:
             return .none
         }
     }
