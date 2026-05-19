@@ -10,7 +10,18 @@ import SwiftUI
 struct MemoryView: View {
     var body: some View {
         NavigationView {
-            Text("추억 화면")
+            VStack(spacing: 0) {
+                Spacer()
+            }
+            .customNavigationBar(
+                NavigationBarConfiguration(
+                    left: .none,
+                    title: "추억 앨범",
+                    right: .add,
+                    onTapRight: { print("추가") }
+                )
+            )
         }
+        .navigationViewStyle(.stack)
     }
 }

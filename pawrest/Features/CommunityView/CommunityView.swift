@@ -8,9 +8,30 @@
 import SwiftUI
 
 struct CommunityView: View {
+    @State private var text: String = ""
+    @FocusState private var isFocused: Bool
+    
     var body: some View {
         NavigationView {
-            Text("커뮤니티 화면")
+            ScrollView {
+                LimitedTextField(
+                    text: $text,
+                    isFocused: $isFocused
+                )
+            }
+            .onTapGesture {
+                isFocused = false
+            }
+            .customNavigationBar(
+                NavigationBarConfiguration(
+                    left: .back,
+                    title: "커뮤니티",
+                    right: .editMenu,
+                    onEdit: { print("수정") },
+                    onDelete: { print("삭제") }
+                )
+            )
         }
+        .navigationViewStyle(.stack)
     }
 }
