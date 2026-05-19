@@ -34,14 +34,19 @@ struct TabBarView: View {
             })
             
         case .memorial:
-            MemorialView()
+            MemorialView(store: Store(initialState: MemorialState()) {
+                MemorialReducer()
+            })
             
         case .memory:
-            MemoryView()
+            MemoryView(store: Store(initialState: MemoryState()) {
+                MemoryReducer()
+            })
             
         case .community:
-            CommunityView()
-            
+            CommunityView(store: Store(initialState: CommunityState()) {
+                CommunityReducer()
+            })
         case .my:
             MyView()
         }
@@ -100,16 +105,10 @@ struct TabBarButton: View {
                     .frame(width: 24, height: 24)
                 
                 Text(tab.title)
-                    .font(.buttonRegular)
+                    .typography(.date)
             }
             .foregroundColor(isSelected ? Color(.pawPrimary) : Color.gray)
             .frame(maxWidth: .infinity)
         }
     }
-}
-
-#Preview {
-    TabBarView(store: Store(initialState: TabBarFeature.State()) {
-        TabBarFeature()
-    })
 }
