@@ -100,7 +100,7 @@ struct TabBarButton: View {
                     .frame(width: 24, height: 24)
                 
                 Text(tab.title)
-                    .font(.buttonRegular)
+                    .typography(.body2R1)
             }
             .foregroundColor(isSelected ? Color(.pawPrimary) : Color.gray)
             .frame(maxWidth: .infinity)
