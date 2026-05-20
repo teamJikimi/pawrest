@@ -28,3 +28,6 @@ fastlane/screenshots
 # 기타
 *.log
 *.tmp
+
+# Xcode - Local Config
+Config/Local.xcconfig
