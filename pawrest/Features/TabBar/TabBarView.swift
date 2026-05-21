@@ -29,26 +29,37 @@ struct TabBarView: View {
     private var contentView: some View {
         switch store.selectedTab {
         case .home:
-            HomeView(store: Store(initialState: HomeFeature.State()) {
-                HomeFeature()
-            })
+            NavigationStack {
+                HomeView(store: Store(initialState: HomeFeature.State()) {
+                    HomeFeature()
+                })
+            }
             
         case .memorial:
-            MemorialView(store: Store(initialState: MemorialState()) {
-                MemorialReducer()
-            })
+            NavigationStack {
+                MemorialView(store: Store(initialState: MemorialState()) {
+                    MemorialReducer()
+                })
+            }
             
         case .memory:
-            MemoryView(store: Store(initialState: MemoryState()) {
-                MemoryReducer()
-            })
+            NavigationStack {
+                MemoryView(store: Store(initialState: MemoryState()) {
+                    MemoryReducer()
+                })
+            }
             
         case .community:
-            CommunityView(store: Store(initialState: CommunityState()) {
-                CommunityReducer()
-            })
+            NavigationStack {
+                CommunityView(store: Store(initialState: CommunityState()) {
+                    CommunityReducer()
+                })
+            }
+            
         case .my:
-            MyView()
+            NavigationStack {  
+                MyView()
+            }
         }
     }
 }
