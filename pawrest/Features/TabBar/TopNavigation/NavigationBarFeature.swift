@@ -36,7 +36,7 @@ struct NavigationBarState: Equatable {
 // MARK: - Action
 
 @CasePathable
-enum NavigationBarAction: Equatable {
+public enum NavigationBarAction: Equatable {
     case leftButtonTapped
     case rightButtonTapped
     case editTapped
