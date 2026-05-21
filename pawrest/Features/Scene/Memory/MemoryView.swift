@@ -2,7 +2,7 @@
 //  MemoryView.swift
 //  pawrest
 //
-//  Created by 소은 on 5/20/26.
+//  Created by 소은 on 5/17/26.
 //
 
 import SwiftUI
@@ -12,30 +12,27 @@ struct MemoryView: View {
     @Bindable var store: StoreOf<MemoryReducer>
     
     var body: some View {
-        NavigationStack {
-            VStack {
-                NavigationBarView(
-                    store: store.scope(
-                        state: \.navigationBar,
-                        action: \.navigationBar
-                    )
-                )
-                
-                ScrollView {
-                    Text("추억 목록이 여기에 표시됩니다")
-                        .padding()
-                }
+        NavigationView {
+            VStack(spacing: 0) {
+                Spacer()
             }
-            .navigationDestination(
+            .customNavigationBar(
+                store: store.scope(
+                    state: \.navigationBar,
+                    action: \.navigationBar
+                )
+            )
+            .fullScreenCover(
                 item: $store.scope(
                     state: \.addMemory,
                     action: \.addMemory
                 )
-            ) { store in
-                AddMemoryView(store: store)
-                    .navigationTitle("추억 기록")
-                    .navigationBarTitleDisplayMode(.inline)
+            ) { addMemoryStore in
+                AddMemoryView(store: addMemoryStore)
+                    .toolbar(.hidden, for: .navigationBar)
+                    .navigationBarBackButtonHidden(true)
             }
         }
+        .navigationViewStyle(.stack)
     }
 }
