@@ -50,7 +50,6 @@ struct AddMemoryReducer: Reducer {
         Reduce { state, action in
             switch action {
             case .navigationBar(.leftButtonTapped):
-                print("뒤로가기")
                 return .none
                 
             case .navigationBar:

@@ -36,7 +36,7 @@ struct NavigationBarState: Equatable {
 // MARK: - Action
 
 @CasePathable
-public enum NavigationBarAction: Equatable {
+enum NavigationBarAction: Equatable {
     case leftButtonTapped
     case rightButtonTapped
     case editTapped
@@ -71,7 +71,6 @@ struct NavigationBarReducer: Reducer {
 
 struct NavigationBarView: View {
     @Bindable var store: StoreOf<NavigationBarReducer>
-    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         HStack(spacing: 0) {
@@ -82,7 +81,7 @@ struct NavigationBarView: View {
             
             Text(store.title)
                 .typography(.pageTitle)
-                .foregroundColor(store.titleColor)
+                .foregroundStyle(store.titleColor)
             
             Spacer()
             
@@ -98,9 +97,9 @@ struct NavigationBarView: View {
     private var leftButton: some View {
         switch store.leftButton {
         case .back:
-            Button(action: {
+            Button {
                 store.send(.leftButtonTapped)
-            }) {
+            } label: {
                 Image(.iconBack)
                     .resizable()
                     .scaledToFit()
@@ -116,9 +115,9 @@ struct NavigationBarView: View {
     private var rightButton: some View {
         switch store.rightButton {
         case .add:
-            Button(action: {
+            Button {
                 store.send(.rightButtonTapped)
-            }) {
+            } label: {
                 Image(.iconNavigationPlus)
                     .resizable()
                     .scaledToFit()
@@ -150,10 +149,12 @@ struct NavigationBarView: View {
 // MARK: - View Extension
 
 extension View {
-    func navigationBar(store: StoreOf<NavigationBarReducer>) -> some View {
+    func customNavigationBar(store: StoreOf<NavigationBarReducer>) -> some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                Color.clear.frame(height: 44)
+                Color.clear
+                    .frame(height: 44)
+                
                 self
             }
             .zIndex(0)
@@ -161,6 +162,7 @@ extension View {
             NavigationBarView(store: store)
                 .zIndex(999)
         }
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
     }
 }
