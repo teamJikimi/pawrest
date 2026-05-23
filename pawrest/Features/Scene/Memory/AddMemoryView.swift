@@ -35,9 +35,6 @@ struct AddMemoryView: View {
                     .typography(.body2R1)
                     .padding(.horizontal, 20)
                     
-                    Divider()
-                        .background(.gray20)
-                        .padding(.horizontal, 20)
                     
                     LimitedTextField(
                         text: Binding(
@@ -56,18 +53,18 @@ struct AddMemoryView: View {
                     store.send(.saveButtonTapped)
                 } label: {
                     Text("저장하기")
-                        .typography(.body1M)
+                        .typography(.button)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(.gray80)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .frame(height: 42)
+                        .background(store.isSaveButtonEnabled ? .pawPrimary : .gray40)
+                        .cornerRadius(24)
                 }
+                .disabled(!store.isSaveButtonEnabled)
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
             }
         }
-        .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .customNavigationBar(
             store: store.scope(

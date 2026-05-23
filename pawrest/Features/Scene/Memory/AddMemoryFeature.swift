@@ -5,6 +5,7 @@
 //  Created by 소은 on 5/21/26.
 //
 
+import Foundation
 import ComposableArchitecture
 
 // MARK: - State
@@ -21,6 +22,11 @@ struct AddMemoryState: Equatable {
     
     var title: String = ""
     var content: String = ""
+    
+    var isSaveButtonEnabled: Bool {
+        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 }
 
 // MARK: - Action
