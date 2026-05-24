@@ -114,7 +114,7 @@ extension MemoryView {
                 spacing: 11
             ) {
                 ForEach(albums) { album in
-                    AlbumThumbnailView(
+                    AlbumThumbnail(
                         title: album.title,
                         image: album.images.first
                     )
