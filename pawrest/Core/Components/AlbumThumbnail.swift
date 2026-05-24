@@ -1,5 +1,5 @@
 //
-//  AlbumThumbnailView.swift
+//  AlbumThumbnail.swift
 //  pawrest
 //
 //  Created by 곽예리 on 5/20/26.
@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-// MARK: - Album Thumbnail View
+// MARK: - Album Thumbnail
 
-struct AlbumThumbnailView: View {
+struct AlbumThumbnail: View {
     let title: String
     let image: UIImage?
     
