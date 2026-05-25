@@ -9,11 +9,17 @@ import SwiftUI
 import PhotosUI
 
 public struct ImagePickerGrid: View {
+    // MARK: - Properties
+    
     let selectedImages: [UIImage]
     let pickerItems: [PhotosPickerItem]
     let maxCount: Int
     let onImagesChanged: ([UIImage]) -> Void
     let onPickerItemsChanged: ([PhotosPickerItem]) -> Void
+    
+    @State private var localPickerItems: [PhotosPickerItem] = []
+    
+    // MARK: - Initializer
     
     public init(
         selectedImages: [UIImage],
@@ -29,10 +35,18 @@ public struct ImagePickerGrid: View {
         self.onPickerItemsChanged = onPickerItemsChanged
     }
     
+    // MARK: - Body
+    
     public var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                addButton
+                AddButton(
+                    selectedCount: selectedImages.count,
+                    maxCount: maxCount,
+                    localPickerItems: $localPickerItems,
+                    onPickerItemsChanged: onPickerItemsChanged,
+                    onImagesLoaded: loadImages
+                )
                 
                 ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
                     ImageCard(
@@ -43,35 +57,6 @@ public struct ImagePickerGrid: View {
             }
             .padding(.horizontal, 16)
         }
-    }
-    
-    // MARK: - Add Button
-    
-    @State private var localPickerItems: [PhotosPickerItem] = []
-    
-    private var addButton: some View {
-        PhotosPicker(
-            selection: $localPickerItems,
-            maxSelectionCount: maxCount,
-            matching: .images
-        ) {
-            VStack(spacing: 12) {
-                Image(.iconAdd)
-                
-                Text("\(selectedImages.count)/\(maxCount)")
-                    .typography(.body2R1)
-                    .foregroundStyle(.gray80)
-            }
-            .frame(width: 103, height: 135)
-            .background(.gray20)
-            .cornerRadius(10)
-        }
-        .onChange(of: localPickerItems) { _, newItems in
-            onPickerItemsChanged(newItems)
-            loadImages(from: newItems)
-        }
-        .disabled(selectedImages.count >= maxCount)
-        .opacity(selectedImages.count >= maxCount ? 0.5 : 1.0)
     }
     
     // MARK: - Actions
@@ -107,27 +92,77 @@ public struct ImagePickerGrid: View {
     }
 }
 
-// MARK: - ImageCard
+// MARK: - Subviews
 
 extension ImagePickerGrid {
+    struct AddButton: View {
+        let selectedCount: Int
+        let maxCount: Int
+        @Binding var localPickerItems: [PhotosPickerItem]
+        let onPickerItemsChanged: ([PhotosPickerItem]) -> Void
+        let onImagesLoaded: ([PhotosPickerItem]) -> Void
+        
+        var body: some View {
+            PhotosPicker(
+                selection: $localPickerItems,
+                maxSelectionCount: maxCount,
+                matching: .images
+            ) {
+                content
+            }
+            .onChange(of: localPickerItems) { _, newItems in
+                onPickerItemsChanged(newItems)
+                onImagesLoaded(newItems)
+            }
+            .disabled(isDisabled)
+            .opacity(isDisabled ? 0.5 : 1.0)
+        }
+        
+        private var content: some View {
+            VStack(spacing: 12) {
+                Image(.iconAdd)
+                    .resizable()
+                    .frame(width: 24, height: 24)
+                
+                Text("\(selectedCount)/\(maxCount)")
+                    .typography(.body2R1)
+                    .foregroundStyle(.gray80)
+            }
+            .frame(width: 103, height: 135)
+            .background(.gray20)
+            .cornerRadius(10)
+        }
+        
+        private var isDisabled: Bool {
+            selectedCount >= maxCount
+        }
+    }
+    
     struct ImageCard: View {
         let image: UIImage
         let onDelete: () -> Void
         
         var body: some View {
             ZStack(alignment: .topTrailing) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 103, height: 135)
-                    .cornerRadius(10)
-                
-                Button(action: onDelete) {
-                    Image(.iconImageXmark)
-                        .frame(width: 24, height: 24)
-                }
-                .padding(8)
+                imageContent
+                deleteButton
             }
+        }
+        
+        private var imageContent: some View {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 103, height: 135)
+                .cornerRadius(10)
+        }
+        
+        private var deleteButton: some View {
+            Button(action: onDelete) {
+                Image(.iconImageXmark)
+                    .frame(width: 24, height: 24)
+            }
+            .padding(8)
         }
     }
 }
