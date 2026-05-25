@@ -18,6 +18,7 @@ struct MemoryAlbum: Identifiable {
 
 struct MemoryView: View {
     @Bindable var store: StoreOf<MemoryReducer>
+    @State private var selectedAlbum: MemoryAlbum? = nil
     
     // 더미 데이터
     let albums: [MemoryAlbum] = [
@@ -47,7 +48,12 @@ struct MemoryView: View {
         )
     ]
     
-    @State private var selectedAlbum: MemoryAlbum? = nil
+    //TODO: - extension Helper로 옮기기
+    private func calculateCardSize(screenWidth: CGFloat) -> CGFloat {
+        let horizontalPadding: CGFloat = 20 * 2
+        let cardSpacing: CGFloat = 11
+        return (screenWidth - horizontalPadding - cardSpacing) / 2
+    }
     
     var body: some View {
         NavigationView {
@@ -100,42 +106,47 @@ extension MemoryView {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 101, height: 84)
-
+            
             Spacer()
                 .frame(height: 24)
-
+            
             Text("추억을 기록으로\n남겨보세요")
                 .typography(.body1R)
                 .foregroundColor(.gray60)
                 .multilineTextAlignment(.center)
-
+            
             Spacer()
         }
         .padding(.top, 208)
     }
     
     var albumGridView: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(.fixed(162), spacing: 11),
-                    GridItem(.fixed(162), spacing: 11)
-                ],
-                spacing: 11
-            ) {
-                ForEach(albums) { album in
-                    AlbumThumbnail(
-                        title: album.title,
-                        image: album.images.first
-                    )
-                    .onTapGesture {
-                        selectedAlbum = album
+        GeometryReader { geometry in
+            let cardSize = calculateCardSize(screenWidth: geometry.size.width)
+            
+            ScrollView {
+                LazyVGrid(
+                    columns: [
+                        GridItem(.fixed(cardSize), spacing: 11),
+                        GridItem(.fixed(cardSize), spacing: 11)
+                    ],
+                    spacing: 11
+                ) {
+                    ForEach(albums) { album in
+                        AlbumThumbnail(
+                            title: album.title,
+                            image: album.images.first,
+                            size: cardSize
+                        )
+                        .onTapGesture {
+                            selectedAlbum = album
+                        }
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 34)
+                .padding(.bottom, 88)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 34)
-            .padding(.bottom, 88)
         }
     }
 }

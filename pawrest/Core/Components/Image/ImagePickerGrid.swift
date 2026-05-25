@@ -156,7 +156,7 @@ extension ImagePickerGrid {
                 .resizable()
                 .scaledToFill()
                 .frame(width: 103, height: 135)
-                .cornerRadius(10)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         
         private var deleteButton: some View {
