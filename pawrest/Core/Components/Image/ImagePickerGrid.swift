@@ -39,7 +39,7 @@ public struct ImagePickerGrid: View {
     
     public var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
+            HStack(spacing: 6) {
                 AddButton(
                     selectedCount: selectedImages.count,
                     maxCount: maxCount,
@@ -55,7 +55,7 @@ public struct ImagePickerGrid: View {
                     )
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20) 
         }
     }
     
@@ -122,11 +122,13 @@ extension ImagePickerGrid {
             VStack(spacing: 12) {
                 Image(.iconAdd)
                     .resizable()
+                    .renderingMode(.template)
                     .frame(width: 24, height: 24)
+                    .foregroundStyle(selectedCount == 0 ? .gray50 : .gray90)
                 
                 Text("\(selectedCount)/\(maxCount)")
                     .typography(.body2R1)
-                    .foregroundStyle(.gray80)
+                    .foregroundStyle(selectedCount == 0 ? .gray50 : .gray90)
             }
             .frame(width: 103, height: 135)
             .background(.gray20)
