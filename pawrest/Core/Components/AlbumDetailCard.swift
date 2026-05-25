@@ -100,7 +100,7 @@ extension AlbumDetailCard {
         }
     }
     
-    // 텍스트 영역    
+    // 텍스트 영역
     private var textContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer()

@@ -27,9 +27,11 @@ struct ReportMenuButton: View {
             }
         }) {
             Image(icon)
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 24, height: 24)
+                .foregroundStyle(Color.gray80)
         }
         .frame(width: 44, height: 44)
         .overlay(alignment: .topTrailing) {
