@@ -18,12 +18,18 @@ struct AddMemoryView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     imageGridSection
-                    titleTextField
-                    contentTextField
+                        .padding(.top, 34)
+                    
+                    VStack(alignment: .leading, spacing: 16) {
+                        titleTextField
+                        contentTextField
+                    }
+                    .padding(.horizontal, 20)
                 }
-                .padding(.bottom, 20)
+                .padding(.bottom, 12)
                 
                 saveButton
+                    .padding(.horizontal, 20)
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -52,7 +58,6 @@ extension AddMemoryView {
             }
         )
         .frame(height: 155)
-        .padding(.top, 20)
         .onAppear {
             requestPhotoLibraryPermission()
         }
@@ -74,17 +79,15 @@ extension AddMemoryView {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(.gray20, lineWidth: 1)
         )
-        .padding(.horizontal, 20)
     }
     
     private var contentTextField: some View {
         LimitedTextField(
-            text: $store.content.sending(\.contentChanged), 
+            text: $store.content.sending(\.contentChanged),
             isFocused: $isFocused,
             placeholder: "떠오르는 순간을 적어보세요.\n기록은 마음을 정리하는 작은 시작이 될 수 있어요.",
             maxCharacters: 1000
         )
-        .padding(.horizontal, 20)
     }
     
     private var saveButton: some View {
@@ -100,7 +103,6 @@ extension AddMemoryView {
                 .cornerRadius(24)
         }
         .disabled(!store.isSaveButtonEnabled)
-        .padding(.horizontal, 20)
         .padding(.bottom, 20)
     }
     
