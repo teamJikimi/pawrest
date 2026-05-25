@@ -16,6 +16,8 @@ struct MemoryState: Equatable {
         leftButton: .none,
         rightButton: .add
     )
+    
+    @Presents var addMemory: AddMemoryState?
 }
 
 // MARK: - Action
@@ -23,6 +25,7 @@ struct MemoryState: Equatable {
 @CasePathable
 enum MemoryAction: Equatable {
     case navigationBar(NavigationBarAction)
+    case addMemory(PresentationAction<AddMemoryAction>)
 }
 
 // MARK: - Reducer
@@ -36,12 +39,18 @@ struct MemoryReducer: Reducer {
         Reduce { state, action in
             switch action {
             case .navigationBar(.rightButtonTapped):
-                print("추가")
+                state.addMemory = AddMemoryState()
                 return .none
                 
             case .navigationBar:
                 return .none
+                
+            case .addMemory:
+                return .none
             }
+        }
+        .ifLet(\.$addMemory, action: \.addMemory) {
+            AddMemoryReducer()
         }
     }
 }

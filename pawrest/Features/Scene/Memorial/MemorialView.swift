@@ -16,7 +16,7 @@ struct MemorialView: View {
             VStack(spacing: 0) {
                 Spacer()
             }
-            .navigationBar(
+            .customNavigationBar(
                 store: store.scope(
                     state: \.navigationBar,
                     action: \.navigationBar

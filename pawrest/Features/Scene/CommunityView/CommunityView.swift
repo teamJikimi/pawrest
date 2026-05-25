@@ -28,7 +28,7 @@ struct CommunityView: View {
             .onTapGesture {
                 isFocused = false
             }
-            .navigationBar(
+            .customNavigationBar(
                 store: store.scope(
                     state: \.navigationBar,
                     action: \.navigationBar  

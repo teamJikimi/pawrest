@@ -13,6 +13,7 @@
 		F6CD1C7A2FB8E97E0065FFC9 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = F6CD1C792FB8E97E0065FFC9 /* ComposableArchitecture */; };
 		F6CD1E882FBCF3C70065FFC9 /* Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CD1E862FBCF3C70065FFC9 /* Local.xcconfig */; };
 		F6CD1E892FBCF3C70065FFC9 /* Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */; };
+		F6FAD4242FBEC4E100040703 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = F6FAD4232FBEC4E100040703 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +26,7 @@
 		F63F2D022FA096D500198F25 /* Exceptions for "pawrest" folder in "pawrest" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Core/Extension/PhotosPickerItem+Equatable.swift",
 				Info.plist,
 			);
 			target = 43BA8D822F7E2F8700540947 /* pawrest */;
@@ -50,6 +52,7 @@
 				43956F0D2F894E60003FDE1F /* FirebaseCore in Frameworks */,
 				43956F0F2F894EB0003FDE1F /* FirebaseAuth in Frameworks */,
 				F6CD1C7A2FB8E97E0065FFC9 /* ComposableArchitecture in Frameworks */,
+				F6FAD4242FBEC4E100040703 /* FirebaseStorage in Frameworks */,
 				43956F112F894EB7003FDE1F /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -115,6 +118,7 @@
 				43956F0E2F894EB0003FDE1F /* FirebaseAuth */,
 				43956F102F894EB7003FDE1F /* FirebaseFirestore */,
 				F6CD1C792FB8E97E0065FFC9 /* ComposableArchitecture */,
+				F6FAD4232FBEC4E100040703 /* FirebaseStorage */,
 			);
 			productName = pawrest;
 			productReference = 43BA8D832F7E2F8700540947 /* pawrest.app */;
@@ -351,7 +355,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -446,6 +450,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F6CD1C782FB8E97E0065FFC9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		F6FAD4232FBEC4E100040703 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 43956F0A2F894D2D003FDE1F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

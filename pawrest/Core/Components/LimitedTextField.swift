@@ -62,7 +62,6 @@ struct LimitedTextField: View {
                 Text("\(text.count)/\(maxCharacters)")
                     .font(.date)
                     .foregroundColor(text.count >= maxCharacters ? .pawPrimary : .gray40)
-                    .padding(.trailing, 20)
                     .padding(.top, 4)
             }
         }
