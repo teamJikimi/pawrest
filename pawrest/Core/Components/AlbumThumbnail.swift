@@ -12,6 +12,13 @@ import SwiftUI
 struct AlbumThumbnail: View {
     let title: String
     let image: UIImage?
+    let size: CGFloat
+    
+    init(title: String, image: UIImage?, size: CGFloat = 162) {
+        self.title = title
+        self.image = image
+        self.size = size
+    }
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -19,7 +26,7 @@ struct AlbumThumbnail: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 162, height: 162)
+                    .frame(width: size, height: size)
                     .clipped()
                 
                 LinearGradient(
@@ -30,10 +37,10 @@ struct AlbumThumbnail: View {
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(width: 162, height: 162)
+                .frame(width: size, height: size)
             } else {
                 AppColor.pawPrimary.color
-                    .frame(width: 162, height: 162)
+                    .frame(width: size, height: size)
             }
             
             Text(title)
@@ -43,7 +50,7 @@ struct AlbumThumbnail: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
         }
-        .frame(width: 162, height: 162)
+        .frame(width: size, height: size) 
         .cornerRadius(20)
     }
 }
