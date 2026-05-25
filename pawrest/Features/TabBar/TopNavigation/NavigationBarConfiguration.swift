@@ -9,12 +9,12 @@ import SwiftUI
 
 // MARK: - Navigation Item Types
 
-enum NavLeftItem {
+public enum NavLeftItem {
     case back
     case none
 }
 
-enum NavRightItem {
+public enum NavRightItem {
     case add
     case editMenu
     case reportMenu

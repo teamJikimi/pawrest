@@ -58,12 +58,22 @@ struct MemoryView: View {
                     albumGridView
                 }
             }
-            .navigationBar(
+            .customNavigationBar(
                 store: store.scope(
                     state: \.navigationBar,
                     action: \.navigationBar
                 )
             )
+            .fullScreenCover(
+                item: $store.scope(
+                    state: \.addMemory,
+                    action: \.addMemory
+                )
+            ) { addMemoryStore in
+                AddMemoryView(store: addMemoryStore)
+                    .toolbar(.hidden, for: .navigationBar)
+                    .navigationBarBackButtonHidden(true)
+            }
         }
         .navigationViewStyle(.stack)
         .fullScreenCover(item: $selectedAlbum) { album in

@@ -9,8 +9,8 @@ import ComposableArchitecture
 
 struct TabBarFeature: Reducer {
     
-    @ObservableState
-    struct State: Equatable {
+@ObservableState
+public struct State: Equatable {
         var selectedTab: Tab = .home
         
         enum Tab: Int, CaseIterable {
