@@ -40,12 +40,13 @@ enum AddMemoryAction: Equatable {
     case titleChanged(String)
     case contentChanged(String)
     case saveButtonTapped
-    case backButtonTapped  
 }
 
 // MARK: - Reducer
 
 struct AddMemoryReducer: Reducer {
+    @Dependency(\.dismiss) var dismiss
+    
     var body: some Reducer<AddMemoryState, AddMemoryAction> {
         Scope(state: \.navigationBar, action: \.navigationBar) {
             NavigationBarReducer()
@@ -58,7 +59,7 @@ struct AddMemoryReducer: Reducer {
         Reduce { state, action in
             switch action {
             case .navigationBar(.leftButtonTapped):
-                return .send(.backButtonTapped)
+                return .run { _ in await dismiss() }
                 
             case .navigationBar:
                 return .none
@@ -75,11 +76,9 @@ struct AddMemoryReducer: Reducer {
                 return .none
                 
             case .saveButtonTapped:
-                print(" 저장: 제목=\(state.title), 내용=\(state.content), 이미지=\(state.imageGrid.selectedImages.count)개")
-                return .none
+                print("✅ 저장: 제목=\(state.title), 내용=\(state.content), 이미지=\(state.imageGrid.selectedImages.count)개")
+                return .run { _ in await dismiss() }
                 
-            case .backButtonTapped:
-                return .none
             }
         }
     }
