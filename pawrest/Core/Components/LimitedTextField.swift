@@ -20,7 +20,7 @@ struct LimitedTextField: View {
         isFocused: FocusState<Bool>.Binding,
         placeholder: String = "떠오르는 순간을 적어보세요.\n기록은 마음을 정리하는 작은 시작이 될 수 있어요.",
         maxCharacters: Int = 1000,
-        minHeight: CGFloat = 330
+        minHeight: CGFloat = 372
     ) {
         self._text = text
         self._isFocused = isFocused
