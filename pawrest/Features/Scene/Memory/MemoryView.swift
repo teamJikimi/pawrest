@@ -42,7 +42,7 @@ struct MemoryView: View {
             content: "사진이 한 장만 있는 앨범입니다.",
             date: "2026.05.24",
             images: [
-                UIImage(named: "test3")
+                UIImage(named: "test4")
             ].compactMap { $0 }
         )
     ]
@@ -80,7 +80,7 @@ struct MemoryView: View {
     }
 }
 
-// MARK: - View
+//MARK: - Subviews Extension
 
 extension MemoryView {
     

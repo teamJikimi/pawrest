@@ -21,6 +21,16 @@ struct AlbumThumbnail: View {
                     .scaledToFill()
                     .frame(width: 162, height: 162)
                     .clipped()
+                
+                LinearGradient(
+                    stops: [
+                        .init(color: .clear, location: 0.5),
+                        .init(color: .black.opacity(0.35), location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(width: 162, height: 162)
             } else {
                 AppColor.pawPrimary.color
                     .frame(width: 162, height: 162)

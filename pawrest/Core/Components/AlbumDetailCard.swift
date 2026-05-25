@@ -24,14 +24,12 @@ struct AlbumDetailCard: View {
             
             Color.black
                 .opacity(isTextVisible ? 0.3 : 0)
-                .animation(.easeInOut(duration: 0.35), value: isTextVisible)
             
             topButtons
             
             textContent
                 .opacity(isTextVisible ? 1 : 0)
                 .offset(y: isTextVisible ? 0 : 12)
-                .animation(.easeInOut(duration: 0.35), value: isTextVisible)
         }
         .frame(width: 335, height: 446)
         .cornerRadius(20)
@@ -48,8 +46,7 @@ struct AlbumDetailCard: View {
 
 extension AlbumDetailCard {
     
-    // MARK: 카드 배경
-    
+    // 카드 배경
     private var cardBackground: some View {
         TabView {
             if images.isEmpty {
@@ -68,8 +65,7 @@ extension AlbumDetailCard {
         .tabViewStyle(.page(indexDisplayMode: .automatic))
     }
     
-    // MARK: 우측 상단 버튼들
-    
+    // 우측 상단 버튼들
     private var topButtons: some View {
         VStack {
             HStack(spacing: 2) {
@@ -104,8 +100,7 @@ extension AlbumDetailCard {
         }
     }
     
-    // MARK: 텍스트 영역
-    
+    // 텍스트 영역    
     private var textContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer()
