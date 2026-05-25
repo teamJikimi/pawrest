@@ -61,7 +61,6 @@ struct ReportMenuButton: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 10)
                     }
-                    .background(.gray10)
                     
                     if isExpanded {
                         Button(action: {
@@ -137,10 +136,6 @@ struct ReportMenuButton: View {
                 .frame(width: 160)
                 .background(Color.white)
                 .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(.gray20, lineWidth: 1)
-                )
                 .offset(x: 0, y: 50)
                 .zIndex(1000)
             }
