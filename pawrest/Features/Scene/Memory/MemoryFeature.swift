@@ -32,9 +32,6 @@ enum MemoryAction: Equatable {
 
 struct MemoryReducer: Reducer {
     var body: some Reducer<MemoryState, MemoryAction> {
-        Scope(state: \.navigationBar, action: \.navigationBar) {
-            NavigationBarReducer()
-        }
         
         Reduce { state, action in
             switch action {
@@ -45,7 +42,11 @@ struct MemoryReducer: Reducer {
             case .navigationBar:
                 return .none
                 
-            case .addMemory(.presented(.navigationBar(.leftButtonTapped))):
+            case .addMemory(.presented(.backButtonTapped)):
+                state.addMemory = nil
+                return .none
+                
+            case .addMemory(.presented(.saveButtonTapped)):
                 state.addMemory = nil
                 return .none
                 
@@ -55,6 +56,10 @@ struct MemoryReducer: Reducer {
         }
         .ifLet(\.$addMemory, action: \.addMemory) {
             AddMemoryReducer()
+        }
+        
+        Scope(state: \.navigationBar, action: \.navigationBar) {
+            NavigationBarReducer()
         }
     }
 }

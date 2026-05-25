@@ -25,7 +25,8 @@ struct AddMemoryState: Equatable {
     
     var isSaveButtonEnabled: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+        !imageGrid.selectedImages.isEmpty
     }
 }
 
@@ -39,6 +40,7 @@ enum AddMemoryAction: Equatable {
     case titleChanged(String)
     case contentChanged(String)
     case saveButtonTapped
+    case backButtonTapped  
 }
 
 // MARK: - Reducer
@@ -56,7 +58,7 @@ struct AddMemoryReducer: Reducer {
         Reduce { state, action in
             switch action {
             case .navigationBar(.leftButtonTapped):
-                return .none
+                return .send(.backButtonTapped)
                 
             case .navigationBar:
                 return .none
@@ -73,7 +75,10 @@ struct AddMemoryReducer: Reducer {
                 return .none
                 
             case .saveButtonTapped:
-                print("저장하기")
+                print(" 저장: 제목=\(state.title), 내용=\(state.content), 이미지=\(state.imageGrid.selectedImages.count)개")
+                return .none
+                
+            case .backButtonTapped:
                 return .none
             }
         }
