@@ -11,7 +11,7 @@ import SwiftData
 // MARK: - Memory Detail View
 
 struct MemoryDetailView: View {
-    let album: MemoryAlbum
+    let album: MemoryModel
     let onClose: () -> Void
     
     @Environment(\.modelContext) private var modelContext
