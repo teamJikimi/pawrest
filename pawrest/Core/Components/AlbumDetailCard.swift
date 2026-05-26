@@ -15,6 +15,8 @@ struct AlbumDetailCard: View {
     let title: String
     let content: String
     let onClose: () -> Void
+    let onEdit: () -> Void
+    let onDelete: () -> Void
 
     @State private var isTextVisible: Bool = false
     
@@ -73,12 +75,8 @@ extension AlbumDetailCard {
             
                 EditMenuButton(
                     icon: .iconEllipsis,
-                    onEdit: {
-                        print("수정하기")
-                    },
-                    onDelete: {
-                        print("삭제하기")
-                    }
+                    onEdit: onEdit,
+                    onDelete: onDelete  
                 )
                 .foregroundStyle(.white)
                 
@@ -100,7 +98,7 @@ extension AlbumDetailCard {
         }
     }
     
-    // 텍스트 영역
+    // 텍스트 영역    
     private var textContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer()

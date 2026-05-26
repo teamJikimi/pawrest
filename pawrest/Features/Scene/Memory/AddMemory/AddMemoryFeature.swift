@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 import ComposableArchitecture
 
 // MARK: - State
@@ -40,6 +41,22 @@ enum AddMemoryAction: Equatable {
     case titleChanged(String)
     case contentChanged(String)
     case saveButtonTapped
+    
+    case delegate(Delegate)
+    
+    @CasePathable
+    enum Delegate: Equatable {
+        case save(title: String, content: String, images: [UIImage])
+    
+        static func == (lhs: Delegate, rhs: Delegate) -> Bool {
+            switch (lhs, rhs) {
+            case let (.save(lTitle, lContent, lImages), .save(rTitle, rContent, rImages)):
+                return lTitle == rTitle &&
+                       lContent == rContent &&
+                       lImages.count == rImages.count
+            }
+        }
+    }
 }
 
 // MARK: - Reducer
@@ -76,9 +93,12 @@ struct AddMemoryReducer: Reducer {
                 return .none
                 
             case .saveButtonTapped:
-                print("✅ 저장: 제목=\(state.title), 내용=\(state.content), 이미지=\(state.imageGrid.selectedImages.count)개")
-                return .run { _ in await dismiss() }
+                return .run { _ in
+                    await dismiss()
+                }
                 
+            case .delegate:
+                return .none
             }
         }
     }
