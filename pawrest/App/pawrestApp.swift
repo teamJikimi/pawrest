@@ -7,9 +7,7 @@
 
 import SwiftUI
 import SwiftData
-
 import FirebaseCore
-
 import ComposableArchitecture
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -27,7 +25,10 @@ struct pawrestApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Item.self])
+        let schema = Schema([
+            Item.self,
+            MemoryAlbum.self
+        ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])
     }()
@@ -38,5 +39,6 @@ struct pawrestApp: App {
                 TabBarFeature()
             })
         }
+        .modelContainer(sharedModelContainer) 
     }
 }
