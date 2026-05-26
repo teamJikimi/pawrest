@@ -11,12 +11,12 @@ import ComposableArchitecture
 
 struct MemoryView: View {
     @Bindable var store: StoreOf<MemoryReducer>
-    @State private var selectedAlbum: MemoryAlbum? = nil
+    @State private var selectedAlbum: MemoryModel? = nil
     
     @Environment(\.modelContext) private var modelContext
     
-    @Query(sort: \MemoryAlbum.date, order: .reverse)
-    private var albums: [MemoryAlbum]
+    @Query(sort: \MemoryModel.date, order: .reverse)
+    private var albums: [MemoryModel]
     
     private func calculateCardSize(screenWidth: CGFloat) -> CGFloat {
         let horizontalPadding: CGFloat = 20 * 2
@@ -49,7 +49,7 @@ struct MemoryView: View {
                     .toolbar(.hidden, for: .navigationBar)
                     .navigationBarBackButtonHidden(true)
                     .environment(\.saveMemory) { title, content, images in
-                        let album = MemoryAlbum(
+                        let album = MemoryModel(
                             title: title,
                             content: content,
                             date: Date(),

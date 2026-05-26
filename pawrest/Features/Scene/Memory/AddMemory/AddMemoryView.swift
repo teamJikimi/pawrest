@@ -115,7 +115,7 @@ extension AddMemoryView {
     // MARK: - Actions
     
     private func saveMemory() {
-        let album = MemoryAlbum(
+        let album = MemoryModel(
             title: store.title,
             content: store.content,
             date: Date(),
