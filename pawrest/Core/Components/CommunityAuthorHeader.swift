@@ -30,6 +30,8 @@ struct CommunityAuthorHeader: View {
         }
     }
     
+    //MARK: - Subviews
+    
     @ViewBuilder
     private var profileImage: some View {
         if let urlString = author.profileImageURL,
@@ -49,7 +51,7 @@ struct CommunityAuthorHeader: View {
     }
     
     private var defaultProfileImage: some View {
-        Image(.profileDefault)
+        Image(.profileLarge)
             .resizable()
             .scaledToFill()
             .frame(width: profileSize, height: profileSize)
