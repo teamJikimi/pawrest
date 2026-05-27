@@ -9,6 +9,8 @@ import SwiftUI
 
 struct CommunityLikeCommentBar: View {
     
+    //MARK: - properties
+    
     enum Size {
         case large // -> 글 상세보기
         case small // -> 커뮤니티 메인(썸네일 카드), 나의 글 관리
@@ -23,32 +25,38 @@ struct CommunityLikeCommentBar: View {
     var showsCount: Bool = true
     var onLikeTapped: () -> Void = {}
     
+    //MARK: - body
+    
     var body: some View{
         HStack(spacing: groupSpacing) {
             likeButton
             commentLabel
         }
     }
-    
-    //MARK: - Subviews
+}
+
+//MARK: - Subviews
+
+private extension CommunityLikeCommentBar {
     
     private var likeButton: some View {
-            Button(action: onLikeTapped) {
-                HStack(spacing: 4) {
-                    Image(heartIcon)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: iconSize, height: iconSize)
-
-                    if showsCount {
-                        Text("\(likeCount)")
-                            .typography(countFont)
-                            .foregroundColor(.gray50)
-                    }
+        Button(action: onLikeTapped) {
+            
+            HStack(spacing: 4) {
+                Image(heartIcon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: iconSize, height: iconSize)
+                
+                if showsCount {
+                    Text("\(likeCount)")
+                        .typography(countFont)
+                        .foregroundColor(.gray50)
                 }
             }
-            .buttonStyle(.plain)
         }
+        .buttonStyle(.plain)
+    }
     
     private var commentLabel: some View {
         HStack(spacing: 4) {
@@ -61,22 +69,25 @@ struct CommunityLikeCommentBar: View {
                 Text("\(commentCount)")
                     .typography(countFont)
                     .foregroundColor(.gray50)
-                }
             }
         }
+    }
+}
 
-        // MARK: - Helper
+// MARK: - Helper
+
+private extension CommunityLikeCommentBar {
     
-    private var groupSpacing: CGFloat {
+    var groupSpacing: CGFloat {
         switch size {
         case .large: return 12
         case .small:
             let hasAnyCount = showsCount && (likeCount > 0 || commentCount > 0)
-                        return hasAnyCount ? 8 : 12
+            return hasAnyCount ? 8 : 12
         }
     }
-
-    private var heartIcon: ImageResource {
+    
+    var heartIcon: ImageResource {
         switch (size, isLiked) {
         case (.large, true):  return .iconHeartLargeActive
         case (.large, false): return .iconHeartLargeDefault
@@ -84,17 +95,16 @@ struct CommunityLikeCommentBar: View {
         case (.small, false): return .iconHeartSmallDefault
         }
     }
-
-    private var commentIcon: ImageResource {
+    
+    var commentIcon: ImageResource {
         size == .large ? .iconCommentLarge : .iconCommentSmall
     }
-
-    private var iconSize: CGFloat {
+    
+    var iconSize: CGFloat {
         size == .large ? 24 : 18
     }
-
-    private var countFont: AppTypography {
+    
+    var countFont: AppTypography {
         .body2R1
     }
-
 }
