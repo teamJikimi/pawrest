@@ -8,9 +8,14 @@
 import SwiftUI
 
 struct CommunityAuthorHeader: View {
+    
+    //MARK: - Properties
+    
     let author: Author
     let date: Date
     var profileSize: CGFloat = 32
+    
+    //MARK: - Bbody
     
     var body: some View {
         HStack(spacing: 8) {
@@ -29,11 +34,15 @@ struct CommunityAuthorHeader: View {
             Spacer(minLength: 0)
         }
     }
-    
+}
+
     //MARK: - Subviews
+
+private extension CommunityAuthorHeader {
     
     @ViewBuilder
-    private var profileImage: some View {
+    
+    var profileImage: some View {
         if let urlString = author.profileImageURL,
            let url = URL(string: urlString) {
             AsyncImage(url: url) { image in
@@ -45,12 +54,13 @@ struct CommunityAuthorHeader: View {
             }
             .frame(width: profileSize, height: profileSize)
             .clipShape(Circle())
+            
         } else {
             defaultProfileImage
         }
     }
     
-    private var defaultProfileImage: some View {
+    var defaultProfileImage: some View {
         Image(.profileLarge)
             .resizable()
             .scaledToFill()
@@ -58,7 +68,13 @@ struct CommunityAuthorHeader: View {
             .clipShape(Circle())
     }
     
-    private static let dateFormatter: DateFormatter = {
+}
+
+// MARK: - helpers
+
+private extension CommunityAuthorHeader {
+    
+    static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MM/dd HH:mm"
         return formatter
