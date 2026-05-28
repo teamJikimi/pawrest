@@ -13,28 +13,25 @@ struct CommunityView: View {
     @FocusState private var isFocused: Bool
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                LimitedTextField(
-                    text: Binding(
-                        get: { store.text },
-                        set: { store.send(.textChanged($0)) }
-                    ),
-                    isFocused: $isFocused
-                )
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-            }
-            .onTapGesture {
-                isFocused = false
-            }
-            .customNavigationBar(
-                store: store.scope(
-                    state: \.navigationBar,
-                    action: \.navigationBar  
-                )
+        ScrollView {
+            LimitedTextField(
+                text: Binding(
+                    get: { store.text },
+                    set: { store.send(.textChanged($0)) }
+                ),
+                isFocused: $isFocused
             )
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
         }
-        .navigationViewStyle(.stack)
+        .onTapGesture {
+            isFocused = false
+        }
+        .customNavigationBar(
+            store: store.scope(
+                state: \.navigationBar,
+                action: \.navigationBar
+            )
+        )
     }
 }
