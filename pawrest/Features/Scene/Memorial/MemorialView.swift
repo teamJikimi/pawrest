@@ -12,17 +12,14 @@ struct MemorialView: View {
     @Bindable var store: StoreOf<MemorialReducer>
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                Spacer()
-            }
-            .customNavigationBar(
-                store: store.scope(
-                    state: \.navigationBar,
-                    action: \.navigationBar
-                )
-            )
+        VStack(spacing: 0) {
+            Spacer()
         }
-        .navigationViewStyle(.stack)
+        .customNavigationBar(
+            store: store.scope(
+                state: \.navigationBar,
+                action: \.navigationBar
+            )
+        )
     }
 }
