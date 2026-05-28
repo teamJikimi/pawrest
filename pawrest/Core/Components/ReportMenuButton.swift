@@ -11,6 +11,8 @@ import SwiftUI
 
 struct ReportMenuButton: View {
     let icon: ImageResource
+    var size: MenuButtonStyle = .defaultStyle
+    
     let onBoardSettings: () -> Void
     let onReportAbuse: () -> Void
     let onReportSpam: () -> Void
@@ -30,10 +32,10 @@ struct ReportMenuButton: View {
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: size.iconSize, height: size.iconSize)
                 .foregroundStyle(Color.gray80)
         }
-        .frame(width: 44, height: 44)
+        .frame(width: size.buttonSize, height: size.buttonSize)
         .overlay(alignment: .topTrailing) {
             if isShowingMenu {
                 VStack(spacing: 0) {
@@ -138,9 +140,10 @@ struct ReportMenuButton: View {
                 .frame(width: 160)
                 .background(Color.white)
                 .cornerRadius(10)
-                .offset(x: 0, y: 50)
+                .offset(x: 0, y: size.buttonSize + 6)
                 .zIndex(1000)
             }
         }
+        .zIndex(isShowingMenu ? 1000 : 0)
     }
 }
