@@ -64,6 +64,7 @@ struct CommunityCard: View {
 // MARK: - Subviews
 
 private extension CommunityCard {
+    
     var contentSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(post.title)
@@ -87,6 +88,7 @@ private extension CommunityCard {
                     image
                         .resizable()
                         .scaledToFill()
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 } placeholder: {
                     Rectangle()
                         .fill(.gray10)
@@ -119,4 +121,5 @@ private extension CommunityCard {
             .frame(height: 1)
             .frame(maxWidth: .infinity)
     }
+    
 }
