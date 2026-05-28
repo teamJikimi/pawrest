@@ -54,13 +54,13 @@ struct NavigationBarReducer: Reducer {
         Reduce { state, action in
             switch action {
             case .leftButtonTapped,
-                 .rightButtonTapped,
-                 .editTapped,
-                 .deleteTapped,
-                 .reportBoardSettings,
-                 .reportAbuse,
-                 .reportSpam,
-                 .blockTapped:
+                    .rightButtonTapped,
+                    .editTapped,
+                    .deleteTapped,
+                    .reportBoardSettings,
+                    .reportAbuse,
+                    .reportSpam,
+                    .blockTapped:
                 return .none
             }
         }
@@ -105,9 +105,11 @@ struct NavigationBarView: View {
                     .scaledToFit()
                     .frame(width: 24, height: 24)
             }
+            .frame(width: 44, height: 44)
             
         case .none:
-            Spacer()
+            Color.clear
+                .frame(width: 44, height: 44)
         }
     }
     
@@ -123,6 +125,7 @@ struct NavigationBarView: View {
                     .scaledToFit()
                     .frame(width: 24, height: 24)
             }
+            .frame(width: 44, height: 44)
             
         case .editMenu:
             EditMenuButton(
@@ -130,6 +133,7 @@ struct NavigationBarView: View {
                 onEdit: { store.send(.editTapped) },
                 onDelete: { store.send(.deleteTapped) }
             )
+            .frame(width: 44, height: 44)
             
         case .reportMenu:
             ReportMenuButton(
@@ -139,9 +143,11 @@ struct NavigationBarView: View {
                 onReportSpam: { store.send(.reportSpam) },
                 onBlock: { store.send(.blockTapped) }
             )
+            .frame(width: 44, height: 44)
             
         case .none:
-            Spacer()
+            Color.clear
+                .frame(width: 44, height: 44)
         }
     }
 }

@@ -21,6 +21,7 @@ struct EditMenuButton: View {
             isShowingMenu.toggle()
         }) {
             Image(icon)
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 24, height: 24)
