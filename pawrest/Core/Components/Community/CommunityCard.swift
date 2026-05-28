@@ -48,7 +48,7 @@ struct CommunityCard: View {
         
         .background(.gray0)
         
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .cornerRadius(20, corners: .allCorners)
         
         .overlay{
             RoundedRectangle(cornerRadius: 20)
