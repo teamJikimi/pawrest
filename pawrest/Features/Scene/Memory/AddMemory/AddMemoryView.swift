@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 import Photos
 
 struct AddMemoryView: View {
     @Bindable var store: StoreOf<AddMemoryReducer>
     @FocusState private var isFocused: Bool
+    
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
         VStack(spacing: 0) {
@@ -39,6 +42,9 @@ struct AddMemoryView: View {
                 action: \.navigationBar
             )
         )
+        .onChange(of: store.state) { oldValue, newValue in
+            // saveButtonTapped 직후 처리를 위한 onChange
+        }
     }
 }
 
@@ -92,7 +98,7 @@ extension AddMemoryView {
     
     private var saveButton: some View {
         Button {
-            store.send(.saveButtonTapped)
+            saveMemory()
         } label: {
             Text("저장하기")
                 .typography(.button)
@@ -104,6 +110,29 @@ extension AddMemoryView {
         }
         .disabled(!store.isSaveButtonEnabled)
         .padding(.bottom, 20)
+    }
+    
+    // MARK: - Actions
+    
+    private func saveMemory() {
+        let album = MemoryModel(
+            title: store.title,
+            content: store.content,
+            date: Date(),
+            images: store.imageGrid.selectedImages
+        )
+        
+        modelContext.insert(album)
+        
+        do {
+            try modelContext.save()
+            print("✅ 저장 성공: \(album.title)")
+            
+            // TCA의 dismiss로 화면 닫기
+            store.send(.saveButtonTapped)
+        } catch {
+            print("❌ 저장 실패: \(error)")
+        }
     }
     
     // MARK: - Photo Library Permission
