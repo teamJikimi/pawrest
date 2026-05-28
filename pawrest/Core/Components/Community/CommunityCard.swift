@@ -43,9 +43,8 @@ struct CommunityCard: View {
             )
             .padding(.top, 12)
         }
-        .padding(.top, 20)
+        .padding(.vertical, 20)
         .padding(.horizontal, 16)
-        .padding(.bottom, 20)
         
         .background(.gray0)
         
