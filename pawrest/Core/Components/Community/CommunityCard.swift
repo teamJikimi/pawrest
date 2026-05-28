@@ -43,6 +43,7 @@ struct CommunityCard: View {
             )
             .padding(.top, 12)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 20)
         .padding(.horizontal, 16)
         
