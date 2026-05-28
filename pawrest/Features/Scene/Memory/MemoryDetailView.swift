@@ -6,16 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
 
 // MARK: - Memory Detail View
 
 struct MemoryDetailView: View {
-    let images: [UIImage]
-    let date: String
-    let title: String
-    let content: String
-    
+    let album: MemoryModel
     let onClose: () -> Void
+    
+    @Environment(\.modelContext) private var modelContext
+    @State private var showDeleteAlert = false
     
     var body: some View {
         ZStack {
@@ -26,16 +26,44 @@ struct MemoryDetailView: View {
                 }
             
             AlbumDetailCard(
-                images: images,
-                date: date,
-                title: title,
-                content: content,
+                images: album.images,
+                date: {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "yyyy.MM.dd"
+                    return formatter.string(from: album.date)
+                }(),
+                title: album.title,
+                content: album.content,
                 onClose: {
                     onClose()
+                },
+                onEdit: {
+                    print("수정하기")
+                },
+                onDelete: {
+                    showDeleteAlert = true
                 }
             )
         }
+        .alert("삭제하시겠습니까?", isPresented: $showDeleteAlert) {
+            Button("취소", role: .cancel) { }
+            Button("확인") {
+                deleteMemory()
+            }
+        }
+    }
+    
+    // MARK: - Actions
+    
+    private func deleteMemory() {
+        modelContext.delete(album)
+        
+        do {
+            try modelContext.save()
+            print("삭제 성공: \(album.title)")
+            onClose()
+        } catch {
+            print("삭제 실패: \(error)")
+        }
     }
 }
-
-
