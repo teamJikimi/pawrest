@@ -23,7 +23,7 @@ extension Font {
     static let button = Font.system(size: 14, weight: .semibold)
 
     // MARK: Body1 (14px)
-    static let body1Accent = Font.system(size: 14, weight: .regular)
+    static let body1Accent = Font.system(size: 14, weight: .semibold)
     static let body1M      = Font.system(size: 14, weight: .regular)
     static let body1R      = Font.system(size: 14, weight: .regular)
 
