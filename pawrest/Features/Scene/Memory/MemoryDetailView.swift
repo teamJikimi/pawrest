@@ -27,7 +27,11 @@ struct MemoryDetailView: View {
             
             AlbumDetailCard(
                 images: album.images,
-                date: album.date.formatted(date: .abbreviated, time: .omitted),
+                date: {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "yyyy.MM.dd"
+                    return formatter.string(from: album.date)
+                }(),
                 title: album.title,
                 content: album.content,
                 onClose: {
