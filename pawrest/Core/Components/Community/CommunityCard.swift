@@ -30,7 +30,7 @@ struct CommunityCard: View {
                     .padding(.top, 12)
             }
             
-            divider
+            CommunityDivider()
                 .padding(.top, 18)
             
             CommunityLikeCommentBar(
@@ -113,13 +113,6 @@ private extension CommunityCard {
                 .foregroundColor(.gray0)
         }
         .padding(16)
-    }
-
-    var divider: some View {
-        Rectangle()
-            .fill(.gray20)
-            .frame(height: 1)
-            .frame(maxWidth: .infinity)
     }
     
 }
