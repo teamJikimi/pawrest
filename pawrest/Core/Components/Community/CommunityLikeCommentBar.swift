@@ -81,9 +81,7 @@ private extension CommunityLikeCommentBar {
     var groupSpacing: CGFloat {
         switch size {
         case .large: return 12
-        case .small:
-            let hasAnyCount = showsCount && (likeCount > 0 || commentCount > 0)
-            return hasAnyCount ? 8 : 12
+        case .small: return 8
         }
     }
     
