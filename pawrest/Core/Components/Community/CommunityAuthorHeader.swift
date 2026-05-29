@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+enum CommunityAuthorNameStyle {
+    case card
+    case comment
+}
+
 struct CommunityAuthorHeader: View {
     
     //MARK: - Properties
@@ -14,6 +19,8 @@ struct CommunityAuthorHeader: View {
     let author: Author
     let date: Date
     var profileSize: CGFloat = 32
+    var nameStyle: CommunityAuthorNameStyle = .card
+    
     
     //MARK: - Bbody
     
@@ -22,9 +29,7 @@ struct CommunityAuthorHeader: View {
             profileImage
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(author.name)
-                    .typography(.body2Accent)
-                    .foregroundColor(.gray80)
+                authorName
                 
                 Text(date, formatter: Self.dateFormatter)
                     .typography(.date)
@@ -41,7 +46,20 @@ struct CommunityAuthorHeader: View {
 private extension CommunityAuthorHeader {
     
     @ViewBuilder
+    var authorName: some View {
+        switch nameStyle {
+        case .card:
+            Text(author.name)
+                .typography(.body2Accent)
+                .foregroundColor(.gray80)
+        case .comment:
+            Text(author.name)
+                .typography(.body3Accent)
+                .foregroundColor(.gray80)
+        }
+    }
     
+    @ViewBuilder
     var profileImage: some View {
         if let urlString = author.profileImageURL,
            let url = URL(string: urlString) {
