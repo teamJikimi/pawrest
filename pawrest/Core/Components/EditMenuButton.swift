@@ -66,7 +66,7 @@ struct EditMenuButton: View {
                             Image(.iconEdit)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 24, height: 24)
+                                .frame(width: size.iconSize, height: size.iconSize)
                                 .foregroundColor(.gray80)
                         }
                         .padding(.horizontal, 12)
@@ -87,7 +87,7 @@ struct EditMenuButton: View {
                             Image(.iconDelete)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 24, height: 24)
+                                .frame(width: size.iconSize, height: size.iconSize)
                                 .foregroundColor(.gray80)
                         }
                         .padding(.horizontal, 12)
