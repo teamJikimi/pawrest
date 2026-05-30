@@ -19,6 +19,7 @@ struct AlbumDetailCard: View {
     let onDelete: () -> Void
 
     @State private var isTextVisible: Bool = false
+    @State private var currentIndex: Int = 0
     
     var body: some View {
         ZStack {
@@ -48,26 +49,46 @@ struct AlbumDetailCard: View {
 
 extension AlbumDetailCard {
     
-    // 카드 배경
     private var cardBackground: some View {
-        TabView {
+        ZStack {
             if images.isEmpty {
                 AppColor.pawPrimary.color
                     .frame(width: 335, height: 446)
             } else {
-                ForEach(images.indices, id: \.self) { index in
-                    Image(uiImage: images[index])
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 335, height: 446)
-                        .clipped()
+                TabView(selection: $currentIndex) {
+                    ForEach(images.indices, id: \.self) { index in
+                        Image(uiImage: images[index])
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 335, height: 446)
+                            .clipped()
+                            .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                
+                if images.count > 1 {
+                    VStack {
+                        Spacer()
+                        HStack(spacing: 3) {
+                            ForEach(images.indices, id: \.self) { index in
+                                Circle()
+                                    .fill(index == currentIndex
+                                          ? AppColor.pawPrimary.color
+                                          : Color.white.opacity(0.5))
+                                    .frame(width: 6, height: 6)
+                                    .animation(.easeInOut(duration: 0.2), value: currentIndex)
+                            }
+                        }
+                        .padding(.bottom, 16)
+                    }
+                    .opacity(isTextVisible ? 0 : 1)
+                    .animation(.easeInOut(duration: 0.35), value: isTextVisible)
                 }
             }
         }
-        .tabViewStyle(.page(indexDisplayMode: .automatic))
     }
     
-    // 우측 상단 버튼들
     private var topButtons: some View {
         VStack {
             HStack(spacing: 2) {
@@ -75,10 +96,10 @@ extension AlbumDetailCard {
             
                 EditMenuButton(
                     icon: .iconEllipsis,
+                    iconColor: .white,
                     onEdit: onEdit,
-                    onDelete: onDelete  
+                    onDelete: onDelete
                 )
-                .foregroundStyle(.white)
                 
                 Button {
                     onClose()
@@ -98,7 +119,6 @@ extension AlbumDetailCard {
         }
     }
     
-    // 텍스트 영역    
     private var textContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer()
@@ -137,3 +157,4 @@ extension AlbumDetailCard {
         .padding(.bottom, 20)
     }
 }
+
