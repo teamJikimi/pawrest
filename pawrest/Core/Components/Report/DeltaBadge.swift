@@ -9,31 +9,38 @@ import SwiftUI
 
 public struct DeltaBadge: View {
     let delta: Int
-
-    private var icon: String {
+    
+    private var icon: Image {
         switch delta {
-        case ..<0: return "arrowtriangle.down.fill"
-        case 1...: return "arrowtriangle.up.fill"
-        default:   return "minus"
+        case ..<0: return Image(.iconDownArrow)
+        case 1...: return Image(.iconUpArrow)
+        default:   return Image(systemName: "minus")
         }
     }
-
+    
     private var displayColor: Color {
         switch delta {
-        case ..<0: return Color(.pawPrimary)
-        case 1...: return Color(.danger)
-        default:   return Color(.gray30)
+        case ..<0: return .pawPrimary
+        case 1...: return .danger
+        default:   return .gray50
         }
     }
-
+    
     private var displayBackground: Color {
-        displayColor.opacity(0.15)
+        switch delta {
+        case ..<0: return .primaryLight
+        case 1...: return .dangerLight
+        default:   return .gray20
+        }
     }
-
+    
     public var body: some View {
         HStack(spacing: 3) {
-            Image(systemName: icon)
-                .font(.system(size: 10))
+            icon
+                .resizable()
+                .scaledToFit()
+                .frame(width: 12, height: 8)
+            
             Text(delta == 0 ? "0점" : "\(abs(delta))점")
                 .typography(.date)
         }
