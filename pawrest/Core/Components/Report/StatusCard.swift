@@ -13,21 +13,22 @@ struct StatusCard: View {
     let score: Int
     let maxScore: Int
     let previousScore: Int
+    let previousDate: Date
     let scaleType: ScaleType
-    
+
     private var riskLevel: RiskLevel {
         scaleType.riskLevel(for: score)
     }
-    
+
     private var progress: Double {
         guard maxScore > 0 else { return 0 }
         return min(Double(score) / Double(maxScore), 1.0)
     }
-    
+
     private var scoreDelta: Int {
         score - previousScore
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             headerRow
@@ -42,7 +43,7 @@ struct StatusCard: View {
     }
 }
 
-//MARK: - Subviews
+// MARK: - Subviews
 
 private extension StatusCard {
     var headerRow: some View {
@@ -59,7 +60,7 @@ private extension StatusCard {
             RiskBadge(level: riskLevel)
         }
     }
-    
+
     var scoreRow: some View {
         HStack(alignment: .firstTextBaseline, spacing: 2) {
             Spacer()
@@ -72,7 +73,7 @@ private extension StatusCard {
                 .foregroundStyle(.gray50)
         }
     }
-    
+
     var progressBar: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
@@ -86,21 +87,20 @@ private extension StatusCard {
         }
         .frame(height: 10)
     }
-    
-    var previousScoreRow: some View {
-            HStack {
-                Text("이전 검사")
-                    .typography(.date)
-                    .foregroundStyle(.gray60)
-                Text(date)
-                    .typography(.date)
-                    .foregroundStyle(.gray40)
-                Spacer()
-                DeltaBadge(delta: scoreDelta)
-            }
-        }
-}
 
+    var previousScoreRow: some View {
+        HStack {
+            Text("이전 검사")
+                .typography(.date)
+                .foregroundStyle(.gray60)
+            Text(previousDate.formattedRelative)
+                .typography(.date)
+                .foregroundStyle(.gray40)
+            Spacer()
+            DeltaBadge(delta: scoreDelta)
+        }
+    }
+}
 
 // MARK: - Preview
 
@@ -112,6 +112,7 @@ private extension StatusCard {
             score: 38,
             maxScore: 60,
             previousScore: 48,
+            previousDate: Calendar.current.date(byAdding: .month, value: -1, to: Date())!,
             scaleType: .pbq
         )
         StatusCard(
@@ -120,6 +121,7 @@ private extension StatusCard {
             score: 18,
             maxScore: 60,
             previousScore: 18,
+            previousDate: Calendar.current.date(byAdding: .year, value: -1, to: Date())!,
             scaleType: .cesd
         )
         StatusCard(
@@ -128,7 +130,17 @@ private extension StatusCard {
             score: 8,
             maxScore: 51,
             previousScore: 18,
+            previousDate: Calendar.current.date(byAdding: .month, value: -3, to: Date())!,
             scaleType: .pds
+        )
+        StatusCard(
+            title: "PBQ 펫로스 심리 척도",
+            date: "2026.05.31",
+            score: 50,
+            maxScore: 60,
+            previousScore: 40,
+            previousDate: Calendar.current.date(byAdding: .year, value: -2, to: Date())!,
+            scaleType: .pbq
         )
     }
     .padding()
