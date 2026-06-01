@@ -25,45 +25,42 @@ struct MemoryView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack {
-                if albums.isEmpty {
-                    emptyView
-                } else {
-                    albumGridView
-                }
-            }
-            .customNavigationBar(
-                store: store.scope(
-                    state: \.navigationBar,
-                    action: \.navigationBar
-                )
-            )
-            .fullScreenCover(
-                item: $store.scope(
-                    state: \.addMemory,
-                    action: \.addMemory
-                )
-            ) { addMemoryStore in
-                AddMemoryView(store: addMemoryStore)
-                    .toolbar(.hidden, for: .navigationBar)
-                    .navigationBarBackButtonHidden(true)
-                    .environment(\.saveMemory) { title, content, images in
-                        let album = MemoryModel(
-                            title: title,
-                            content: content,
-                            date: Date(),
-                            images: images
-                        )
-                        modelContext.insert(album)
-                        try? modelContext.save()
-                    }
+        VStack {
+            if albums.isEmpty {
+                emptyView
+            } else {
+                albumGridView
             }
         }
-        .navigationViewStyle(.stack)
+        .customNavigationBar(
+            store: store.scope(
+                state: \.navigationBar,
+                action: \.navigationBar
+            )
+        )
+        .fullScreenCover(
+            item: $store.scope(
+                state: \.addMemory,
+                action: \.addMemory
+            )
+        ) { addMemoryStore in
+            AddMemoryView(store: addMemoryStore)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+                .environment(\.saveMemory) { title, content, images in
+                    let album = MemoryModel(
+                        title: title,
+                        content: content,
+                        date: Date(),
+                        images: images
+                    )
+                    modelContext.insert(album)
+                    try? modelContext.save()
+                }
+        }
         .fullScreenCover(item: $selectedAlbum) { album in
             MemoryDetailView(
-                album: album,  
+                album: album,
                 onClose: {
                     selectedAlbum = nil
                 }

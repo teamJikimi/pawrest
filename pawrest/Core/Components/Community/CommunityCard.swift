@@ -30,7 +30,7 @@ struct CommunityCard: View {
                     .padding(.top, 12)
             }
             
-            divider
+            CommunityDivider()
                 .padding(.top, 18)
             
             CommunityLikeCommentBar(
@@ -43,12 +43,13 @@ struct CommunityCard: View {
             )
             .padding(.top, 12)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 20)
         .padding(.horizontal, 16)
         
         .background(.gray0)
         
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .cornerRadius(20, corners: .allCorners)
         
         .overlay{
             RoundedRectangle(cornerRadius: 20)
@@ -63,6 +64,7 @@ struct CommunityCard: View {
 // MARK: - Subviews
 
 private extension CommunityCard {
+    
     var contentSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(post.title)
@@ -86,6 +88,7 @@ private extension CommunityCard {
                     image
                         .resizable()
                         .scaledToFill()
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 } placeholder: {
                     Rectangle()
                         .fill(.gray10)
@@ -111,11 +114,5 @@ private extension CommunityCard {
         }
         .padding(16)
     }
-
-    var divider: some View {
-        Rectangle()
-            .fill(.gray20)
-            .frame(height: 1)
-            .frame(maxWidth: .infinity)
-    }
+    
 }

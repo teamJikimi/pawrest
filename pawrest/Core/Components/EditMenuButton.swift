@@ -7,10 +7,31 @@
 
 import SwiftUI
 
+enum MenuButtonStyle {
+    case defaultStyle
+    case comment
+    
+    var iconSize: CGFloat {
+        switch self {
+        case .defaultStyle: return 24
+        case .comment: return 16
+        }
+    }
+    
+    var buttonSize: CGFloat {
+        switch self {
+        case .defaultStyle: return 44
+        case .comment: return 16
+        }
+    }
+}
+
 // MARK: - Edit Menu Button
 
 struct EditMenuButton: View {
     let icon: ImageResource
+    var size: MenuButtonStyle = .defaultStyle
+    
     let onEdit: () -> Void
     let onDelete: () -> Void
     
@@ -24,9 +45,10 @@ struct EditMenuButton: View {
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: size.iconSize, height: size.iconSize)
+                .foregroundStyle(.gray80)
         }
-        .frame(width: 44, height: 44)
+        .frame(width: size.buttonSize, height: size.buttonSize)
         .overlay(alignment: .topTrailing) {
             if isShowingMenu {
                 VStack(spacing: 0) {
@@ -44,7 +66,7 @@ struct EditMenuButton: View {
                             Image(.iconEdit)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 24, height: 24)
+                                .frame(width: size.iconSize, height: size.iconSize)
                                 .foregroundColor(.gray80)
                         }
                         .padding(.horizontal, 12)
@@ -65,7 +87,7 @@ struct EditMenuButton: View {
                             Image(.iconDelete)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 24, height: 24)
+                                .frame(width: size.iconSize, height: size.iconSize)
                                 .foregroundColor(.gray80)
                         }
                         .padding(.horizontal, 12)
@@ -79,9 +101,10 @@ struct EditMenuButton: View {
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(.gray20, lineWidth: 1)
                 )
-                .offset(x: 0, y: 50)
+                .offset(x: 0, y: size.buttonSize + 6)
                 .zIndex(1000)
             }
         }
+        .zIndex(isShowingMenu ? 1000 : 0)
     }
 }
