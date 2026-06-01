@@ -144,7 +144,7 @@ struct ReportMenuButton: View {
                 }
                 .frame(width: 160)
                 .background(Color.white)
-                .cornerRadius(10)
+                .cornerRadius(10, corners: .allCorners)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(.gray20, lineWidth: 1)
