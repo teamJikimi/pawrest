@@ -34,7 +34,7 @@ struct AlbumDetailCard: View {
                 .offset(y: isTextVisible ? 0 : 12)
         }
         .frame(width: 335, height: 446)
-        .cornerRadius(20)
+        .cornerRadius(20, corners: .allCorners)
         .contentShape(Rectangle())
         .onTapGesture {
             withAnimation(.easeInOut(duration: 0.35)) {
