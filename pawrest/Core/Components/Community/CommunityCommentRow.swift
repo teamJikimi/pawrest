@@ -28,11 +28,16 @@ struct CommunityCommentRow: View {
     var isMyComment: Bool = false
     let onAction: (Action) -> Void
     
+    @State private var isMenuOpen = false
+    
     //MARK: - Body
     
     var body: some View {
-        if isReply { replyLayout }
-        else { topLevelLayout }
+        Group {
+            if isReply { replyLayout }
+            else { topLevelLayout }
+        }
+        .zIndex(isMenuOpen ? 1000 : 0)
     }
 
 }
@@ -48,8 +53,7 @@ private extension CommunityCommentRow {
             
             actionButtons
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.top, 6)
-                .zIndex(100)
+                .padding(.top, 8)
         }
     }
     
@@ -60,10 +64,16 @@ private extension CommunityCommentRow {
             VStack(alignment: .leading, spacing: 0){
                 authorHeader
                 commentContent
+                
+                replyMoreButton
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.top, 8)
             }
             .padding(16)
-            .background(.gray10)
-            .cornerRadius(8, corners: .allCorners)
+            .background {
+                RoundedCorner(radius: 8, corners: .allCorners)
+                    .fill(.gray10)
+            }
         }
     }
 }
@@ -93,7 +103,7 @@ private extension CommunityCommentRow {
 //MARK: - Action Buttons
 
 private extension CommunityCommentRow {
-    
+
     var actionButtons: some View {
         HStack(spacing: 0){
             Button { onAction(.replyTapped) } label: {
@@ -110,28 +120,43 @@ private extension CommunityCommentRow {
                 .padding(.leading, 6)
                 .padding(.trailing, 4)
             
-            if isMyComment {
-                EditMenuButton (
-                    icon: .iconReplyMore,
-                    size: .comment,
-                    showsEdit: false,
-                    onEdit: { onAction(.editTapped) },
-                    onDelete: { onAction(.deleteTapped) }
-                )
-            } else {
-                ReportMenuButton (
-                    icon: .iconReplyMore,
-                    size :.comment,
-                    onBoardSettings: { onAction(.reportBoardSettings)},
-                    onReportAbuse: { onAction(.reportAbuse)},
-                    onReportSpam: { onAction(.reportSpam)},
-                    onBlock: { onAction(.blockTapped)}
-                )
-            }
+            moreMenuButton
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 4)
-        .background(.gray10)
-        .cornerRadius(8, corners: .allCorners)
+        .background {
+            RoundedCorner(radius: 8, corners: .allCorners)
+                .fill(.gray10)
+        }
+    }
+    
+    var replyMoreButton: some View {
+        moreMenuButton
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+    }
+    
+    @ViewBuilder
+    var moreMenuButton: some View {
+        if isMyComment {
+            EditMenuButton (
+                icon: .iconReplyMore,
+                size: .comment,
+                showsEdit: false,
+                onEdit: { onAction(.editTapped) },
+                onDelete: { onAction(.deleteTapped) },
+                onMenuVisibilityChanged: { isMenuOpen = $0 }
+            )
+        } else {
+            ReportMenuButton (
+                icon: .iconReplyMore,
+                size :.comment,
+                onBoardSettings: { onAction(.reportBoardSettings)},
+                onReportAbuse: { onAction(.reportAbuse)},
+                onReportSpam: { onAction(.reportSpam)},
+                onBlock: { onAction(.blockTapped)},
+                onMenuVisibilityChanged: { isMenuOpen = $0 }
+            )
+        }
     }
 }
