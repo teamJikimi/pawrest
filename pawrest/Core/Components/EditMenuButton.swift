@@ -37,10 +37,17 @@ struct EditMenuButton: View {
     let onDelete: () -> Void
     
     @State private var isShowingMenu = false
+    var onMenuVisibilityChanged: ((Bool) -> Void)? = nil
+    
+    private func closeMenu() {
+        isShowingMenu = false
+        onMenuVisibilityChanged?(false)
+    }
     
     var body: some View {
         Button(action: {
             isShowingMenu.toggle()
+            onMenuVisibilityChanged?(isShowingMenu)
         }) {
             Image(icon)
                 .renderingMode(.template)
@@ -50,13 +57,13 @@ struct EditMenuButton: View {
                 .foregroundStyle(.gray80)
         }
         .frame(width: size.buttonSize, height: size.buttonSize)
-        .overlay(alignment: .topTrailing) {
+        .background(alignment: .topTrailing) {
             if isShowingMenu {
                 VStack(spacing: 0) {
                     if showsEdit {
                         Button(action: {
                             onEdit()
-                            isShowingMenu = false
+                            closeMenu()
                         }) {
                             HStack(spacing: 8) {
                                 Text("수정하기")
@@ -78,7 +85,7 @@ struct EditMenuButton: View {
                     
                     Button(action: {
                         onDelete()
-                        isShowingMenu = false
+                        closeMenu()
                     }) {
                         HStack(spacing: 8) {
                             Text("삭제하기")
