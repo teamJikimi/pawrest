@@ -139,7 +139,7 @@ struct ReportMenuButton: View {
                 }
                 .frame(width: 160)
                 .background(Color.white)
-                .cornerRadius(10)
+                .cornerRadius(10, corners: .allCorners)
                 .offset(x: 0, y: size.buttonSize + 6)
                 .zIndex(1000)
             }
