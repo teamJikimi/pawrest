@@ -132,7 +132,7 @@ extension ImagePickerGrid {
             }
             .frame(width: 103, height: 135)
             .background(.gray20)
-            .cornerRadius(10)
+            .cornerRadius(10, corners: .allCorners)
         }
         
         private var isDisabled: Bool {
@@ -156,7 +156,7 @@ extension ImagePickerGrid {
                 .resizable()
                 .scaledToFill()
                 .frame(width: 103, height: 135)
-                .cornerRadius(10)
+                .cornerRadius(10, corners: .allCorners)
         }
         
         private var deleteButton: some View {
