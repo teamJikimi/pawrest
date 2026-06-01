@@ -114,6 +114,7 @@ private extension CommunityCommentRow {
                 EditMenuButton (
                     icon: .iconReplyMore,
                     size: .comment,
+                    showsEdit: false,
                     onEdit: { onAction(.editTapped) },
                     onDelete: { onAction(.deleteTapped) }
                 )
