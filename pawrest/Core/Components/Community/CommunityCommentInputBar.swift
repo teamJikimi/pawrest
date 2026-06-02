@@ -23,7 +23,7 @@ struct CommunityCommentInputBar: View {
         textFieldContainer
             .padding(.horizontal, 20)
             .padding(.top, isFocused ? 8 : 18)
-            //.padding(.bottom, isFocused ? 12 : 0)
+        //.padding(.bottom, isFocused ? 12 : 0)
         
             .frame(maxWidth: .infinity)
             .background(.gray0)
@@ -35,8 +35,9 @@ struct CommunityCommentInputBar: View {
                 )
                 .stroke(.gray10, lineWidth: 1)
             }
-            .ignoresSafeArea(.container, edges: .bottom)
-        
+            .background(
+                Color.gray0.ignoresSafeArea(.container, edges: .bottom)
+            )
             .animation(.easeInOut(duration: 0.25), value: isFocused)
         
     }
