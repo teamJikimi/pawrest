@@ -106,7 +106,7 @@ extension AddMemoryView {
                 .frame(maxWidth: .infinity)
                 .frame(height: 42)
                 .background(store.isSaveButtonEnabled ? .pawPrimary : .gray40)
-                .cornerRadius(24)
+                .cornerRadius(24, corners: .allCorners)
         }
         .disabled(!store.isSaveButtonEnabled)
         .padding(.bottom, 20)

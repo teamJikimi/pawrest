@@ -51,6 +51,6 @@ struct AlbumThumbnail: View {
                 .padding(.bottom, 16)
         }
         .frame(width: size, height: size) 
-        .cornerRadius(20)
+        .cornerRadius(20, corners: .allCorners)
     }
 }
