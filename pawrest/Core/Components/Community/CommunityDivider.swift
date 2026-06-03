@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct CommunityDivider: View {
-    var color: Color = .gray20
+    var color: Color = .gray10
     var height: CGFloat = 1
+    var horizontalPadding: CGFloat = 0
     
     var body: some View {
         Rectangle()
             .fill(color)
-            .frame(maxWidth: .infinity)
             .frame(height: height)
+            .padding(.horizontal, horizontalPadding)
     }
 }

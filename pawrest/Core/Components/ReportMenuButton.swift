@@ -20,10 +20,19 @@ struct ReportMenuButton: View {
     
     @State private var isShowingMenu = false
     @State private var isExpanded = false
+    var onMenuVisibilityChanged: ((Bool) -> Void)? = nil
+    
+    private func closeMenu() {
+        isShowingMenu = false
+        isExpanded = false
+        onMenuVisibilityChanged?(false)
+    }
     
     var body: some View {
         Button(action: {
             isShowingMenu.toggle()
+            onMenuVisibilityChanged?(isShowingMenu)
+            
             if !isShowingMenu {
                 isExpanded = false
             }
@@ -36,7 +45,7 @@ struct ReportMenuButton: View {
                 .foregroundStyle(Color.gray80)
         }
         .frame(width: size.buttonSize, height: size.buttonSize)
-        .overlay(alignment: .topTrailing) {
+        .background(alignment: .topTrailing) {
             if isShowingMenu {
                 VStack(spacing: 0) {
                     Button(action: {
@@ -69,8 +78,7 @@ struct ReportMenuButton: View {
                     if isExpanded {
                         Button(action: {
                             onBoardSettings()
-                            isShowingMenu = false
-                            isExpanded = false
+                            closeMenu()
                         }) {
                             HStack(spacing: 8) {
                                 Text("게시판 성격에 부적절함")
@@ -84,8 +92,7 @@ struct ReportMenuButton: View {
                         
                         Button(action: {
                             onReportAbuse()
-                            isShowingMenu = false
-                            isExpanded = false
+                            closeMenu()
                         }) {
                             HStack(spacing: 8) {
                                 Text("욕설/비하")
@@ -99,8 +106,7 @@ struct ReportMenuButton: View {
                         
                         Button(action: {
                             onReportSpam()
-                            isShowingMenu = false
-                            isExpanded = false
+                            closeMenu()
                         }) {
                             HStack(spacing: 8) {
                                 Text("낚시/도배/스팸")
@@ -117,8 +123,7 @@ struct ReportMenuButton: View {
                     
                     Button(action: {
                         onBlock()
-                        isShowingMenu = false
-                        isExpanded = false
+                        closeMenu()
                     }) {
                         HStack(spacing: 8) {
                             Text("차단하기")
@@ -139,7 +144,11 @@ struct ReportMenuButton: View {
                 }
                 .frame(width: 160)
                 .background(Color.white)
-                .cornerRadius(10)
+                .cornerRadius(10, corners: .allCorners)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(.gray20, lineWidth: 1)
+                )
                 .offset(x: 0, y: size.buttonSize + 6)
                 .zIndex(1000)
             }
