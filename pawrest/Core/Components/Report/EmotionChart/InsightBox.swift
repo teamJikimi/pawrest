@@ -17,8 +17,8 @@ struct InsightBox: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(red: 0.94, green: 0.97, blue: 0.95))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .background(.primaryLight)
+        .cornerRadius(10, corners: .allCorners)
     }
 }
 
