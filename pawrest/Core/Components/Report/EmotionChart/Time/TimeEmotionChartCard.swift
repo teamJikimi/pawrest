@@ -18,12 +18,12 @@ struct TimeEmotionChartCard: View {
             header
                 .padding(.bottom, 32)
             dateNavigator
-                .padding(.bottom, 32)
+                .padding(.bottom, 23)
             content
         }
         .padding(16)
         .background(.gray0)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .cornerRadius(20, corners: .allCorners)
         .overlay(
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.gray10, lineWidth: 1)
@@ -90,22 +90,4 @@ private extension TimeEmotionChartCard {
             EmotionEmptyState()
         }
     }
-}
-
-#Preview("데이터 있음") {
-    TimeEmotionChartCard(
-        data: .constant(.mock),
-        onPrevious: {},
-        onNext: {}
-    )
-    .padding()
-}
-
-#Preview("데이터 없음") {
-    TimeEmotionChartCard(
-        data: .constant(.empty),
-        onPrevious: {},
-        onNext: {}
-    )
-    .padding()
 }

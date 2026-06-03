@@ -41,7 +41,7 @@ struct EmotionLineChart: View {
         .chartYAxis {
             AxisMarks(preset: .aligned, position: .leading, values: [0, 1, 2, 3, 4]) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(.gray30)
                 AxisValueLabel(anchor: .trailing) {
                     if let intVal = value.as(Int.self),
                        let level = EmotionLevel(rawValue: intVal) {
@@ -75,19 +75,22 @@ private extension EmotionLineChart {
             .foregroundStyle(.clear)
             .symbolSize(0)
         }
-    }
-    
-    @ChartContentBuilder
-    var segmentMarks: some ChartContent {
-        ForEach(Array(segments.enumerated()), id: \.offset) { index, segment in
+        ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
             ForEach(segment) { entry in
                 BarMark(
                     x: .value("요일", entry.weekdayLabel),
                     y: .value("감정", entry.level!.rawValue)
                 )
-                .foregroundStyle(chartColor.opacity(0.15))
+                .foregroundStyle(.rowHover)
                 .cornerRadius(4)
-                
+            }
+        }
+    }
+
+    @ChartContentBuilder
+    var segmentMarks: some ChartContent {
+        ForEach(Array(segments.enumerated()), id: \.offset) { index, segment in
+            ForEach(segment) { entry in
                 LineMark(
                     x: .value("요일", entry.weekdayLabel),
                     y: .value("감정", entry.level!.rawValue),
@@ -96,7 +99,7 @@ private extension EmotionLineChart {
                 .foregroundStyle(chartColor)
                 .interpolationMethod(.linear)
                 .lineStyle(StrokeStyle(lineWidth: 1))
-                
+
                 PointMark(
                     x: .value("요일", entry.weekdayLabel),
                     y: .value("감정", entry.level!.rawValue)

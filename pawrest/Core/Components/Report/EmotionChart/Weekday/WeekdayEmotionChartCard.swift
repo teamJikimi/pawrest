@@ -18,7 +18,7 @@ struct WeekdayEmotionChartCard: View {
         }
         .padding(16)
         .background(.gray0)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .cornerRadius(20, corners: .allCorners)
         .overlay(
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.gray10, lineWidth: 1)
@@ -56,14 +56,4 @@ private extension WeekdayEmotionChartCard {
             EmotionEmptyState()
         }
     }
-}
-
-#Preview("데이터 있음") {
-    WeekdayEmotionChartCard(data: .mock)
-        .padding()
-}
-
-#Preview("데이터 없음") {
-    WeekdayEmotionChartCard(data: .empty)
-        .padding()
 }
