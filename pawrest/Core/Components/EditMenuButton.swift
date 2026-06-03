@@ -31,15 +31,23 @@ enum MenuButtonStyle {
 struct EditMenuButton: View {
     let icon: ImageResource
     var size: MenuButtonStyle = .defaultStyle
+    var showsEdit: Bool = true
     
     let onEdit: () -> Void
     let onDelete: () -> Void
     
     @State private var isShowingMenu = false
+    var onMenuVisibilityChanged: ((Bool) -> Void)? = nil
+    
+    private func closeMenu() {
+        isShowingMenu = false
+        onMenuVisibilityChanged?(false)
+    }
     
     var body: some View {
         Button(action: {
             isShowingMenu.toggle()
+            onMenuVisibilityChanged?(isShowingMenu)
         }) {
             Image(icon)
                 .renderingMode(.template)
@@ -49,33 +57,35 @@ struct EditMenuButton: View {
                 .foregroundStyle(.gray80)
         }
         .frame(width: size.buttonSize, height: size.buttonSize)
-        .overlay(alignment: .topTrailing) {
+        .background(alignment: .topTrailing) {
             if isShowingMenu {
                 VStack(spacing: 0) {
-                    Button(action: {
-                        onEdit()
-                        isShowingMenu = false
-                    }) {
-                        HStack(spacing: 8) {
-                            Text("수정하기")
-                                .typography(.body2R1)
-                                .foregroundColor(.gray80)
-                            
-                            Spacer()
-                            
-                            Image(.iconEdit)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: size.iconSize, height: size.iconSize)
-                                .foregroundColor(.gray80)
+                    if showsEdit {
+                        Button(action: {
+                            onEdit()
+                            closeMenu()
+                        }) {
+                            HStack(spacing: 8) {
+                                Text("수정하기")
+                                    .typography(.body2R1)
+                                    .foregroundColor(.gray80)
+                                
+                                Spacer()
+                                
+                                Image(.iconEdit)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: size.iconSize, height: size.iconSize)
+                                    .foregroundColor(.gray80)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
                     }
                     
                     Button(action: {
                         onDelete()
-                        isShowingMenu = false
+                        closeMenu()
                     }) {
                         HStack(spacing: 8) {
                             Text("삭제하기")
@@ -94,7 +104,7 @@ struct EditMenuButton: View {
                         .padding(.vertical, 6)
                     }
                 }
-                .frame(width: 160, height: 80)
+                .frame(width: 160, height: showsEdit ? 80 : 44)
                 .background(Color.white)
                 .cornerRadius(10, corners: .allCorners)
                 .overlay(
