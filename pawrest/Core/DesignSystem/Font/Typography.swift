@@ -35,8 +35,8 @@ extension Font {
 
     // MARK: Body3 (11px)
     static let body3Accent = Font.system(size: 11, weight: .semibold)
-    static let body3M      = Font.system(size: 11, weight: .semibold)
-    static let body3R      = Font.system(size: 11, weight: .semibold)
+    static let body3M      = Font.system(size: 11, weight: .medium)
+    static let body3R      = Font.system(size: 11, weight: .regular)
 
     // MARK: Date (10px)
     static let date = Font.system(size: 10, weight: .regular)
