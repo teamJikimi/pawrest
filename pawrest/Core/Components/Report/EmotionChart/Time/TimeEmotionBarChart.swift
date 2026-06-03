@@ -20,7 +20,7 @@ struct TimeEmotionBarChart: View {
         .chartYAxis {
             AxisMarks(preset: .aligned, position: .leading, values: [0, 1, 2, 3, 4]) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(.gray30)
                 AxisValueLabel(anchor: .trailing) {
                     if let intVal = value.as(Int.self),
                        let level = EmotionLevel(rawValue: intVal) {
@@ -33,6 +33,8 @@ struct TimeEmotionBarChart: View {
         }
         .chartXAxis {
             AxisMarks(values: slots.map(\.timeSlot.label)) { value in
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
+                    .foregroundStyle(.gray30)
                 AxisValueLabel {
                     if let label = value.as(String.self) {
                         Text(label)
