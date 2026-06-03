@@ -1,14 +1,14 @@
 //
-//  EmotionLineChartCard.swift
+//  WeekdayEmotionChartCard.swift
 //  pawrest
 //
-//  Created by 소은 on 6/1/26.
+//  Created by 소은 on 6/4/26.
 //
 
 import SwiftUI
 
-struct EmotionLineChartCard: View {
-    let chartData: WeeklyEmotionChartData
+struct WeekdayEmotionChartCard: View {
+    let data: WeekdayEmotionData
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -23,22 +23,22 @@ struct EmotionLineChartCard: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.gray10, lineWidth: 1)
         )
-        .frame(height: chartData.hasData ? nil : 329)
+        .frame(height: data.hasData ? nil : 329)
     }
 }
 
-private extension EmotionLineChartCard {
+private extension WeekdayEmotionChartCard {
     var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Image(.imagesCalendar)
+                Image(.imageSecondaryCalendar)
                     .resizable()
                     .frame(width: 14, height: 14)
-                Text("일별 감정 변화")
+                Text("요일별 감정 패턴")
                     .typography(.body1M)
                     .foregroundColor(.primary)
             }
-            Text("이번 주 날짜별 감정 추이")
+            Text("여러 주간 요일별 평균")
                 .typography(.date)
                 .foregroundColor(.secondary)
         }
@@ -46,9 +46,9 @@ private extension EmotionLineChartCard {
 
     @ViewBuilder
     var content: some View {
-        if chartData.hasData {
-            EmotionLineChart(entries: chartData.entries)
-            if let insight = chartData.insight {
+        if data.hasData {
+            WeekdayEmotionBarChart(entries: data.entries)
+            if let insight = data.insight {
                 InsightBox(text: insight)
                     .padding(.top, 20)
             }
@@ -59,21 +59,11 @@ private extension EmotionLineChartCard {
 }
 
 #Preview("데이터 있음") {
-    EmotionLineChartCard(chartData: .mock)
+    WeekdayEmotionChartCard(data: .mock)
         .padding()
 }
 
 #Preview("데이터 없음") {
-    EmotionLineChartCard(chartData: .empty)
-        .padding()
-}
-
-#Preview("선 끊김") {
-    EmotionLineChartCard(chartData: .gap)
-        .padding()
-}
-
-#Preview("점만 있음") {
-    EmotionLineChartCard(chartData: .singleDots)
+    WeekdayEmotionChartCard(data: .empty)
         .padding()
 }
