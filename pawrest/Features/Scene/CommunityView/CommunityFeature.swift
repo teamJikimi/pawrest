@@ -6,17 +6,55 @@
 //
 
 import ComposableArchitecture
+import Foundation
+
+enum SortMode: String, CaseIterable, Equatable {
+    case recent = "최신순"
+    case popular = "인기순"
+    
+    var displayName: String { rawValue }
+}
 
 // MARK: - State
 
-@ObservableState  
+@ObservableState
 struct CommunityState: Equatable {
     var navigationBar = NavigationBarState(
         title: "커뮤니티",
-        leftButton: .back,
-        rightButton: .editMenu
+        leftButton: .none,
+        rightButton: .communityAddMenu
     )
+    
     var text: String = ""
+    var sortMode: SortMode = .recent
+    var isSortMenuOpen: Bool = false
+    
+    var posts: [Post]
+    
+    var currentUserID: UUID
+    
+    var displayedPosts: [Post] {
+        let filtered: [Post]
+        if text.isEmpty {
+            filtered = posts
+        } else {
+            filtered = posts.filter {
+                $0.title.localizedCaseInsensitiveContains(text) || $0.content.localizedCaseInsensitiveContains(text)
+            }
+        }
+        
+        switch sortMode {
+        case .recent:
+            return filtered.sorted { $0.createdAt > $1.createdAt }
+        case .popular:
+            return filtered.sorted { $0.likeCount > $1.likeCount }
+        }
+    }
+    
+    init(currentUserID: UUID = UUID(), posts: [Post] = []) {
+        self.currentUserID = currentUserID
+        self.posts = posts
+    }
 }
 
 // MARK: - Action
@@ -24,7 +62,13 @@ struct CommunityState: Equatable {
 @CasePathable
 enum CommunityAction: Equatable {
     case navigationBar(NavigationBarAction)
+    
     case textChanged(String)
+    case sortMenuOpenChanged(Bool)
+    case sortModeSelected(SortMode)
+    case outsideTapped
+    
+    case likeTapped(postID: UUID)
 }
 
 // MARK: - Reducer
@@ -37,16 +81,12 @@ struct CommunityReducer: Reducer {
         
         Reduce { state, action in
             switch action {
-            case .navigationBar(.leftButtonTapped):
-                print("뒤로가기")
+            case .navigationBar(.writePostTapped):
+                print("글 쓰기")
                 return .none
                 
-            case .navigationBar(.editTapped):
-                print("수정하기")
-                return .none
-                
-            case .navigationBar(.deleteTapped):
-                print("삭제하기")
+            case .navigationBar(.myPostsTapped):
+                print("나의 글 관리")
                 return .none
                 
             case .navigationBar:
@@ -54,6 +94,26 @@ struct CommunityReducer: Reducer {
                 
             case .textChanged(let newText):
                 state.text = newText
+                return .none
+                
+            case .sortMenuOpenChanged(let isOpen):
+                state.isSortMenuOpen = isOpen
+                return .none
+                
+            case .sortModeSelected(let mode):
+                state.sortMode = mode
+                return .none
+                
+            case .outsideTapped:
+                state.isSortMenuOpen = false
+                return .none
+                
+            case .likeTapped(let postID):
+                guard let idx = state.posts.firstIndex(where: { $0.id == postID })
+                else { return .none }
+                
+                state.posts[idx].isLiked.toggle()
+                state.posts[idx].likeCount += state.posts[idx].isLiked ? 1 : -1
                 return .none
             }
         }
