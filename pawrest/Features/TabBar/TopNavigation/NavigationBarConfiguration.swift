@@ -18,5 +18,6 @@ public enum NavRightItem {
     case add
     case editMenu
     case reportMenu
+    case communityAddMenu
     case none
 }
