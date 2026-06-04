@@ -11,6 +11,7 @@ import ComposableArchitecture
 struct CommunityView: View {
     @Bindable var store: StoreOf<CommunityReducer>
     @FocusState private var isSearchFocused: Bool
+    @Binding var isTabBarHidden: Bool
     
     var body: some View {
         
@@ -63,13 +64,23 @@ private extension CommunityView {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+            //            .padding(.bottom, 20)
         }
         .scrollDismissesKeyboard(.immediately)
-        .onTapGesture {
-            if isSearchFocused { isSearchFocused = false }
-            if store.isSortMenuOpen { store.send(.outsideTapped) }
+        //        .onTapGesture {
+        //            if isSearchFocused { isSearchFocused = false }
+        //            if store.isSortMenuOpen { store.send(.outsideTapped) }
+        //        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: 80)
         }
+        .simultaneousGesture(
+            TapGesture()
+                .onEnded { _ in
+                    if isSearchFocused { isSearchFocused = false }
+                    if store.isSortMenuOpen { store.send(.outsideTapped) }
+                }
+        )
     }
     
     func postCardLink(for post: Post) -> some View {
@@ -84,11 +95,13 @@ private extension CommunityView {
                     CommunityDetailReducer()
                 }
             )
+            .onAppear { isTabBarHidden = true }
+            .onDisappear { isTabBarHidden = false }
         } label: {
             CommunityCard(
                 post: post,
                 onLikeTapped: { store.send(.likeTapped(postID: post.id)) },
-                onCardTapped: {}
+                //                onCardTapped: {}
             )
         }
         .buttonStyle(.plain)
