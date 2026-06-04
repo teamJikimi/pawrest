@@ -66,10 +66,17 @@ private extension CommunityView {
             .padding(.bottom, 20)
         }
         .scrollDismissesKeyboard(.immediately)
-        .onTapGesture {
-            if isSearchFocused { isSearchFocused = false }
-            if store.isSortMenuOpen { store.send(.outsideTapped) }
-        }
+//        .onTapGesture {
+//            if isSearchFocused { isSearchFocused = false }
+//            if store.isSortMenuOpen { store.send(.outsideTapped) }
+//        }
+        .simultaneousGesture(
+            TapGesture()
+                .onEnded { _ in
+                    if isSearchFocused { isSearchFocused = false }
+                    if store.isSortMenuOpen { store.send(.outsideTapped) }
+                }
+        )
     }
     
     func postCardLink(for post: Post) -> some View {
@@ -88,7 +95,7 @@ private extension CommunityView {
             CommunityCard(
                 post: post,
                 onLikeTapped: { store.send(.likeTapped(postID: post.id)) },
-                onCardTapped: {}
+//                onCardTapped: {}
             )
         }
         .buttonStyle(.plain)
