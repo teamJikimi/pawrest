@@ -11,6 +11,7 @@ import ComposableArchitecture
 struct CommunityDetailView: View {
     @Bindable var store: StoreOf<CommunityDetailReducer>
     @FocusState private var isInputFocused: Bool
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         ScrollView {
@@ -49,6 +50,11 @@ struct CommunityDetailView: View {
                 isInputFocused = true
             }
         }
+        
+        .onChange(of: store.shouldDismiss) { _, shouldDismiss in
+            if shouldDismiss { dismiss() }
+        }
+        
     }
 }
 
