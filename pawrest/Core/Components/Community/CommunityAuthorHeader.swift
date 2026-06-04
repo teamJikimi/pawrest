@@ -31,7 +31,7 @@ struct CommunityAuthorHeader: View {
             VStack(alignment: .leading, spacing: 4) {
                 authorName
                 
-                Text(date, formatter: Self.dateFormatter)
+                Text(date.formattedAuthorHeader)
                     .typography(.date)
                     .foregroundColor(.gray50)
             }
@@ -86,15 +86,4 @@ private extension CommunityAuthorHeader {
             .clipShape(Circle())
     }
     
-}
-
-// MARK: - helpers
-
-private extension CommunityAuthorHeader {
-    
-    static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd HH:mm"
-        return formatter
-    }()
 }
