@@ -90,7 +90,7 @@ extension MemoryView {
             
             Spacer()
         }
-        .padding(.top, 208)
+        .padding(.top, 216)
     }
     
     var albumGridView: some View {
