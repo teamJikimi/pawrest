@@ -17,6 +17,7 @@ struct AlbumDetailCard: View {
     let onClose: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
+    let isEditing: Bool
 
     @State private var isTextVisible: Bool = false
     @State private var currentIndex: Int = 0
@@ -82,7 +83,7 @@ extension AlbumDetailCard {
                         }
                         .padding(.bottom, 16)
                     }
-                    .opacity(isTextVisible ? 0 : 1)
+                    .opacity(isTextVisible || isEditing ? 0 : 1)
                     .animation(.easeInOut(duration: 0.35), value: isTextVisible)
                 }
             }
@@ -93,23 +94,28 @@ extension AlbumDetailCard {
         VStack {
             HStack(spacing: 2) {
                 Spacer()
-            
-                EditMenuButton(
-                    icon: .iconEllipsis,
-                    iconColor: .white,
-                    onEdit: onEdit,
-                    onDelete: onDelete
-                )
                 
-                Button {
-                    onClose()
-                } label: {
-                    Image(.iconClose)
-                        .renderingMode(.template)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(.white)
+                if !isEditing {
+                    EditMenuButton(
+                        icon: .iconEllipsis,
+                        iconColor: .white,
+                        onEdit: {
+                          isTextVisible = false
+                            onEdit()
+                        },
+                        onDelete: onDelete
+                    )
+                    
+                    Button {
+                        onClose()
+                    } label: {
+                        Image(.iconClose)
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.white)
+                    }
                 }
             }
             .padding(.top, 20)

@@ -14,19 +14,25 @@ struct LimitedTextField: View {
     let placeholder: String
     let maxCharacters: Int
     let minHeight: CGFloat
+    let showCounter: Bool
+    let isTransparent: Bool
     
     init(
         text: Binding<String>,
         isFocused: FocusState<Bool>.Binding,
         placeholder: String = "떠오르는 순간을 적어보세요.\n기록은 마음을 정리하는 작은 시작이 될 수 있어요.",
         maxCharacters: Int = 1000,
-        minHeight: CGFloat = 372
+        minHeight: CGFloat = 372,
+        showCounter: Bool = true,
+        isTransparent: Bool = false
     ) {
         self._text = text
         self._isFocused = isFocused
         self.placeholder = placeholder
         self.maxCharacters = maxCharacters
         self.minHeight = minHeight
+        self.showCounter = showCounter
+        self.isTransparent = isTransparent
     }
     
     var body: some View {
@@ -46,10 +52,11 @@ struct LimitedTextField: View {
                     .padding()
             }
             .frame(minHeight: minHeight, alignment: .top)
-            .background(.gray0)
+            
+            .background(isTransparent ? Color.clear : .gray0)
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(.gray20, lineWidth: 1)
+                    .stroke(isTransparent ? Color.clear : .gray20, lineWidth: 1)
             )
             .onChange(of: text) { oldValue, newValue in
                 if newValue.count > maxCharacters {
@@ -57,12 +64,14 @@ struct LimitedTextField: View {
                 }
             }
             
-            HStack {
-                Spacer()
-                Text("\(text.count)/\(maxCharacters)")
-                    .font(.date)
-                    .foregroundColor(text.count >= maxCharacters ? .pawPrimary : .gray40)
-                    .padding(.top, 4)
+            if showCounter {
+                HStack {
+                    Spacer()
+                    Text("\(text.count)/\(maxCharacters)")
+                        .font(.date)
+                        .foregroundColor(text.count >= maxCharacters ? .pawPrimary : .gray40)
+                        .padding(.top, 4)
+                }
             }
         }
     }

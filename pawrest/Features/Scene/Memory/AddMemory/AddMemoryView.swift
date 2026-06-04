@@ -85,6 +85,11 @@ extension AddMemoryView {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(.gray20, lineWidth: 1)
         )
+        .onChange(of: store.title) { oldValue, newValue in  // 추가
+                if newValue.count > 22 {
+                    store.send(.titleChanged(String(newValue.prefix(22))))
+                }
+            }
     }
     
     private var contentTextField: some View {
