@@ -31,6 +31,7 @@ enum MenuButtonStyle {
 struct EditMenuButton: View {
     let icon: ImageResource
     var size: MenuButtonStyle = .defaultStyle
+    var iconColor: Color = .gray80
     var showsEdit: Bool = true
     
     let onEdit: () -> Void
@@ -54,7 +55,7 @@ struct EditMenuButton: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: size.iconSize, height: size.iconSize)
-                .foregroundStyle(.gray80)
+                .foregroundStyle(iconColor)
         }
         .frame(width: size.buttonSize, height: size.buttonSize)
         .background(alignment: .topTrailing) {
