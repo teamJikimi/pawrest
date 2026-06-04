@@ -20,6 +20,8 @@ struct CommunityDetailState: Equatable {
     
     var replyingToCommentID: UUID? = nil
     
+    var shouldDismiss: Bool = false
+    
     var inputPlaceholder: String {
         replyingToCommentID == nil ? "댓글을 입력하세요." : "대댓글을 입력하세요."
     }
@@ -68,7 +70,7 @@ struct CommunityDetailReducer: Reducer {
             // MARK: NavigationBar
                 
             case .navigationBar(.leftButtonTapped):
-                print("뒤로가기")
+                state.shouldDismiss = true
                 return .none
                 
             case .navigationBar(.editTapped):
