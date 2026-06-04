@@ -14,7 +14,8 @@ struct CommunityCommentInputBar: View {
     @Binding var text: String
     let onSend: () -> Void
     
-    @FocusState private var isFocused: Bool
+    var placeholder: String = "댓글을 입력하세요."
+    @FocusState.Binding var isFocused: Bool
     
     //MARK: - Body
     
@@ -22,13 +23,23 @@ struct CommunityCommentInputBar: View {
         textFieldContainer
             .padding(.horizontal, 20)
             .padding(.top, isFocused ? 8 : 18)
-            .padding(.bottom, isFocused ? 12 : 36)
+        //.padding(.bottom, isFocused ? 12 : 0)
         
             .frame(maxWidth: .infinity)
             .background(.gray0)
             .cornerRadius(isFocused ? 0 : 20, corners: [.topRight, .topLeft])
-        
+            .overlay {
+                RoundedCorner(
+                    radius: isFocused ? 0 : 20,
+                    corners: [.topRight, .topLeft]
+                )
+                .stroke(.gray10, lineWidth: 1)
+            }
+            .background(
+                Color.gray0.ignoresSafeArea(.container, edges: .bottom)
+            )
             .animation(.easeInOut(duration: 0.25), value: isFocused)
+        
     }
 }
 
@@ -43,7 +54,7 @@ private extension CommunityCommentInputBar {
             sendButton
         }
         .padding(.leading, 14)
-        .padding(.trailing, 6)
+        .padding(.trailing, 8)
         .padding(.vertical, 12)
         .background(.gray0)
         .cornerRadius(20, corners: .allCorners)
@@ -59,8 +70,9 @@ private extension CommunityCommentInputBar {
 private extension CommunityCommentInputBar {
     
     var textField: some View {
-        TextField("", text: $text, axis: .vertical)
+        TextField(placeholder, text: $text, axis: .vertical)
             .typography(.body2R1)
+            .lineSpacing(4)
             .foregroundColor(.gray80)
             .lineLimit(1...5)
             .focused($isFocused)

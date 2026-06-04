@@ -45,6 +45,8 @@ enum NavigationBarAction: Equatable {
     case reportAbuse
     case reportSpam
     case blockTapped
+    case writePostTapped
+    case myPostsTapped
 }
 
 // MARK: - Reducer
@@ -60,7 +62,9 @@ struct NavigationBarReducer: Reducer {
                     .reportBoardSettings,
                     .reportAbuse,
                     .reportSpam,
-                    .blockTapped:
+                    .blockTapped,
+                    .writePostTapped,
+                    .myPostsTapped:
                 return .none
             }
         }
@@ -142,6 +146,14 @@ struct NavigationBarView: View {
                 onReportAbuse: { store.send(.reportAbuse) },
                 onReportSpam: { store.send(.reportSpam) },
                 onBlock: { store.send(.blockTapped) }
+            )
+            .frame(width: 44, height: 44)
+        
+        case .communityAddMenu:
+            CommunityAddMenuButton(
+                icon: .iconNavigationPlus,
+                onWritePost: { store.send(.writePostTapped) },
+                onMyPosts: { store.send(.myPostsTapped) }
             )
             .frame(width: 44, height: 44)
             
