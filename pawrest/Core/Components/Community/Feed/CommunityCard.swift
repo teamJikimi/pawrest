@@ -14,7 +14,7 @@ struct CommunityCard: View {
     let post: Post
     var showsCount: Bool = true
     var onLikeTapped: () -> Void = {}
-    var onCardTapped: () -> Void = {}
+ //   var onCardTapped: () -> Void = {}
     
     //MARK: - Body
     
@@ -55,8 +55,8 @@ struct CommunityCard: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.gray20, lineWidth: 1)
         }
-        .contentShape(Rectangle())
-        .onTapGesture { onCardTapped() }
+//        .contentShape(Rectangle())
+//        .onTapGesture { onCardTapped() }
     }
 }
 
