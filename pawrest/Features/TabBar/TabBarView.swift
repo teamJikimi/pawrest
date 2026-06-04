@@ -10,17 +10,20 @@ import ComposableArchitecture
 
 struct TabBarView: View {
     let store: StoreOf<TabBarFeature>
+    @State private var isTabBarHidden = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
             contentView
             
-            CustomTabBar(
-                selectedTab: store.selectedTab,
-                onTabSelected: { tab in
-                    store.send(.tabSelected(tab))
-                }
-            )
+            if !isTabBarHidden {
+                CustomTabBar(
+                    selectedTab: store.selectedTab,
+                    onTabSelected: { tab in
+                        store.send(.tabSelected(tab))
+                    }
+                )
+            }
         }
         .ignoresSafeArea(.keyboard)
     }
@@ -53,7 +56,8 @@ struct TabBarView: View {
             NavigationStack {
                 CommunityView(store: Store(initialState: CommunityState()) {
                     CommunityReducer()
-                })
+                }, isTabBarHidden: $isTabBarHidden
+                )
             }
             
         case .my:
