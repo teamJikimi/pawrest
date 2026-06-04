@@ -63,13 +63,16 @@ private extension CommunityView {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+//            .padding(.bottom, 20)
         }
         .scrollDismissesKeyboard(.immediately)
 //        .onTapGesture {
 //            if isSearchFocused { isSearchFocused = false }
 //            if store.isSortMenuOpen { store.send(.outsideTapped) }
 //        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: 80)
+        }
         .simultaneousGesture(
             TapGesture()
                 .onEnded { _ in
