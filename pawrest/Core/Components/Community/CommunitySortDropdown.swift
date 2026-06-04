@@ -27,7 +27,7 @@ struct CommunitySortDropdown: View {
                     .typography(.body2R1)
                     .foregroundColor(.gray80)
                 
-                Image(systemName: isOpen ? "chevron.up" : "chevron.down")
+                Image(isOpen ? .iconDropdownUp : .iconDropdownDown)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 10, height: 10)
@@ -37,6 +37,7 @@ struct CommunitySortDropdown: View {
             .padding(.vertical, 12)
             .background(.gray0)
             .cornerRadius(10, corners: .allCorners)
+            .contentShape(Rectangle())
             .overlay {
                 RoundedCorner(radius: 10, corners: .allCorners)
                     .stroke(.gray20, lineWidth: 1)
@@ -69,6 +70,7 @@ private extension CommunitySortDropdown {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 12)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 
