@@ -24,12 +24,12 @@ extension Font {
 
     // MARK: Body1 (14px)
     static let body1Accent = Font.system(size: 14, weight: .semibold)
-    static let body1M      = Font.system(size: 14, weight: .regular)
+    static let body1M      = Font.system(size: 14, weight: .medium)
     static let body1R      = Font.system(size: 14, weight: .regular)
 
     // MARK: Body2 (12px)
     static let body2Accent = Font.system(size: 12, weight: .semibold)
-    static let body2M      = Font.system(size: 12, weight: .regular)
+    static let body2M      = Font.system(size: 12, weight: .medium)
     static let body2R1     = Font.system(size: 12, weight: .regular)
     static let body2R2     = Font.system(size: 12, weight: .regular)
 
@@ -37,6 +37,7 @@ extension Font {
     static let body3Accent = Font.system(size: 11, weight: .semibold)
     static let body3M      = Font.system(size: 11, weight: .medium)
     static let body3R      = Font.system(size: 11, weight: .regular)
+    static let body4R      = Font.system(size: 10, weight: .regular)
 
     // MARK: Date (10px)
     static let date = Font.system(size: 10, weight: .regular)
@@ -85,7 +86,8 @@ struct AppTypography {
     static let body3Accent = AppTypography(font: .body3Accent, tracking: -0.22, lineSpacing: 0)
     static let body3M      = AppTypography(font: .body3M,      tracking: -0.11, lineSpacing: 0)
     static let body3R      = AppTypography(font: .body3R,      tracking: -0.11, lineSpacing: 0)
-
+    static let body4R      = AppTypography(font: .body4R,       tracking: -0.2, lineSpacing: 0)
+    
     // MARK: Date (10px, lineHeight: 10, tracking: -2%)
     static let date        = AppTypography(font: .date,        tracking: -0.20, lineSpacing: 0)
 }
