@@ -21,3 +21,15 @@ extension Date {
         return formatter.string(from: self)
     }
 }
+
+extension Date {
+    private static let authorHeaderFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM/dd HH:mm"
+        return formatter
+    }()
+    
+    var formattedAuthorHeader: String {
+        Self.authorHeaderFormatter.string(from: self)
+    }
+}
