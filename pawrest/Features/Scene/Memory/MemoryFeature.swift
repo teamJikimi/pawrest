@@ -26,6 +26,8 @@ struct MemoryState: Equatable {
 enum MemoryAction: Equatable {
     case navigationBar(NavigationBarAction)
     case addMemory(PresentationAction<AddMemoryAction>)
+    case updateMemory(title: String, content: String)
+    case deleteMemory
 }
 
 // MARK: - Reducer
@@ -46,6 +48,9 @@ struct MemoryReducer: Reducer {
                 return .none
                 
             case .addMemory:
+                return .none
+                
+            case .updateMemory, .deleteMemory:
                 return .none
             }
         }

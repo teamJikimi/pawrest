@@ -17,6 +17,7 @@ struct AlbumDetailCard: View {
     let onClose: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
+    let isEditing: Bool
 
     @State private var isTextVisible: Bool = false
     @State private var currentIndex: Int = 0
@@ -40,6 +41,11 @@ struct AlbumDetailCard: View {
         .onTapGesture {
             withAnimation(.easeInOut(duration: 0.35)) {
                 isTextVisible.toggle()
+            }
+        }
+        .onChange(of: isEditing) { oldValue, newValue in
+            if !newValue {
+                isTextVisible = false
             }
         }
     }
@@ -82,7 +88,7 @@ extension AlbumDetailCard {
                         }
                         .padding(.bottom, 16)
                     }
-                    .opacity(isTextVisible ? 0 : 1)
+                    .opacity(isTextVisible || isEditing ? 0 : 1)
                     .animation(.easeInOut(duration: 0.35), value: isTextVisible)
                 }
             }
@@ -93,23 +99,28 @@ extension AlbumDetailCard {
         VStack {
             HStack(spacing: 2) {
                 Spacer()
-            
-                EditMenuButton(
-                    icon: .iconEllipsis,
-                    iconColor: .white,
-                    onEdit: onEdit,
-                    onDelete: onDelete
-                )
                 
-                Button {
-                    onClose()
-                } label: {
-                    Image(.iconClose)
-                        .renderingMode(.template)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(.white)
+                if !isEditing {
+                    EditMenuButton(
+                        icon: .iconEllipsis,
+                        iconColor: .white,
+                        onEdit: {
+                            isTextVisible = false
+                            onEdit()
+                        },
+                        onDelete: onDelete
+                    )
+                    
+                    Button {
+                        onClose()
+                    } label: {
+                        Image(.iconClose)
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                            .foregroundStyle(.white)  // 변경
+                    }
                 }
             }
             .padding(.top, 20)
@@ -125,14 +136,14 @@ extension AlbumDetailCard {
             
             Text(date)
                 .typography(.date)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
             
             Spacer()
                 .frame(height: 8)
             
             Text(title)
                 .typography(.title1)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .lineLimit(1)
             
             Spacer()
@@ -142,14 +153,14 @@ extension AlbumDetailCard {
                 ScrollView(showsIndicators: false) {
                     Text(content)
                         .typography(.body1R)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxHeight: 92)
             } else {
                 Text(content)
                     .typography(.body1R)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
@@ -157,4 +168,3 @@ extension AlbumDetailCard {
         .padding(.bottom, 20)
     }
 }
-
