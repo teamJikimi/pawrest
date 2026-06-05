@@ -59,8 +59,8 @@ struct CommunityState: Equatable {
     
     //dummy
     init(
-        currentUserID: UUID = CommunityState.dummyCurrentUserID,
-        posts: [Post] = CommunityState.dummyPosts
+        currentUserID: UUID = CommunityDummy.currentUserID,
+        posts: [Post] = CommunityDummy.posts
     ) {
         self.currentUserID = currentUserID
         self.posts = posts
@@ -127,69 +127,5 @@ struct CommunityReducer: Reducer {
                 return .none
             }
         }
-    }
-}
-
-//MARK: - Dummy
-
-private extension CommunityState {
-    static let dummyCurrentUserID = UUID()
-    
-    static let dummyOtherUserID = UUID()
-    static let dummyThirdUserID = UUID()
-    
-    static var dummyPosts: [Post] {
-        [
-            Post(
-                author: Author(
-                    id: dummyOtherUserID,
-                    name: "방울이아빠",
-                    profileImageURL: nil
-                ),
-                title: "오늘 우리 콩이를 보냈어요",
-                content: "오랜 시간 함께한 아이를 보내는 일이 이렇게 힘든 줄 몰랐어요. 같은 경험을 하신 분들이 있다면 어떻게 견디셨는지 궁금해요.",
-                createdAt: Date().addingTimeInterval(-3600),
-                imageURLs: [],
-                likeCount: 12,
-                isLiked: false,
-                comments: [
-                    Comment(
-                        content: "저도 비슷한 경험이 있어서 마음이 아프네요.",
-                        author: Author(id: dummyThirdUserID, name: "초코이모", profileImageURL: nil),
-                        createdAt: Date().addingTimeInterval(-3000)
-                    )
-                ]
-            ),
-            Post(
-                author: Author(
-                    id: dummyThirdUserID,
-                    name: "초코이모",
-                    profileImageURL: nil
-                ),
-                title: "산책 사진 모음",
-                content: "오늘 날씨가 좋아서 산책 다녀왔어요.",
-                createdAt: Date().addingTimeInterval(-7200),
-                imageURLs: [
-                    "https://picsum.photos/seed/pawrest1/400/400"
-                ],
-                likeCount: 25,
-                isLiked: true,
-                comments: []
-            ),
-            Post(
-                author: Author(
-                    id: dummyCurrentUserID,
-                    name: "나",
-                    profileImageURL: nil
-                ),
-                title: "강아지 사료 추천 부탁드려요",
-                content: "10살 노견인데 신장 수치가 안 좋아져서 신장 케어 사료를 찾고 있어요.",
-                createdAt: Date().addingTimeInterval(-86400),
-                imageURLs: [],
-                likeCount: 3,
-                isLiked: false,
-                comments: []
-            )
-        ]
     }
 }
