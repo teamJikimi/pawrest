@@ -61,8 +61,10 @@ struct TabBarView: View {
             }
             
         case .my:
-            NavigationStack {  
-                MyView()
+            NavigationStack {
+                MyView(store: Store(initialState: MyFeature.State()) {
+                    MyFeature()
+                })
             }
         }
     }
@@ -122,7 +124,7 @@ struct TabBarButton: View {
                 Text(tab.title)
                     .typography(.date)
             }
-            .foregroundColor(isSelected ? Color(.pawPrimary) : Color.gray)
+            .foregroundStyle(isSelected ? Color(.pawPrimary) : Color.gray)
             .frame(maxWidth: .infinity)
         }
     }
