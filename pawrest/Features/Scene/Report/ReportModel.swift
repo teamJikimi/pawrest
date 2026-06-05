@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ReportData {
+struct ReportData: Equatable {
     let weekRange: String
     let summaryTitle: String
     let summaryBody: String
@@ -19,13 +19,13 @@ struct ReportData {
     let weekdayData: WeekdayEmotionData
 }
 
-struct ReportStats {
+struct ReportStats: Equatable {
     let recordedDays: Int
     let mostFrequentEmotion: String
     let lettersSent: Int
 }
 
-struct StatusCardData: Identifiable {
+struct StatusCardData: Identifiable, Equatable {
     let id: UUID
     let title: String
     let date: String
