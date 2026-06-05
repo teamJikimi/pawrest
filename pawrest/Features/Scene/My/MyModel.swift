@@ -20,7 +20,7 @@ struct MyModel: Equatable {
 
 extension MyModel {
     static let mock = MyModel(
-        userName: "소은",
+        userName: "프로필",
         petName: "코코",
         petBirthDate: "2020.03.15",
         petDeathDate: "2024.01.20",
