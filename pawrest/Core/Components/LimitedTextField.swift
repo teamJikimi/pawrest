@@ -42,14 +42,14 @@ struct LimitedTextField: View {
                     Text(placeholder)
                         .typography(.body2R2)
                         .foregroundColor(.gray50)
-                        .padding()
+                        .padding(20)
                         .allowsHitTesting(false)
                 }
                 
                 TextField("", text: $text, axis: .vertical)
                     .typography(.body2R2)
                     .focused($isFocused)
-                    .padding()
+                    .padding(20)
             }
             .frame(minHeight: minHeight, alignment: .top)
             
