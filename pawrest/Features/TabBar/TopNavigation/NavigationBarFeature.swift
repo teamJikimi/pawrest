@@ -75,6 +75,7 @@ struct NavigationBarReducer: Reducer {
 
 struct NavigationBarView: View {
     @Bindable var store: StoreOf<NavigationBarReducer>
+    @Environment(\.dismiss) var dismiss  // ← 추가
     
     var body: some View {
         HStack(spacing: 0) {
@@ -102,7 +103,7 @@ struct NavigationBarView: View {
         switch store.leftButton {
         case .back:
             Button {
-                store.send(.leftButtonTapped)
+                dismiss()  // ← store.send 대신 dismiss()
             } label: {
                 Image(.iconBack)
                     .resizable()
