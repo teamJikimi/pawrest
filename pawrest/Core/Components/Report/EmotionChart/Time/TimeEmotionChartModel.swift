@@ -53,4 +53,3 @@ struct DailyTimeEmotionData: Equatable {
         return formatter.string(from: date)
     }
 }
-
