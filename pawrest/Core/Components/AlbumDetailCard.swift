@@ -43,6 +43,11 @@ struct AlbumDetailCard: View {
                 isTextVisible.toggle()
             }
         }
+        .onChange(of: isEditing) { oldValue, newValue in
+            if !newValue {
+                isTextVisible = false
+            }
+        }
     }
 }
 
@@ -100,7 +105,7 @@ extension AlbumDetailCard {
                         icon: .iconEllipsis,
                         iconColor: .white,
                         onEdit: {
-                          isTextVisible = false
+                            isTextVisible = false
                             onEdit()
                         },
                         onDelete: onDelete
@@ -114,7 +119,7 @@ extension AlbumDetailCard {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 24, height: 24)
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)  // 변경
                     }
                 }
             }
@@ -131,14 +136,14 @@ extension AlbumDetailCard {
             
             Text(date)
                 .typography(.date)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
             
             Spacer()
                 .frame(height: 8)
             
             Text(title)
                 .typography(.title1)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .lineLimit(1)
             
             Spacer()
@@ -148,14 +153,14 @@ extension AlbumDetailCard {
                 ScrollView(showsIndicators: false) {
                     Text(content)
                         .typography(.body1R)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxHeight: 92)
             } else {
                 Text(content)
                     .typography(.body1R)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
@@ -163,4 +168,3 @@ extension AlbumDetailCard {
         .padding(.bottom, 20)
     }
 }
-
