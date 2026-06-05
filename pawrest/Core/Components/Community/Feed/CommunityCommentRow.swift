@@ -11,7 +11,7 @@ struct CommunityCommentRow: View {
     
     //MARK: - Action
     
-    enum Action {
+    enum Action: Equatable {
         case replyTapped
         case editTapped
         case deleteTapped
