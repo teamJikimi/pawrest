@@ -11,18 +11,30 @@ import ComposableArchitecture
 struct MyView: View {
     @Bindable var store: StoreOf<MyFeature>
     
-    // MARK: - View
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                petProfileSection
-                notificationSection
-                accountSection
+        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+            ScrollView {
+                VStack(spacing: 16) {
+                    petProfileSection
+                    notificationSection
+                    accountSection
+                }
+                .padding(20)
             }
-            .padding(20)
+            .background(.gray0)
+            .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
+        } destination: { (pathStore: StoreOf<MyFeature.Path>) in
+            switch pathStore.state {
+            case .blockedList(let state):
+                BlockedListView(store: Store(initialState: state) {
+                    BlockedListFeature()
+                })
+            case .privacyPolicy(let state):
+                PrivacyPolicyView(store: Store(initialState: state) {
+                    PrivacyPolicyFeature()
+                })
+            }
         }
-        .background(.gray0)
-        .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
     }
 }
 

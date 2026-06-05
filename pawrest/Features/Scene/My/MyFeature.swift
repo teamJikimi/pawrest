@@ -9,6 +9,7 @@ import ComposableArchitecture
 
 struct MyFeature: Reducer {
     
+    // MARK: - State
     @ObservableState
     struct State: Equatable {
         var user: MyModel = .mock
@@ -23,11 +24,44 @@ struct MyFeature: Reducer {
             leftButton: .none,
             rightButton: .none
         )
+        
+        var path: StackState<Path.State> = .init()
+    }
+    
+    // MARK: - Path
+    struct Path: Reducer {
+        @CasePathable
+        @ObservableState
+        enum State: Equatable {
+            case blockedList(BlockedListFeature.State)
+            case privacyPolicy(PrivacyPolicyFeature.State)
+        }
+        
+        @CasePathable
+        enum Action {
+            case blockedList(BlockedListFeature.Action)
+            case privacyPolicy(PrivacyPolicyFeature.Action)
+        }
+        
+        func reduce(into state: inout State, action: Action) -> Effect<Action> {
+            switch action {
+            case .blockedList(let action):
+                guard case .blockedList(var blockedState) = state else { return .none }
+                let effect = BlockedListFeature().reduce(into: &blockedState, action: action)
+                state = .blockedList(blockedState)
+                return effect.map(Action.blockedList)
+            case .privacyPolicy(let action):
+                guard case .privacyPolicy(var privacyState) = state else { return .none }
+                let effect = PrivacyPolicyFeature().reduce(into: &privacyState, action: action)
+                state = .privacyPolicy(privacyState)
+                return effect.map(Action.privacyPolicy)
+            }
+        }
     }
     
     // MARK: - Action
     @CasePathable
-    enum Action: Equatable {
+    enum Action {
         case profileEditTapped
         case emotionReminderToggled(Bool)
         case weeklyReportToggled(Bool)
@@ -38,8 +72,9 @@ struct MyFeature: Reducer {
         case deleteAccountTapped
         case logoutTapped
         case navigationBar(NavigationBarAction)
+        case path(StackActionOf<Path>)
     }
-    
+
     // MARK: - Reducer
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
@@ -58,14 +93,18 @@ struct MyFeature: Reducer {
             state.isCommunityReactionOn = value
             return .none
         case .blockedListTapped:
+            state.path.append(.blockedList(BlockedListFeature.State()))
             return .none
         case .privacyPolicyTapped:
+            state.path.append(.privacyPolicy(PrivacyPolicyFeature.State()))
             return .none
         case .deleteAccountTapped:
             return .none
         case .logoutTapped:
             return .none
         case .navigationBar:
+            return .none
+        case .path:
             return .none
         }
     }

@@ -33,7 +33,8 @@ struct AccountSettingsView: View {
             .background(.white)
             .cornerRadius(20, corners: .allCorners)
         }
-        .padding(16)
+        .padding(.horizontal, 16)
+        .padding(.top,20)
         .padding(.bottom, 20)
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
