@@ -9,53 +9,50 @@ import SwiftUI
 import ComposableArchitecture
 
 struct ReportView: View {
-    let data: ReportData
-    let store: StoreOf<NavigationBarReducer>
-
-    @State private var selectedTab: ReportTab = .daily
-    @State private var dailyTimeData: DailyTimeEmotionData
-
-    init(data: ReportData, store: StoreOf<NavigationBarReducer>) {
-        self.data = data
-        self.store = store
-        self._dailyTimeData = State(initialValue: data.dailyTimeData)
-    }
-
+    @Bindable var store: StoreOf<ReportFeature>
+    
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
-                dateHeader
-                    .padding(.bottom, 20)
-                summaryBanner
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 12)
-                chartSection
-                    .padding(.bottom, 20)
-                aiSummarySection
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
-                statsSection
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
-                diagnosticsSection
-                    .padding(.bottom, 20)
-                counselingSection
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 40)
+            if let data = store.reportData {
+                VStack(spacing: 0) {
+                    dateHeader(data)
+                        .padding(.bottom, 20)
+                    summaryBanner(data)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 12)
+                    chartSection(data)
+                        .padding(.bottom, 20)
+                    aiSummarySection(data)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                    statsSection(data)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                    diagnosticsSection(data)
+                        .padding(.bottom, 20)
+                    counselingSection
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 40)
+                }
+            } else if store.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.top, 100)
             }
         }
-        .customNavigationBar(store: store)
+        .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
+        .onAppear { store.send(.onAppear) }
     }
 }
 
 private extension ReportView {
-    var dateHeader: some View {
+    func dateHeader(_ data: ReportData) -> some View {
         Text(data.weekRange)
             .typography(.body2R1)
             .foregroundStyle(.gray80)
     }
-
-    var summaryBanner: some View {
+    
+    func summaryBanner(_ data: ReportData) -> some View {
         HStack(spacing: 12) {
             Image(.systemIconDownChart)
                 .resizable()
@@ -77,35 +74,37 @@ private extension ReportView {
                 colors: [.white, .primaryLight],
                 startPoint: .leading,
                 endPoint: .trailing
+            ))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(.gray10, lineWidth: 1)
             )
-        )
-        .cornerRadius(20, corners: .allCorners)
     }
-
-    var chartSection: some View {
+    
+    func chartSection(_ data: ReportData) -> some View {
         VStack(spacing: 0) {
-            chartTabBar
+            SegmentTabBar(items: ReportTab.allCases, selection: $store.selectedTab.sending(\.tabChanged))
                 .padding(.horizontal, 16)
                 .padding(.bottom, 12)
-            chartContent
+            chartContent(data)
         }
     }
     
-    var chartTabBar: some View {
-        SegmentTabBar(items: ReportTab.allCases, selection: $selectedTab)
-    }
-
     @ViewBuilder
-    var chartContent: some View {
-        switch selectedTab {
+    func chartContent(_ data: ReportData) -> some View {
+        switch store.selectedTab {
         case .daily:
             EmotionLineChartCard(chartData: data.weeklyChart)
                 .padding(.horizontal, 16)
         case .time:
             TimeEmotionChartCard(
-                data: $dailyTimeData,
-                onPrevious: { moveDateBy(-1) },
-                onNext: { moveDateBy(1) }
+                data: Binding(
+                    get: { store.dailyTimeData },
+                    set: { _ in }
+                ),
+                onPrevious: { store.send(.previousDayTapped) },
+                onNext: { store.send(.nextDayTapped) }
             )
             .padding(.horizontal, 16)
         case .weekday:
@@ -113,8 +112,8 @@ private extension ReportView {
                 .padding(.horizontal, 16)
         }
     }
-
-    var aiSummarySection: some View {
+    
+    func aiSummarySection(_ data: ReportData) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Image(.imageAi)
@@ -132,15 +131,15 @@ private extension ReportView {
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
     }
-
-    var statsSection: some View {
+    
+    func statsSection(_ data: ReportData) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("이번 주 함께한 순간들")
                 .typography(.body1M)
                 .foregroundStyle(.gray80)
             VStack(spacing: 6) {
                 statRow(label: "감정 기록 일수", value: "\(data.stats.recordedDays)일", color: Color(.pawPrimary))
-                statRow(label: "가장 많이 느낀 감정", value: data.stats.mostFrequentEmotion, color: .gray80)
+                statRow(label: "가장 많이 느낀 감정", value: data.stats.mostFrequentEmotion, color: Color(.gray80))
                 statRow(label: "하늘에 전달된 편지 수", value: "\(data.stats.lettersSent)통", color: Color(.accent))
             }
         }
@@ -148,7 +147,7 @@ private extension ReportView {
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
     }
-
+    
     func statRow(label: String, value: String, color: Color?) -> some View {
         HStack {
             Text(label)
@@ -164,8 +163,8 @@ private extension ReportView {
         .background(.gray0)
         .cornerRadius(10, corners: .allCorners)
     }
-
-    var diagnosticsSection: some View {
+    
+    func diagnosticsSection(_ data: ReportData) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("자가진단 검사 기록")
@@ -176,7 +175,6 @@ private extension ReportView {
                     .foregroundStyle(.gray40)
             }
             .padding(.horizontal, 16)
-            
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(data.statusCards) { card in
@@ -198,7 +196,7 @@ private extension ReportView {
         .padding(.vertical, 16)
         .background(.gray10)
     }
-
+    
     var counselingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
@@ -221,12 +219,8 @@ private extension ReportView {
         .padding(16)
         .background(.rowMuted)
         .cornerRadius(20, corners: .allCorners)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.gray10, lineWidth: 1)
-        )
     }
-
+    
     func counselingRow(name: String, number: String) -> some View {
         HStack {
             Text(name)
@@ -242,30 +236,14 @@ private extension ReportView {
         .background(.gray20)
         .cornerRadius(10, corners: .allCorners)
     }
-
-    func moveDateBy(_ days: Int) {
-        guard let newDate = Calendar.current.date(byAdding: .day, value: days, to: dailyTimeData.date) else { return }
-        dailyTimeData = DailyTimeEmotionData(date: newDate, slots: dailyTimeData.slots, insight: dailyTimeData.insight)
-    }
 }
 
-// MARK: - ReportTab
-enum ReportTab: String, CaseIterable, SegmentItem {
-    case daily = "일별"
-    case time = "시간대별"
-    case weekday = "요일별"
-
-    var title: String { rawValue }
-}
 
 #Preview {
-    NavigationStack {
-        ReportView(
-            data: .mock,
-            store: Store(
-                initialState: NavigationBarState(title: "리포트"),
-                reducer: { NavigationBarReducer() }
-            )
+    ReportView(
+        store: Store(
+            initialState: ReportFeature.State(),
+            reducer: { ReportFeature() }
         )
-    }
+    )
 }
