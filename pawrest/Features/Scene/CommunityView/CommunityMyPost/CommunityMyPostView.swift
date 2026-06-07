@@ -13,6 +13,7 @@ struct CommunityMyPostView: View {
     //MARK: - Properties
     
     @Bindable var store: StoreOf<CommunityMyPostReducer>
+    @Binding var isTabBarHidden: Bool
     @Environment(\.dismiss) private var dismiss
     
     //MARK: - Body
@@ -63,5 +64,28 @@ private extension CommunityMyPostView {
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
         }
+    }
+    
+    func postCardLink(for post: Post) -> some View {
+        NavigationLink {
+            CommunityDetailView(
+                store: Store(
+                    initialState: CommunityDetailState(
+                        post: post,
+                        currentUserID: store.currentUserID
+                    )
+                ) {
+                    CommunityDetailReducer()
+                }
+            )
+            .onAppear { isTabBarHidden = true }
+            .onDisappear { isTabBarHidden = false }
+        } label: {
+            CommunityCard(
+                post: post,
+                onLikeTapped: { store.send(.likeTapped(postID: post.id)) }
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
