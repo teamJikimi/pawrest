@@ -77,7 +77,6 @@ struct CommunityWriteReducer: Reducer {
                 return .none
                 
             case .saveButtonTapped:
-                print("✅ 커뮤니티 글 저장: \(state.title)")
                 state.shouldDismiss = true
                 return .none
             }

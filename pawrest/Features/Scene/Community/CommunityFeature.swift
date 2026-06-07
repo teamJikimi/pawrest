@@ -53,13 +53,6 @@ struct CommunityState: Equatable {
             return filtered.sorted { $0.likeCount > $1.likeCount }
         }
     }
-    
-    //원래 코드
-    //    init(currentUserID: UUID = UUID(), posts: [Post] = []) {
-    //        self.currentUserID = currentUserID
-    //        self.posts = posts
-    //    }
-    
     //CommunityModel 더미 연결용
     init(
         currentUserID: UUID = CommunityDummy.currentUserID,

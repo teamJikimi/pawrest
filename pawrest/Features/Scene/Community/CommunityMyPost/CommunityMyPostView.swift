@@ -48,10 +48,7 @@ private extension CommunityMyPostView {
     var segmentSection: some View {
         SegmentTabBar(
             items: MyPostTab.allCases,
-            selection: Binding(
-                get: { store.selectedTab },
-                set: { store.send(.tabChanged($0)) }
-            )
+            selection: $store.selectedTab.sending(\.tabChanged)
         )
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
