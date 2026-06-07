@@ -107,22 +107,22 @@ struct CommunityDetailReducer: Reducer {
                 state.replyingToCommentID = id
                 return .none
                 
-            case .commentAction(let id, .editTapped):
+            case .commentAction(_, .editTapped):
                 return .none
                 
-            case .commentAction(let id, .deleteTapped):
+            case .commentAction(_, .deleteTapped):
                 return .none
                 
-            case .commentAction(let id, .reportBoardSettings):
+            case .commentAction(_, .reportBoardSettings):
                 return .none
                 
-            case .commentAction(let id, .reportAbuse):
+            case .commentAction(_, .reportAbuse):
                 return .none
                 
-            case .commentAction(let id, .reportSpam):
+            case .commentAction(_, .reportSpam):
                 return .none
                 
-            case .commentAction(let id, .blockTapped):
+            case .commentAction(_, .blockTapped):
                 return .none
                 
             // MARK: Input bar
