@@ -30,6 +30,7 @@ struct CommunityState: Equatable {
     var isSortMenuOpen: Bool = false
     
     var isMyPostPresented: Bool = false
+    var isWritePostPresented: Bool = false
     
     var posts: [Post]
     
@@ -83,6 +84,9 @@ enum CommunityAction: Equatable {
     case likeTapped(postID: UUID)
     
     case myPostDismissed
+    
+    case writePostDismissed
+    case newPostCreated(title: String, content: String)
 }
 
 // MARK: - Reducer
@@ -96,7 +100,7 @@ struct CommunityReducer: Reducer {
         Reduce { state, action in
             switch action {
             case .navigationBar(.writePostTapped):
-                print("글 쓰기")
+                state.isWritePostPresented = true
                 return .none
                 
             case .navigationBar(.myPostsTapped):
@@ -132,6 +136,24 @@ struct CommunityReducer: Reducer {
                 
             case .myPostDismissed:
                 state.isMyPostPresented = false
+                return .none
+                
+            case .writePostDismissed:
+                state.isWritePostPresented = false
+                return .none
+
+            case .newPostCreated(let title, let content):
+                let newPost = Post(
+                    author: Author(id: state.currentUserID, name: "나", profileImageURL: nil),
+                    title: title,
+                    content: content,
+                    createdAt: Date(),
+                    imageURLs: [],
+                    likeCount: 0,
+                    isLiked: false,
+                    comments: []
+                )
+                state.posts.insert(newPost, at: 0)
                 return .none
             }
         }

@@ -25,6 +25,42 @@ struct CommunityView: View {
                 action: \.navigationBar
             )
         )
+        .navigationDestination(
+            isPresented: Binding(
+                get: { store.isMyPostPresented },
+                set: { if !$0 { store.send(.myPostDismissed) } }
+            )
+        ) {
+            CommunityMyPostView(
+                store: Store(
+                    initialState: CommunityMyPostState()
+                ) {
+                    CommunityMyPostReducer()
+                },
+                isTabBarHidden: $isTabBarHidden
+            )
+            .onAppear { isTabBarHidden = true }
+            .onDisappear { isTabBarHidden = false }
+        }
+        .navigationDestination(
+            isPresented: Binding(
+                get: { store.isWritePostPresented },
+                set: { if !$0 { store.send(.writePostDismissed) } }
+            )
+        ) {
+            CommunityWriteView(
+                store: Store(
+                    initialState: CommunityWriteState()
+                ) {
+                    CommunityWriteReducer()
+                },
+                onSave: { title, content in
+                    store.send(.newPostCreated(title: title, content: content))
+                }
+            )
+            .onAppear { isTabBarHidden = true }
+            .onDisappear { isTabBarHidden = false }
+        }
     }
 }
 
