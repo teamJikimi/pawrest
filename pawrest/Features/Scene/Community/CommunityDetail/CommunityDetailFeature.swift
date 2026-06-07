@@ -74,27 +74,21 @@ struct CommunityDetailReducer: Reducer {
                 return .none
                 
             case .navigationBar(.editTapped):
-                print("게시글 수정")
                 return .none
                 
             case .navigationBar(.deleteTapped):
-                print("게시글 삭제")
                 return .none
                 
             case .navigationBar(.reportBoardSettings):
-                print("게시글 신고 - 게시판 부적절")
                 return .none
                 
             case .navigationBar(.reportAbuse):
-                print("게시글 신고 - 욕설/비하")
                 return .none
                 
             case .navigationBar(.reportSpam):
-                print("게시글 신고 - 낚시/도배/스팸")
                 return .none
                 
             case .navigationBar(.blockTapped):
-                print("게시글 작성자 차단")
                 return .none
                 
             case .navigationBar:
@@ -111,31 +105,24 @@ struct CommunityDetailReducer: Reducer {
                 
             case .commentAction(let id, .replyTapped):
                 state.replyingToCommentID = id
-                print("댓글 \(id) 에 답글 작성 모드 진입")
                 return .none
                 
             case .commentAction(let id, .editTapped):
-                print("댓글 수정 (\(id))")
                 return .none
                 
             case .commentAction(let id, .deleteTapped):
-                print("댓글 삭제 (\(id))")
                 return .none
                 
             case .commentAction(let id, .reportBoardSettings):
-                print("댓글 신고 - 게시판 부적절 (\(id))")
                 return .none
                 
             case .commentAction(let id, .reportAbuse):
-                print("댓글 신고 - 욕설/비하 (\(id))")
                 return .none
                 
             case .commentAction(let id, .reportSpam):
-                print("댓글 신고 - 낚시/도배/스팸 (\(id))")
                 return .none
                 
             case .commentAction(let id, .blockTapped):
-                print("댓글 작성자 차단 (\(id))")
                 return .none
                 
             // MARK: Input bar
@@ -158,10 +145,8 @@ struct CommunityDetailReducer: Reducer {
                 if let parentID = state.replyingToCommentID,
                    let parentIdx = state.post.comments.firstIndex(where: { $0.id == parentID }) {
                     state.post.comments[parentIdx].replies.append(newComment)
-                    print("대댓글 추가됨 → parent: \(parentID)")
                 } else {
                     state.post.comments.append(newComment)
-                    print("부모 댓글 추가됨")
                 }
                 
                 state.text = ""

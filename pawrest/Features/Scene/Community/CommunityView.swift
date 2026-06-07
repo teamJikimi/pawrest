@@ -41,10 +41,9 @@ struct CommunityView: View {
                 ),
                 isTabBarHidden: $isTabBarHidden,
                 onPostsUpdated: { updatedPosts in
-                    _ = store.send(.myPostsUpdated(posts: updatedPosts))
+                    store.send(.myPostsUpdated(posts: updatedPosts))
                 }
             )
-            .onAppear { isTabBarHidden = true }
         }
         .navigationDestination(
             isPresented: Binding(
@@ -65,10 +64,9 @@ struct CommunityView: View {
                         try? data.write(to: url)
                         return url.absoluteString
                     }
-                    _ = store.send(.newPostCreated(title: title, content: content, imageURLs: imageURLs))
+                    store.send(.newPostCreated(title: title, content: content, imageURLs: imageURLs))
                 }
             )
-            .onAppear { isTabBarHidden = true }
         }
         .onChange(of: store.isMyPostPresented) { _, isPresented in
             isTabBarHidden = isPresented
@@ -115,13 +113,9 @@ private extension CommunityView {
                 }
             }
             .padding(.horizontal, 20)
-            //            .padding(.bottom, 20)
         }
         .scrollDismissesKeyboard(.immediately)
-        //        .onTapGesture {
-        //            if isSearchFocused { isSearchFocused = false }
-        //            if store.isSortMenuOpen { store.send(.outsideTapped) }
-        //        }
+        
         .safeAreaInset(edge: .bottom, spacing: 0) {
             Color.clear.frame(height: 80)
         }
@@ -145,10 +139,11 @@ private extension CommunityView {
                     reducer: { CommunityDetailReducer() }
                 ),
                 onPostStateUpdated: { updatedPost in
-                    _ = store.send(.postStateUpdated(updatedPost))
+                    store.send(.postStateUpdated(updatedPost))
                 }
             )
             .onAppear { isTabBarHidden = true }
+            .onDisappear { isTabBarHidden = false }
         } label: {
             CommunityCard(
                 post: post,
