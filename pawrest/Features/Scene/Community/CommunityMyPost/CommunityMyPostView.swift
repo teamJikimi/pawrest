@@ -16,6 +16,8 @@ struct CommunityMyPostView: View {
     @Binding var isTabBarHidden: Bool
     @Environment(\.dismiss) private var dismiss
     
+    var onPostsUpdated: (([Post]) -> Void)? = nil
+    
     //MARK: - Body
     
     var body: some View {
@@ -30,7 +32,10 @@ struct CommunityMyPostView: View {
             )
         )
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
-            if shouldDismiss { dismiss() }
+            if shouldDismiss {
+                onPostsUpdated?(store.posts)
+                dismiss()
+            }
         }
     }
 }
@@ -73,9 +78,13 @@ private extension CommunityMyPostView {
                     initialState: CommunityDetailState(
                         post: post,
                         currentUserID: store.currentUserID
-                    )
-                ) {
-                    CommunityDetailReducer()
+                    ),
+                    reducer: { CommunityDetailReducer() }
+                ),
+                onPostStateUpdated: { updatedPost in
+                    if let idx = store.posts.firstIndex(where: { $0.id == updatedPost.id }) {
+                        store.send(.postUpdatedFromDetail(post: updatedPost))
+                    }
                 }
             )
             .onAppear { isTabBarHidden = true }

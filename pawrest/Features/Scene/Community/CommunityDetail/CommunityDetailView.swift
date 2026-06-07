@@ -13,6 +13,8 @@ struct CommunityDetailView: View {
     @FocusState private var isInputFocused: Bool
     @Environment(\.dismiss) private var dismiss
     
+    var onPostStateUpdated: ((Post) -> Void)? = nil
+    
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
@@ -53,6 +55,10 @@ struct CommunityDetailView: View {
         
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss { dismiss() }
+        }
+        
+        .onChange(of: store.post) { _, newPost in
+            onPostStateUpdated?(newPost)
         }
         
     }

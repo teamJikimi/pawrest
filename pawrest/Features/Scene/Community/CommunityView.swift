@@ -33,11 +33,16 @@ struct CommunityView: View {
         ) {
             CommunityMyPostView(
                 store: Store(
-                    initialState: CommunityMyPostState()
-                ) {
-                    CommunityMyPostReducer()
-                },
-                isTabBarHidden: $isTabBarHidden
+                    initialState: CommunityMyPostState(
+                        currentUserID: store.currentUserID,
+                        posts: store.posts
+                    ),
+                    reducer: { CommunityMyPostReducer() }
+                ),
+                isTabBarHidden: $isTabBarHidden,
+                onPostsUpdated: { updatedPosts in
+                    _ = store.send(.myPostsUpdated(posts: updatedPosts))
+                }
             )
             .onAppear { isTabBarHidden = true }
             .onDisappear { isTabBarHidden = false }
@@ -50,12 +55,18 @@ struct CommunityView: View {
         ) {
             CommunityWriteView(
                 store: Store(
-                    initialState: CommunityWriteState()
-                ) {
-                    CommunityWriteReducer()
-                },
-                onSave: { title, content in
-                    store.send(.newPostCreated(title: title, content: content))
+                    initialState: CommunityWriteState(),
+                    reducer: { CommunityWriteReducer() }
+                ),
+                onSave: { title, content, images in
+                    let imageURLs = images.compactMap { image -> String? in
+                        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+                        let filename = "\(UUID().uuidString).jpg"
+                        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+                        try? data.write(to: url)
+                        return url.absoluteString
+                    }
+                    _ = store.send(.newPostCreated(title: title, content: content, imageURLs: imageURLs))
                 }
             )
             .onAppear { isTabBarHidden = true }
@@ -126,9 +137,11 @@ private extension CommunityView {
                     initialState: CommunityDetailState(
                         post: post,
                         currentUserID: store.currentUserID
-                    )
-                ) {
-                    CommunityDetailReducer()
+                    ),
+                    reducer: { CommunityDetailReducer() }
+                ),
+                onPostStateUpdated: { updatedPost in
+                    _ = store.send(.postStateUpdated(updatedPost))
                 }
             )
             .onAppear { isTabBarHidden = true }
@@ -136,8 +149,7 @@ private extension CommunityView {
         } label: {
             CommunityCard(
                 post: post,
-                onLikeTapped: { store.send(.likeTapped(postID: post.id)) },
-                //                onCardTapped: {}
+                onLikeTapped: { store.send(.likeTapped(postID: post.id)) }
             )
         }
         .buttonStyle(.plain)

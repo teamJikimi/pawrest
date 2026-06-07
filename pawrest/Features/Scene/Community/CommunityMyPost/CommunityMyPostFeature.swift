@@ -64,6 +64,8 @@ enum CommunityMyPostAction: Equatable {
     case navigationBar(NavigationBarAction)
     case tabChanged(MyPostTab)
     case likeTapped(postID: UUID)
+    
+    case postUpdatedFromDetail(post: Post)
 }
 
 // MARK: - Reducer
@@ -92,6 +94,12 @@ struct CommunityMyPostReducer: Reducer {
                 else { return .none }
                 state.posts[idx].isLiked.toggle()
                 state.posts[idx].likeCount += state.posts[idx].isLiked ? 1 : -1
+                return .none
+                
+            case .postUpdatedFromDetail(let post):
+                if let idx = state.posts.firstIndex(where: { $0.id == post.id }) {
+                    state.posts[idx] = post
+                }
                 return .none
             }
         }
