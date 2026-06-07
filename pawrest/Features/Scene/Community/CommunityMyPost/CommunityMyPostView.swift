@@ -55,10 +55,7 @@ private extension CommunityMyPostView {
         ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(store.filteredPosts) { post in
-                    CommunityCard(
-                        post: post,
-                        onLikeTapped: { store.send(.likeTapped(postID: post.id)) }
-                    )
+                    postCardLink(for: post)
                 }
             }
             .padding(.horizontal, 20)

@@ -17,6 +17,8 @@ struct CommunityWriteView: View {
     @FocusState private var isFocused: Bool
     @Environment(\.dismiss) private var dismiss
     
+    var onSave: ((String, String) -> Void)? = nil
+    
     //MARK: - Body
     
     var body: some View {
@@ -101,6 +103,7 @@ private extension CommunityWriteView {
     
     var saveButton: some View {
         Button {
+            onSave?(store.title, store.content)
             store.send(.saveButtonTapped)
         } label: {
             Text("저장하기")
