@@ -55,10 +55,10 @@ struct CommunityState: Equatable {
     }
     
     //원래 코드
-//    init(currentUserID: UUID = UUID(), posts: [Post] = []) {
-//        self.currentUserID = currentUserID
-//        self.posts = posts
-//    }
+    //    init(currentUserID: UUID = UUID(), posts: [Post] = []) {
+    //        self.currentUserID = currentUserID
+    //        self.posts = posts
+    //    }
     
     //CommunityModel 더미 연결용
     init(
@@ -86,7 +86,11 @@ enum CommunityAction: Equatable {
     case myPostDismissed
     
     case writePostDismissed
-    case newPostCreated(title: String, content: String)
+    case newPostCreated(title: String, content: String, imageURLs: [String])
+    
+    case myPostsUpdated(posts: [Post])
+    
+    case postStateUpdated(Post)
 }
 
 // MARK: - Reducer
@@ -141,19 +145,29 @@ struct CommunityReducer: Reducer {
             case .writePostDismissed:
                 state.isWritePostPresented = false
                 return .none
-
-            case .newPostCreated(let title, let content):
+                
+            case .newPostCreated(let title, let content, let imageURLs):
                 let newPost = Post(
                     author: Author(id: state.currentUserID, name: "나", profileImageURL: nil),
                     title: title,
                     content: content,
                     createdAt: Date(),
-                    imageURLs: [],
+                    imageURLs: imageURLs,
                     likeCount: 0,
                     isLiked: false,
                     comments: []
                 )
                 state.posts.insert(newPost, at: 0)
+                return .none
+                
+            case .myPostsUpdated(let posts):
+                state.posts = posts
+                return .none
+                
+            case .postStateUpdated(let post):
+                if let idx = state.posts.firstIndex(where: { $0.id == post.id }) {
+                    state.posts[idx] = post
+                }
                 return .none
             }
         }
