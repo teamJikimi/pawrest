@@ -61,7 +61,27 @@ struct MemoryView: View {
         .fullScreenCover(item: $selectedAlbum) { album in
             MemoryDetailView(
                 album: album,
-                onClose: {
+                onClose: { selectedAlbum = nil },
+                onUpdate: { title, content in
+                    store.send(.updateMemory(title: title, content: content))
+                    album.title = title
+                    album.content = content
+                    do {
+                        try modelContext.save()
+                        print("수정 성공: \(album.title)")
+                    } catch {
+                        print("수정 실패: \(error)")
+                    }
+                },
+                onDelete: {
+                    store.send(.deleteMemory)
+                    modelContext.delete(album)
+                    do {
+                        try modelContext.save()
+                        print("삭제 성공: \(album.title)")
+                    } catch {
+                        print("삭제 실패: \(error)")
+                    }
                     selectedAlbum = nil
                 }
             )
