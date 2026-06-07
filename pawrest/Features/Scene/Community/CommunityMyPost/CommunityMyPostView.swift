@@ -31,6 +31,7 @@ struct CommunityMyPostView: View {
                 action: \.navigationBar
             )
         )
+        .onAppear { isTabBarHidden = true }
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss {
                 onPostsUpdated?(store.posts)
@@ -82,13 +83,10 @@ private extension CommunityMyPostView {
                     reducer: { CommunityDetailReducer() }
                 ),
                 onPostStateUpdated: { updatedPost in
-                    if let idx = store.posts.firstIndex(where: { $0.id == updatedPost.id }) {
-                        store.send(.postUpdatedFromDetail(post: updatedPost))
-                    }
+                    store.send(.postUpdatedFromDetail(post: updatedPost))
                 }
             )
             .onAppear { isTabBarHidden = true }
-            .onDisappear { isTabBarHidden = false }
         } label: {
             CommunityCard(
                 post: post,
