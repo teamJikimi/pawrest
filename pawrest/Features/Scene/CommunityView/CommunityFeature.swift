@@ -29,6 +29,8 @@ struct CommunityState: Equatable {
     var sortMode: SortMode = .recent
     var isSortMenuOpen: Bool = false
     
+    var isMyPostPresented: Bool = false
+    
     var posts: [Post]
     
     var currentUserID: UUID
@@ -57,7 +59,7 @@ struct CommunityState: Equatable {
 //        self.posts = posts
 //    }
     
-    //dummy
+    //CommunityModel 더미 연결용
     init(
         currentUserID: UUID = CommunityDummy.currentUserID,
         posts: [Post] = CommunityDummy.posts
@@ -79,6 +81,8 @@ enum CommunityAction: Equatable {
     case outsideTapped
     
     case likeTapped(postID: UUID)
+    
+    case myPostDismissed
 }
 
 // MARK: - Reducer
@@ -96,7 +100,7 @@ struct CommunityReducer: Reducer {
                 return .none
                 
             case .navigationBar(.myPostsTapped):
-                print("나의 글 관리")
+                state.isMyPostPresented = true
                 return .none
                 
             case .navigationBar:
@@ -124,6 +128,10 @@ struct CommunityReducer: Reducer {
                 
                 state.posts[idx].isLiked.toggle()
                 state.posts[idx].likeCount += state.posts[idx].isLiked ? 1 : -1
+                return .none
+                
+            case .myPostDismissed:
+                state.isMyPostPresented = false
                 return .none
             }
         }
