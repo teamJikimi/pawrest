@@ -61,6 +61,9 @@ private extension CommunityMyPostView {
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: 80)
+        }
     }
     
     func postCardLink(for post: Post) -> some View {
