@@ -45,7 +45,6 @@ struct CommunityView: View {
                 }
             )
             .onAppear { isTabBarHidden = true }
-            .onDisappear { isTabBarHidden = false }
         }
         .navigationDestination(
             isPresented: Binding(
@@ -70,7 +69,12 @@ struct CommunityView: View {
                 }
             )
             .onAppear { isTabBarHidden = true }
-            .onDisappear { isTabBarHidden = false }
+        }
+        .onChange(of: store.isMyPostPresented) { _, isPresented in
+            isTabBarHidden = isPresented
+        }
+        .onChange(of: store.isWritePostPresented) { _, isPresented in
+            isTabBarHidden = isPresented
         }
     }
 }
@@ -145,7 +149,6 @@ private extension CommunityView {
                 }
             )
             .onAppear { isTabBarHidden = true }
-            .onDisappear { isTabBarHidden = false }
         } label: {
             CommunityCard(
                 post: post,
