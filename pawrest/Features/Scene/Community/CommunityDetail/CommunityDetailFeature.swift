@@ -110,7 +110,17 @@ struct CommunityDetailReducer: Reducer {
             case .commentAction(_, .editTapped):
                 return .none
                 
-            case .commentAction(_, .deleteTapped):
+            case .commentAction(let id, .deleteTapped):
+                if let idx = state.post.comments.firstIndex(where: { $0.id == id }) {
+                    state.post.comments.remove(at: idx)
+                    return .none
+                }
+                for parentIdx in state.post.comments.indices {
+                    if let replyIdx = state.post.comments[parentIdx].replies.firstIndex(where: { $0.id == id }) {
+                        state.post.comments[parentIdx].replies.remove(at: replyIdx)
+                        return .none
+                    }
+                }
                 return .none
                 
             case .commentAction(_, .reportBoardSettings):
