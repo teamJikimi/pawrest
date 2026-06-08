@@ -14,6 +14,7 @@ struct CommunityDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     var onPostStateUpdated: ((Post) -> Void)? = nil
+    var onPostDeleted: ((UUID) -> Void)? = nil
     
     var body: some View {
         ScrollView {
@@ -54,7 +55,11 @@ struct CommunityDetailView: View {
         }
         
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
-            if shouldDismiss { dismiss() }
+            if shouldDismiss {
+                if store.isDeleted {
+                    onPostDeleted?(store.post.id) }
+                dismiss()
+            }
         }
         
         .onChange(of: store.post) { _, newPost in
