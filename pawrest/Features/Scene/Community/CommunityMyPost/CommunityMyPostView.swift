@@ -31,7 +31,7 @@ struct CommunityMyPostView: View {
                 action: \.navigationBar
             )
         )
-        .onAppear { isTabBarHidden = true }
+//        .onAppear { isTabBarHidden = true }
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss {
                 onPostsUpdated?(store.posts)
