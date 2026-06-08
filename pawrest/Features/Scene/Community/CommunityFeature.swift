@@ -77,13 +77,12 @@ enum CommunityAction: Equatable {
     case likeTapped(postID: UUID)
     
     case myPostDismissed
-    
     case writePostDismissed
+    
     case newPostCreated(title: String, content: String, imageURLs: [String])
-    
     case myPostsUpdated(posts: [Post])
-    
     case postStateUpdated(Post)
+    case postDeleted(UUID)
 }
 
 // MARK: - Reducer
@@ -161,6 +160,10 @@ struct CommunityReducer: Reducer {
                 if let idx = state.posts.firstIndex(where: { $0.id == post.id }) {
                     state.posts[idx] = post
                 }
+                return .none
+                
+            case .postDeleted(let postID):
+                state.posts.removeAll { $0.id == postID }
                 return .none
             }
         }

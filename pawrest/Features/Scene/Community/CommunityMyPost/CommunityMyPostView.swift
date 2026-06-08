@@ -81,6 +81,9 @@ private extension CommunityMyPostView {
                 ),
                 onPostStateUpdated: { updatedPost in
                     store.send(.postUpdatedFromDetail(post: updatedPost))
+                },
+                onPostDeleted: { postId in
+                    store.send(.postDeleted(postId))
                 }
             )
             .onAppear { isTabBarHidden = true }

@@ -22,6 +22,8 @@ struct CommunityDetailState: Equatable {
     
     var shouldDismiss: Bool = false
     
+    var isDeleted: Bool = false
+    
     var inputPlaceholder: String {
         replyingToCommentID == nil ? "댓글을 입력하세요." : "대댓글을 입력하세요."
     }
@@ -77,6 +79,8 @@ struct CommunityDetailReducer: Reducer {
                 return .none
                 
             case .navigationBar(.deleteTapped):
+                state.isDeleted = true
+                state.shouldDismiss = true
                 return .none
                 
             case .navigationBar(.reportBoardSettings):
