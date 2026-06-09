@@ -53,7 +53,6 @@ struct CommunityDetailView: View {
                 isInputFocused = true
             }
         }
-        
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss {
                 if store.isDeleted {
@@ -61,9 +60,14 @@ struct CommunityDetailView: View {
                 dismiss()
             }
         }
-        
         .onChange(of: store.post) { _, newPost in
             onPostStateUpdated?(newPost)
+        }
+        
+        .onChange(of: store.post.commentCount) { oldCount, newCount in
+            if newCount > oldCount {
+                isInputFocused = false
+            }
         }
         
     }
