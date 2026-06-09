@@ -17,7 +17,12 @@ struct CommunityView: View {
         
         VStack(spacing: 0) {
             searchAndSortSection
-            postsScrollView
+            
+            if store.displayedPosts.isEmpty {
+                emptyStateView
+            } else {
+                postsScrollView
+            }
         }
         .customNavigationBar(
             store: store.scope(
@@ -154,5 +159,27 @@ private extension CommunityView {
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+private extension CommunityView {
+    
+    var emptyStateView: some View {
+        GeometryReader { geo in
+            VStack(spacing: 8) {
+                Image(.iconSearch)
+                
+                Text("검색 결과가 없습니다")
+                    .typography(.body3R)
+                    .foregroundColor(.gray60)
+            }
+            .frame(maxWidth: .infinity)
+            .position(x: geo.size.width / 2, y: geo.size.height * 234.0 / 604.0)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if isSearchFocused { isSearchFocused = false }
+            if store.isSortMenuOpen { store.send(.outsideTapped) }
+        }
     }
 }
