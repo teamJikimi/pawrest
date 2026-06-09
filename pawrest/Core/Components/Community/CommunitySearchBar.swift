@@ -35,7 +35,7 @@ struct CommunitySearchBar: View {
             .focused($isFocused)
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 9)
+        .frame(height: 36)
         .frame(maxWidth: .infinity)
         .background(.gray10)
         .cornerRadius(10, corners: .allCorners)
