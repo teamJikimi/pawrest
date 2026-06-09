@@ -26,9 +26,28 @@ struct CommunityWriteState: Equatable {
     
     var shouldDismiss: Bool = false
     
+    var editingPostID: UUID? = nil
+    var existingImageURLs: [String] = []
+    
+    var isEditMode: Bool { editingPostID != nil }
+    
     var isSaveButtonEnabled: Bool {
-        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if isEditMode { return true }
+        return !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    init() {}
+    
+    init(editingPost: Post) {
+        self.editingPostID = editingPost.id
+        self.title = editingPost.title
+        self.content = editingPost.content
+        self.existingImageURLs = editingPost.imageURLs
+        self.navigationBar = NavigationBarState (
+            title: "글 수정",
+            leftButton: .back,
+            rightButton: .none
+        )
     }
 }
 
@@ -42,6 +61,9 @@ enum CommunityWriteAction: Equatable {
     case titleChanged(String)
     case contentChanged(String)
     case saveButtonTapped
+    
+    case loadExistingImages
+    case existingImagesLoaded([UIImage])
 }
 
 // MARK: - Reducer
@@ -78,6 +100,25 @@ struct CommunityWriteReducer: Reducer {
                 
             case .saveButtonTapped:
                 state.shouldDismiss = true
+                return .none
+                
+            case .loadExistingImages:
+                let urls = state.existingImageURLs
+                guard !urls.isEmpty else { return .none }
+                return .run { send in
+                    var images: [UIImage] = []
+                    for urlString in urls {
+                        guard let url = URL(string: urlString),
+                              let data = try? Data(contentsOf: url),
+                              let image = UIImage(data: data)
+                        else { continue }
+                        images.append(image)
+                    }
+                    await send(.existingImagesLoaded(images))
+                }
+                
+            case .existingImagesLoaded(let images):
+                state.imageGrid.selectedImages = images
                 return .none
             }
         }

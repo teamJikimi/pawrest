@@ -69,7 +69,29 @@ struct CommunityDetailView: View {
                 isInputFocused = false
             }
         }
-        
+        .navigationDestination(
+            isPresented: Binding(
+                get: { store.isEditPresented },
+                set: { if !$0 { store.send(.editDismissed) } }
+            )
+        ) {
+            CommunityWriteView(
+                store: Store(
+                    initialState: CommunityWriteState(editingPost: store.post),
+                    reducer: { CommunityWriteReducer() }
+                ),
+                onSave: { title, content, images in
+                    let imageURLs = images.compactMap { image -> String? in
+                        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+                        let filename = "\(UUID().uuidString).jpg"
+                        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+                        try? data.write(to: url)
+                        return url.absoluteString
+                    }
+                    store.send(.postEdited(title: title, content: content, imageURLs: imageURLs))
+                }
+            )
+        }
     }
 }
 

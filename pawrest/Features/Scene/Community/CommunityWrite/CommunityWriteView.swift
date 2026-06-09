@@ -46,6 +46,11 @@ struct CommunityWriteView: View {
                 action: \.navigationBar
             )
         )
+        .onAppear {
+            if store.isEditMode {
+                store.send(.loadExistingImages)
+            }
+        }
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss { dismiss() }
         }

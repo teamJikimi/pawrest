@@ -23,6 +23,7 @@ struct CommunityDetailState: Equatable {
     var shouldDismiss: Bool = false
     
     var isDeleted: Bool = false
+    var isEditPresented: Bool = false
     
     var inputPlaceholder: String {
         replyingToCommentID == nil ? "댓글을 입력하세요." : "대댓글을 입력하세요."
@@ -56,6 +57,9 @@ enum CommunityDetailAction: Equatable {
     case sendTapped
     
     case outsideTapped
+    
+    case editDismissed
+    case postEdited(title: String, content: String, imageURLs: [String])
 }
 
 // MARK: - Reducer
@@ -76,6 +80,7 @@ struct CommunityDetailReducer: Reducer {
                 return .none
                 
             case .navigationBar(.editTapped):
+                state.isEditPresented = true
                 return .none
                 
             case .navigationBar(.deleteTapped):
@@ -169,6 +174,17 @@ struct CommunityDetailReducer: Reducer {
                 
             case .outsideTapped:
                 state.replyingToCommentID = nil
+                return .none
+                
+            case .editDismissed:
+                state.isEditPresented = false
+                return .none
+
+            case .postEdited(let title, let content, let imageURLs):
+                state.post.title = title
+                state.post.content = content
+                state.post.imageURLs = imageURLs
+                state.isEditPresented = false
                 return .none
             }
         }
