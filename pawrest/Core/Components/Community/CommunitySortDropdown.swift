@@ -69,25 +69,34 @@ private extension CommunitySortDropdown {
                         .foregroundColor(.gray80)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 12)
-                        .padding(.vertical, 12)
+                        .frame(height: 36)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                
-                if mode != SortMode.allCases.last {
-                    Rectangle()
-                        .fill(.gray10)
-                        .frame(height: 1)
-                }
+                .buttonStyle(DropdownMenuButtonStyle())
             }
         }
-        .frame(width: 108)
+        .padding(.vertical, 4)
+        .frame(width: 108, height: 80)
         .background(.gray0)
         .cornerRadius(10, corners: .allCorners)
         .overlay {
             RoundedCorner(radius: 10, corners: .allCorners)
                 .stroke(.gray20, lineWidth: 1)
         }
+        .shadow(
+            color: .black.opacity(0.08),
+            radius: 4,
+            x: 0,
+            y: 0
+        )
         .zIndex(1000)
+    }
+}
+
+private struct DropdownMenuButtonStyle: ButtonStyle {
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(configuration.isPressed ? Color.gray10 : Color.clear)
     }
 }
