@@ -23,7 +23,7 @@ struct CommunityCommentInputBar: View {
         textFieldContainer
             .padding(.horizontal, 20)
             .padding(.top, isFocused ? 8 : 18)
-        //.padding(.bottom, isFocused ? 12 : 0)
+            .padding(.bottom, isFocused ? 12 : 36)
         
             .frame(maxWidth: .infinity)
             .background(.gray0)
