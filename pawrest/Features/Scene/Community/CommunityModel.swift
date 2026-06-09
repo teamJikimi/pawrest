@@ -56,10 +56,10 @@ struct Comment: Equatable, Identifiable {
 struct Post: Equatable, Identifiable {
     let id: UUID
     let author: Author
-    let title: String
-    let content: String
+    var title: String
+    var content: String
     let createdAt: Date
-    let imageURLs: [String]
+    var imageURLs: [String]
     
     var likeCount: Int
     var isLiked: Bool
