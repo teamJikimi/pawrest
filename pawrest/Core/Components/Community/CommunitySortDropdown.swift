@@ -34,7 +34,7 @@ struct CommunitySortDropdown: View {
                     .foregroundColor(.gray60)
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 12)
+            .frame(height: 36)
             .background(.gray0)
             .cornerRadius(10, corners: .allCorners)
             .contentShape(Rectangle())
