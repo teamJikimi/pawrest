@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "de.png",
+      "filename" : "icon_search.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "de2.png",
+      "filename" : "Frame.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "de3.png",
+      "filename" : "Frame 1.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
