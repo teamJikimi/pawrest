@@ -57,11 +57,11 @@ struct ReportMenuButton: View {
                             Image(systemName: isExpanded ? "chevron.up" : "chevron.right")
                                 .typography(.body2R1)
                                 .frame(width: 16, height: 16)
-                                .foregroundColor(.gray80)
+                                .foregroundStyle(.gray80)
                             
                             Text("신고하기")
                                 .typography(.body2R1)
-                                .foregroundColor(.gray80)
+                                .foregroundStyle(.gray80)
                             
                             Spacer()
                             
@@ -69,7 +69,7 @@ struct ReportMenuButton: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: size.iconSize, height: size.iconSize)
-                                .foregroundColor(.gray80)
+                                .foregroundStyle(.gray80)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 10)
@@ -83,7 +83,7 @@ struct ReportMenuButton: View {
                             HStack(spacing: 8) {
                                 Text("게시판 성격에 부적절함")
                                     .typography(.body2R1)
-                                    .foregroundColor(.gray80)
+                                    .foregroundStyle(.gray80)
                                 Spacer()
                             }
                             .padding(.horizontal, 12)
@@ -97,7 +97,7 @@ struct ReportMenuButton: View {
                             HStack(spacing: 8) {
                                 Text("욕설/비하")
                                     .typography(.body2R1)
-                                    .foregroundColor(.gray80)
+                                    .foregroundStyle(.gray80)
                                 Spacer()
                             }
                             .padding(.horizontal, 12)
@@ -111,7 +111,7 @@ struct ReportMenuButton: View {
                             HStack(spacing: 8) {
                                 Text("낚시/도배/스팸")
                                     .typography(.body2R1)
-                                    .foregroundColor(.gray80)
+                                    .foregroundStyle(.gray80)
                                 Spacer()
                             }
                             .padding(.horizontal, 12)
@@ -128,7 +128,7 @@ struct ReportMenuButton: View {
                         HStack(spacing: 8) {
                             Text("차단하기")
                                 .typography(.body2R1)
-                                .foregroundColor(.gray80)
+                                .foregroundStyle(.gray80)
                             
                             Spacer()
                             
@@ -136,7 +136,7 @@ struct ReportMenuButton: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: size.iconSize, height: size.iconSize)
-                                .foregroundColor(.gray80)
+                                .foregroundStyle(.gray80)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 10)
