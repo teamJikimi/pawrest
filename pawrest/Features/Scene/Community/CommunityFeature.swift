@@ -29,6 +29,9 @@ struct CommunityState: Equatable {
     var sortMode: SortMode = .recent
     var isSortMenuOpen: Bool = false
     
+    var isMyPostPresented: Bool = false
+    var isWritePostPresented: Bool = false
+    
     var posts: [Post]
     
     var currentUserID: UUID
@@ -50,17 +53,10 @@ struct CommunityState: Equatable {
             return filtered.sorted { $0.likeCount > $1.likeCount }
         }
     }
-    
-    //원래 코드
-//    init(currentUserID: UUID = UUID(), posts: [Post] = []) {
-//        self.currentUserID = currentUserID
-//        self.posts = posts
-//    }
-    
-    //dummy
+    //CommunityModel 더미 연결용
     init(
-        currentUserID: UUID = CommunityState.dummyCurrentUserID,
-        posts: [Post] = CommunityState.dummyPosts
+        currentUserID: UUID = CommunityDummy.currentUserID,
+        posts: [Post] = CommunityDummy.posts
     ) {
         self.currentUserID = currentUserID
         self.posts = posts
@@ -79,6 +75,14 @@ enum CommunityAction: Equatable {
     case outsideTapped
     
     case likeTapped(postID: UUID)
+    
+    case myPostDismissed
+    case writePostDismissed
+    
+    case newPostCreated(title: String, content: String, imageURLs: [String])
+    case myPostsUpdated(posts: [Post])
+    case postStateUpdated(Post)
+    case postDeleted(UUID)
 }
 
 // MARK: - Reducer
@@ -92,11 +96,11 @@ struct CommunityReducer: Reducer {
         Reduce { state, action in
             switch action {
             case .navigationBar(.writePostTapped):
-                print("글 쓰기")
+                state.isWritePostPresented = true
                 return .none
                 
             case .navigationBar(.myPostsTapped):
-                print("나의 글 관리")
+                state.isMyPostPresented = true
                 return .none
                 
             case .navigationBar:
@@ -125,71 +129,43 @@ struct CommunityReducer: Reducer {
                 state.posts[idx].isLiked.toggle()
                 state.posts[idx].likeCount += state.posts[idx].isLiked ? 1 : -1
                 return .none
+                
+            case .myPostDismissed:
+                state.isMyPostPresented = false
+                return .none
+                
+            case .writePostDismissed:
+                state.isWritePostPresented = false
+                return .none
+                
+            case .newPostCreated(let title, let content, let imageURLs):
+                let newPost = Post(
+                    author: Author(id: state.currentUserID, name: "나", profileImageURL: nil),
+                    title: title,
+                    content: content,
+                    createdAt: Date(),
+                    imageURLs: imageURLs,
+                    likeCount: 0,
+                    isLiked: false,
+                    comments: []
+                )
+                state.posts.insert(newPost, at: 0)
+                return .none
+                
+            case .myPostsUpdated(let posts):
+                state.posts = posts
+                return .none
+                
+            case .postStateUpdated(let post):
+                if let idx = state.posts.firstIndex(where: { $0.id == post.id }) {
+                    state.posts[idx] = post
+                }
+                return .none
+                
+            case .postDeleted(let postID):
+                state.posts.removeAll { $0.id == postID }
+                return .none
             }
         }
-    }
-}
-
-//MARK: - Dummy
-
-private extension CommunityState {
-    static let dummyCurrentUserID = UUID()
-    
-    static let dummyOtherUserID = UUID()
-    static let dummyThirdUserID = UUID()
-    
-    static var dummyPosts: [Post] {
-        [
-            Post(
-                author: Author(
-                    id: dummyOtherUserID,
-                    name: "방울이아빠",
-                    profileImageURL: nil
-                ),
-                title: "오늘 우리 콩이를 보냈어요",
-                content: "오랜 시간 함께한 아이를 보내는 일이 이렇게 힘든 줄 몰랐어요. 같은 경험을 하신 분들이 있다면 어떻게 견디셨는지 궁금해요.",
-                createdAt: Date().addingTimeInterval(-3600),
-                imageURLs: [],
-                likeCount: 12,
-                isLiked: false,
-                comments: [
-                    Comment(
-                        content: "저도 비슷한 경험이 있어서 마음이 아프네요.",
-                        author: Author(id: dummyThirdUserID, name: "초코이모", profileImageURL: nil),
-                        createdAt: Date().addingTimeInterval(-3000)
-                    )
-                ]
-            ),
-            Post(
-                author: Author(
-                    id: dummyThirdUserID,
-                    name: "초코이모",
-                    profileImageURL: nil
-                ),
-                title: "산책 사진 모음",
-                content: "오늘 날씨가 좋아서 산책 다녀왔어요.",
-                createdAt: Date().addingTimeInterval(-7200),
-                imageURLs: [
-                    "https://picsum.photos/seed/pawrest1/400/400"
-                ],
-                likeCount: 25,
-                isLiked: true,
-                comments: []
-            ),
-            Post(
-                author: Author(
-                    id: dummyCurrentUserID,
-                    name: "나",
-                    profileImageURL: nil
-                ),
-                title: "강아지 사료 추천 부탁드려요",
-                content: "10살 노견인데 신장 수치가 안 좋아져서 신장 케어 사료를 찾고 있어요.",
-                createdAt: Date().addingTimeInterval(-86400),
-                imageURLs: [],
-                likeCount: 3,
-                isLiked: false,
-                comments: []
-            )
-        ]
     }
 }

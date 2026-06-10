@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 import ComposableArchitecture
 
 struct CommunityDetailView: View {
@@ -13,7 +14,61 @@ struct CommunityDetailView: View {
     @FocusState private var isInputFocused: Bool
     @Environment(\.dismiss) private var dismiss
     
+    var onPostStateUpdated: ((Post) -> Void)? = nil
+    var onPostDeleted: ((UUID) -> Void)? = nil
+    
     var body: some View {
+        contentView
+            .safeAreaInset(edge: .bottom, spacing: 0){
+                inputBar
+            }
+            .customNavigationBar(
+                store: store.scope(
+                    state: \.navigationBar,
+                    action: \.navigationBar
+                )
+            )
+            .onChange(of: store.replyingToCommentID) { _, newValue in
+                if newValue != nil {
+                    isInputFocused = true
+                }
+            }
+            .onChange(of: store.shouldDismiss) { _, shouldDismiss in
+                if shouldDismiss {
+                    if store.isDeleted {
+                        onPostDeleted?(store.post.id) }
+                    dismiss()
+                }
+            }
+            .onChange(of: store.post) { _, newPost in
+                onPostStateUpdated?(newPost)
+            }
+        
+            .onChange(of: store.post.commentCount) { oldCount, newCount in
+                if newCount > oldCount {
+                    isInputFocused = false
+                }
+            }
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { store.isEditPresented },
+                    set: { isPresented in
+                        if !isPresented {
+                            store.send(.editDismissed)
+                        }
+                    }
+                )
+            ) {
+                editView
+            }
+    }
+}
+
+//MARK: - ContentView
+
+private extension CommunityDetailView {
+    
+    var contentView: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 authorHeaderSection
@@ -36,29 +91,10 @@ struct CommunityDetailView: View {
                 store.send(.outsideTapped)
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0){
-            inputBar
-        }
-        .customNavigationBar(
-            store: store.scope(
-                state: \.navigationBar,
-                action: \.navigationBar
-            )
-        )
-        .onChange(of: store.replyingToCommentID) { _, newValue in
-            if newValue != nil {
-                isInputFocused = true
-            }
-        }
-        
-        .onChange(of: store.shouldDismiss) { _, shouldDismiss in
-            if shouldDismiss { dismiss() }
-        }
-        
     }
 }
 
-// MARK: - Sections
+// MARK: - SubView
 
 private extension CommunityDetailView {
     
@@ -182,5 +218,31 @@ private extension CommunityDetailView {
             placeholder: store.inputPlaceholder,
             isFocused: $isInputFocused
         )
+    }
+}
+
+//MARK: - EditView
+
+private extension CommunityDetailView {
+    
+    var editView: some View {
+        CommunityWriteView(
+            store: Store(
+                initialState: CommunityWriteState(editingPost: store.post),
+                reducer: { CommunityWriteReducer() }
+            ),
+            onSave: editSave
+        )
+    }
+    
+    func editSave(title: String, content: String, images: [UIImage]) {
+        let imageURLs = images.compactMap { image -> String? in
+            guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+            let filename = "\(UUID().uuidString).jpg"
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+            try? data.write(to: url)
+            return url.absoluteString
+        }
+        store.send(.postEdited(title: title, content: content, imageURLs: imageURLs))
     }
 }

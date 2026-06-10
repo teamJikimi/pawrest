@@ -17,16 +17,24 @@ struct CommunityCommentInputBar: View {
     var placeholder: String = "댓글을 입력하세요."
     @FocusState.Binding var isFocused: Bool
     
+    private var safeAreaBottom: CGFloat {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first
+        else { return 0 }
+        return window.safeAreaInsets.bottom
+    }
+    
     //MARK: - Body
     
     var body: some View {
         textFieldContainer
             .padding(.horizontal, 20)
             .padding(.top, isFocused ? 8 : 18)
-        //.padding(.bottom, isFocused ? 12 : 0)
+            .padding(.bottom, isFocused ? 8 : max(36-safeAreaBottom, 0))
         
             .frame(maxWidth: .infinity)
             .background(.gray0)
+
             .cornerRadius(isFocused ? 0 : 20, corners: [.topRight, .topLeft])
             .overlay {
                 RoundedCorner(
@@ -34,6 +42,8 @@ struct CommunityCommentInputBar: View {
                     corners: [.topRight, .topLeft]
                 )
                 .stroke(.gray10, lineWidth: 1)
+                .mask(Rectangle().padding(.bottom, 1))
+                
             }
             .background(
                 Color.gray0.ignoresSafeArea(.container, edges: .bottom)
@@ -55,7 +65,7 @@ private extension CommunityCommentInputBar {
         }
         .padding(.leading, 14)
         .padding(.trailing, 8)
-        .padding(.vertical, 12)
+        .padding(.vertical, 8)
         .background(.gray0)
         .cornerRadius(20, corners: .allCorners)
         .overlay {

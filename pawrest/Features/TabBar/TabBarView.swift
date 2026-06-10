@@ -11,6 +11,7 @@ import ComposableArchitecture
 struct TabBarView: View {
     let store: StoreOf<TabBarFeature>
     @State private var isTabBarHidden = false
+    @State private var communityStore = Store(initialState: CommunityState()) { CommunityReducer() }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -54,10 +55,7 @@ struct TabBarView: View {
             
         case .community:
             NavigationStack {
-                CommunityView(store: Store(initialState: CommunityState()) {
-                    CommunityReducer()
-                }, isTabBarHidden: $isTabBarHidden
-                )
+                CommunityView(store: communityStore, isTabBarHidden: $isTabBarHidden)
             }
             
         case .my:
