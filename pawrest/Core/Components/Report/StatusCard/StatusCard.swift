@@ -38,7 +38,7 @@ struct StatusCard: View {
             previousScoreRow
         }
         .padding(20)
-        .background(Color.gray0)
+        .background(.gray0)
         .cornerRadius(16, corners: .allCorners)
     }
 }
