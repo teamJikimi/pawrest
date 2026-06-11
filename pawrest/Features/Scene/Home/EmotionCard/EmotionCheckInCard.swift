@@ -142,6 +142,6 @@ private extension EmotionCheckInCard {
             )
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.8), value: store.selectedEmotion)
+        .animation(.easeInOut(duration: 0.25), value: store.selectedEmotion)
     }
 }
