@@ -32,7 +32,7 @@ struct RecentRecordCard: View {
         .cornerRadius(20, corners: .allCorners)
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.gray20, lineWidth: 1)
+                .stroke(.gray20, lineWidth: 1)
         )
     }
 }
@@ -43,7 +43,7 @@ private extension RecentRecordCard {
     var headerSection: some View {
         HStack {
             Text("최근 기록")
-                .typography(.title2)
+                .typography(.body1M)
                 .foregroundStyle(.gray90)
             
             Spacer()
@@ -59,7 +59,7 @@ private extension RecentRecordCard {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 18, height: 18)
-                    .foregroundStyle(hasPreviousDay ? Color.gray80 : Color.gray40)
+                    .foregroundStyle(hasPreviousDay ? .gray80 : .gray40)
             }
             .buttonStyle(.plain)
             .disabled(!hasPreviousDay)
@@ -80,7 +80,7 @@ private extension RecentRecordCard {
                     .scaledToFit()
                     .frame(width: 18, height: 18)
                     .rotationEffect(.degrees(180))
-                    .foregroundStyle(hasNextDay ? Color.gray80 : Color.gray40)
+                    .foregroundStyle(hasNextDay ? .gray80 : .gray40)
             }
             .buttonStyle(.plain)
             .disabled(!hasNextDay)
@@ -116,7 +116,7 @@ private extension RecentRecordCard {
     
     var emptyView: some View {
         Text("아직 오늘의 감정이 없어요")
-            .typography(.body2R1)
+            .typography(.body3R)
             .foregroundStyle(.gray60)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 24)
@@ -139,7 +139,7 @@ private extension RecentRecordCard {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text(record.recordedAt.formatted(.dateTime.hour().minute()))
-                        .typography(.body2R1)
+                        .typography(.body3R)
                         .foregroundStyle(.gray80)
                     
                     Spacer()
@@ -173,31 +173,9 @@ private extension RecentRecordCard {
             .cornerRadius(10, corners: .allCorners)
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray20, lineWidth: 1)
+                    .stroke(.gray20, lineWidth: 1)
             )
         }
         .padding(.vertical, 12)
     }
-}
-
-// MARK: - Preview
-#Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: EmotionRecordModel.self, configurations: config)
-    
-    let record = EmotionRecordModel(
-        emotionType: "comfortable",
-        memo: "오늘 기분이 좋아요",
-        recordedAt: Date()
-    )
-    container.mainContext.insert(record)
-    
-    return RecentRecordCard(
-        store: Store(initialState: RecentRecordFeature.State()) {
-            RecentRecordFeature()
-        }
-    )
-    .padding(20)
-    .background(.gray10)
-    .modelContainer(container)
 }

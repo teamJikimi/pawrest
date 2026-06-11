@@ -58,10 +58,10 @@ private extension EmotionCheckInCard {
         VStack(spacing: 10) {
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.gray0)
+                    .fill(.gray0)
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray20, lineWidth: 1)
+                            .stroke(.gray20, lineWidth: 1)
                     )
                     .frame(height: 104)
                 
@@ -134,10 +134,10 @@ private extension EmotionCheckInCard {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.gray0)
+                    .fill(.gray0)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(store.selectedEmotion == emotion ? Color.pawPrimary : Color.clear, lineWidth: 1)
+                            .stroke(store.selectedEmotion == emotion ? .pawPrimary : Color.clear, lineWidth: 1)
                     )
             )
         }
