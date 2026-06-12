@@ -42,7 +42,7 @@ struct ReportMenuButton: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: size.iconSize, height: size.iconSize)
-                .foregroundStyle(Color.gray80)
+                .foregroundStyle(.gray80)
         }
         .frame(width: size.buttonSize, height: size.buttonSize)
         .background(alignment: .topTrailing) {
@@ -143,7 +143,7 @@ struct ReportMenuButton: View {
                     }
                 }
                 .frame(width: 160)
-                .background(Color.white)
+                .background(.white)
                 .cornerRadius(10, corners: .allCorners)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)

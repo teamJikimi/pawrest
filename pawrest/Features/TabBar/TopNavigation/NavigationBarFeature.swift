@@ -47,6 +47,7 @@ enum NavigationBarAction: Equatable {
     case blockTapped
     case writePostTapped
     case myPostsTapped
+    case alarmTapped
 }
 
 // MARK: - Reducer
@@ -64,7 +65,8 @@ struct NavigationBarReducer: Reducer {
                     .reportSpam,
                     .blockTapped,
                     .writePostTapped,
-                    .myPostsTapped:
+                    .myPostsTapped,
+                    .alarmTapped:
                 return .none
             }
         }
@@ -75,7 +77,7 @@ struct NavigationBarReducer: Reducer {
 
 struct NavigationBarView: View {
     @Bindable var store: StoreOf<NavigationBarReducer>
-    @Environment(\.dismiss) var dismiss  // ← 추가
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         HStack(spacing: 0) {
@@ -103,14 +105,22 @@ struct NavigationBarView: View {
         switch store.leftButton {
         case .back:
             Button {
-                dismiss()  // ← store.send 대신 dismiss()
+                dismiss()
             } label: {
                 Image(.iconBack)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
+                    .foregroundStyle(.gray90)
             }
             .frame(width: 44, height: 44)
+            
+        case .logo:
+            Image(.logo)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 100, height: 26)
+                .frame(width: 44, height: 44, alignment: .leading)
             
         case .none:
             Color.clear
@@ -149,13 +159,24 @@ struct NavigationBarView: View {
                 onBlock: { store.send(.blockTapped) }
             )
             .frame(width: 44, height: 44)
-        
+            
         case .communityAddMenu:
             CommunityAddMenuButton(
                 icon: .iconNavigationPlus,
                 onWritePost: { store.send(.writePostTapped) },
                 onMyPosts: { store.send(.myPostsTapped) }
             )
+            .frame(width: 44, height: 44)
+            
+        case .alarm:
+            Button {
+                store.send(.alarmTapped)
+            } label: {
+                Image(.iconAlarm)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+            }
             .frame(width: 44, height: 44)
             
         case .none:
