@@ -15,6 +15,7 @@ struct RecentRecordCard: View {
     let store: StoreOf<RecentRecordFeature>
     @Environment(\.modelContext) private var modelContext
     @Query private var allRecords: [EmotionRecordModel]
+    @State private var recordToDelete: EmotionRecordModel? = nil
     
     private var filteredRecords: [EmotionRecordModel] {
         allRecords.filter { record in
@@ -34,6 +35,20 @@ struct RecentRecordCard: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.gray20, lineWidth: 1)
         )
+        .alert("삭제하시겠습니까?", isPresented: Binding(
+            get: { recordToDelete != nil },
+            set: { if !$0 { recordToDelete = nil } }
+        )) {
+            Button("확인") {
+            if let target = recordToDelete {
+                modelContext.delete(target)
+                recordToDelete = nil
+            }
+        }
+            Button("취소", role: .cancel) {
+                recordToDelete = nil
+            }
+        }
     }
 }
 
@@ -146,7 +161,7 @@ private extension RecentRecordCard {
                     
                     Button {
                         if let target = allRecords.first(where: { $0.id == record.id }) {
-                            modelContext.delete(target)
+                            recordToDelete = target
                         }
                     } label: {
                         Image(.iconClose)
