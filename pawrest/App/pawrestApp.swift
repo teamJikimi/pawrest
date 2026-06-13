@@ -36,10 +36,33 @@ struct pawrestApp: App {
     
     var body: some Scene {
         WindowGroup {
-            SelfAssessmentResultView(store: Store(initialState: SelfAssessmentResultFeature.State()) {
-                SelfAssessmentResultFeature()
-            })
+            TestRootView()
         }
-        .modelContainer(sharedModelContainer) 
+        .modelContainer(sharedModelContainer)
+    }
+    
+    struct TestRootView: View {
+        @State private var isPresented = false
+        
+        var body: some View {
+            NavigationStack {
+                Button("검사 결과 열기") {
+                    isPresented = true
+                }
+                .navigationDestination(isPresented: $isPresented) {
+                    SelfAssessmentResultView(
+                        store: Store(
+                            initialState: SelfAssessmentResultState(
+                                assessmentType: .pbq,
+                                score: 30,
+                                historyState: .noRecord
+                            )
+                        ) {
+                            SelfAssessmentResultFeature()
+                        }
+                    )
+                }
+            }
+        }
     }
 }

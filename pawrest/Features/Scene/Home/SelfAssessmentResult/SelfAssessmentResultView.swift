@@ -13,7 +13,6 @@ import ComposableArchitecture
 struct SelfAssessmentResultView: View {
     @Bindable var store: StoreOf<SelfAssessmentResultFeature>
     @State private var cardHeight: CGFloat = 0
-    @State private var scrollOffset: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -21,25 +20,17 @@ struct SelfAssessmentResultView: View {
             scoreCard
             if cardHeight > 0 {
                 scrollContent
-                dimOverlay
             }
-            navigationBar
         }
-        .toolbar(.hidden, for: .navigationBar)
-        .navigationBarBackButtonHidden(true)
+        .customNavigationBar(
+            store: store.scope(state: \.navBar, action: \.navBar)
+        )
     }
 }
 
 // MARK: - Subviews
 
 private extension SelfAssessmentResultView {
-
-    var navigationBar: some View {
-        NavigationBarView(
-            store: store.scope(state: \.navBar, action: \.navBar)
-        )
-        .zIndex(10)
-    }
 
     var scoreCard: some View {
         ScoreCardView(
@@ -49,7 +40,7 @@ private extension SelfAssessmentResultView {
             level: store.scoreLevel
         )
         .padding(.horizontal, 20)
-        .padding(.top, 60)
+        .padding(.top, 16)
         .background(
             GeometryReader { geo in
                 Color.clear.onAppear { cardHeight = geo.size.height }
@@ -58,42 +49,16 @@ private extension SelfAssessmentResultView {
         .zIndex(0)
     }
 
-    var dimOverlay: some View {
-        let progress = max(0, scrollOffset - cardHeight * 0.8) / (cardHeight * 0.2)
-        let dimOpacity = min(progress, 1.0) * 0.4
-        return Color.black
-            .opacity(dimOpacity)
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
-            .zIndex(11)
-    }
-
     var scrollContent: some View {
         ScrollView {
             VStack(spacing: 0) {
-                GeometryReader { geo in
-                    Color.clear
-                        .onChange(of: geo.frame(in: .named("scroll")).minY) { _, newValue in
-                            scrollOffset = max(0, -newValue)
-                        }
-                }
-                .frame(height: 0)
-
-                Color.clear.frame(height: cardHeight + 20)
-                
-                ZStack(alignment: .top) {
-                    Color.gray0
-                        .padding(.top, 30)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
-                    bottomSheet
-                }
+                Color.clear.frame(height: cardHeight + 16)
+                bottomSheet
             }
         }
-        .coordinateSpace(name: "scroll")
-        .zIndex(12)
+        .zIndex(1)
     }
-    
+
     var bottomSheet: some View {
         VStack(spacing: 12) {
             handle
@@ -104,23 +69,29 @@ private extension SelfAssessmentResultView {
             AssessmentHistorySection(historyState: store.historyState)
             noticeSection
             sourceSection
-            Spacer().frame(height: 150)
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 32)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.bottom, 48)
+        .frame(maxWidth: .infinity)
         .background(
             Color.gray0
                 .cornerRadius(30, corners: [.topLeft, .topRight])
                 .shadow(color: .pawBlack.opacity(0.1), radius: 6, x: 0, y: -4)
-                .overlay(
+                .mask(
+                    VStack(spacing: 0) {
+                        Color.black.frame(height: 20)
+                        Rectangle()
+                            .fill(Color.black)
+                    }
+                    .padding(.top, -20)
+                )
+                .overlay( 
                     RoundedCorner(radius: 30, corners: [.topLeft, .topRight])
                         .stroke(.gray30, lineWidth: 1)
                         .padding(.bottom, -100)
                         .clipped()
                 )
         )
-        
     }
 
     var handle: some View {
@@ -164,44 +135,5 @@ private extension SelfAssessmentResultView {
         .padding(.vertical, 16)
         .background(.gray20)
         .cornerRadius(20, corners: .allCorners)
-    }
-}
-
-// MARK: - Preview
-
-#Preview("기록 없음") {
-    NavigationStack {
-        SelfAssessmentResultView(
-            store: Store(
-                initialState: SelfAssessmentResultState(
-                    assessmentType: .pbq,
-                    score: 30,
-                    historyState: .noRecord
-                )
-            ) {
-                SelfAssessmentResultFeature()
-            }
-        )
-    }
-}
-
-#Preview("변화 없음") {
-    NavigationStack {
-        SelfAssessmentResultView(
-            store: Store(
-                initialState: SelfAssessmentResultState(
-                    assessmentType: .pbq,
-                    score: 30,
-                    historyState: .noChange(
-                        previousScore: 30,
-                        previousDate: "2000.00.00",
-                        currentScore: 30,
-                        currentDate: "2000.00.00"
-                    )
-                )
-            ) {
-                SelfAssessmentResultFeature()
-            }
-        )
     }
 }
