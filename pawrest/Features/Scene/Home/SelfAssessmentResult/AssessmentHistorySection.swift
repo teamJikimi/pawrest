@@ -61,15 +61,15 @@ private extension AssessmentHistorySection {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 24, height: 32)
-                .foregroundStyle(Color.gray40)
+                .foregroundStyle(.gray40)
 
             Text("이전 기록 없음")
                 .typography(.title2)
-                .foregroundStyle(Color.gray70)
+                .foregroundStyle(.gray70)
 
             Text("다음 검사부터 변화를 함께 보여드려요.")
                 .typography(.body2R1)
-                .foregroundStyle(Color.gray50)
+                .foregroundStyle(.gray50)
         }
         .frame(maxWidth: .infinity, maxHeight: 158)
         .padding(.vertical, 24)
@@ -88,7 +88,7 @@ private extension AssessmentHistorySection {
         VStack(alignment: .leading, spacing: 12) {
             Text("이전 검사 기록")
                 .typography(.title2)
-                .foregroundStyle(Color.gray90)
+                .foregroundStyle(.gray90)
 
             HStack(spacing: 0) {
                 ScoreHistoryCard(
@@ -153,7 +153,7 @@ private extension AssessmentHistorySection {
 
             Text("\(difference)점 감소")
                 .typography(.body2R1)
-                .foregroundStyle(Color(.pawPrimary))
+                .foregroundStyle(.pawPrimary)
         }
     }
 }
@@ -182,11 +182,11 @@ private struct ScoreHistoryCard: View {
 
             Text(date)
                 .typography(.date)
-                .foregroundStyle(Color.gray60)
+                .foregroundStyle(.gray60)
         }
         .frame(width: 115)
         .padding(.vertical, 12)
-        .background(isHighlighted ? Color.gray0 : Color.gray20)
+        .background(isHighlighted ? .gray0 : .gray20)
         .cornerRadius(10, corners: .allCorners)
     }
 }

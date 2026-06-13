@@ -166,28 +166,28 @@ enum AssessmentScoreLevel: Equatable {
         switch self {
         case .pbqLow, .cesDNormal, .pdsMild:
             return EllipticalGradient(
-                colors: [Color(.pawPrimary).opacity(0.15), Color.white],
+                colors: [Color(.pawPrimary).opacity(0.15), .gray0],
                 center: .center,
                 startRadiusFraction: 0,
                 endRadiusFraction: 0.5
             )
         case .pbqAverage, .pdsModerate:
             return EllipticalGradient(
-                colors: [Color(.pawWarning).opacity(0.15), Color.white],
+                colors: [Color(.pawWarning).opacity(0.15), .gray0],
                 center: .center,
                 startRadiusFraction: 0,
                 endRadiusFraction: 0.5
             )
         case .cesDHighRisk, .pdsModerateToSevere:
             return EllipticalGradient(
-                colors: [Color(.accent).opacity(0.15), Color.white],
+                colors: [Color(.accent).opacity(0.15), .gray0],
                 center: .center,
                 startRadiusFraction: 0,
                 endRadiusFraction: 0.5
             )
         case .pbqHigh, .cesDDepression, .pdsSevere:
             return EllipticalGradient(
-                colors: [Color(.danger).opacity(0.15), Color.white],
+                colors: [Color(.danger).opacity(0.15), .gray0],
                 center: .center,
                 startRadiusFraction: 0,
                 endRadiusFraction: 0.5

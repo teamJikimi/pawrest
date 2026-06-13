@@ -19,7 +19,7 @@ struct SelfAssessmentResultView: View {
             scoreCard
             if cardHeight > 0 { scrollContent }
         }
-        .background(Color.gray0)
+        .background(.gray0)
         .customNavigationBar(
             store: store.scope(state: \.navBar, action: \.navBar)
         )
@@ -74,17 +74,17 @@ private extension SelfAssessmentResultView {
         .background(
             Color.gray0
                 .cornerRadius(30, corners: [.topLeft, .topRight])
-                .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: -4)
+                .shadow(color: .pawBlack.opacity(0.1), radius: 6, x: 0, y: -4)
                 .overlay(
                     RoundedCorner(radius: 30, corners: [.topLeft, .topRight])
-                        .stroke(Color.gray30, lineWidth: 1)
+                        .stroke(.gray30, lineWidth: 1)
                 )
         )
     }
 
     var handle: some View {
         RoundedRectangle(cornerRadius: 2)
-            .fill(Color.gray30)
+            .fill(.gray30)
             .frame(width: 36, height: 4)
             .padding(.top, 12)
             .padding(.bottom, 4)
@@ -96,7 +96,7 @@ private extension SelfAssessmentResultView {
                 Image(.iconNotion)
                 Text("안내 사항")
                     .typography(.body1M)
-                    .foregroundStyle(Color.gray90)
+                    .foregroundStyle(.gray90)
             }
             VStack(alignment: .leading, spacing: 6) {
                 NoticeItem(text: "본 검사는 의학적 진단을 대체하지 않습니다.")
@@ -118,7 +118,7 @@ private extension SelfAssessmentResultView {
             Spacer()
             Text(store.assessmentType.source)
                 .typography(.body4R)
-                .foregroundStyle(Color.gray50)
+                .foregroundStyle(.gray50)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
