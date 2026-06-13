@@ -21,6 +21,12 @@ struct HomeView: View {
                             action: \.emotionCheckIn
                         )
                     )
+                    RecommendedContentCard(
+                        store: store.scope(
+                            state: \.recommendedContent,
+                            action: \.recommendedContent
+                        )
+                    )
                     RecentRecordCard(
                         store: store.scope(
                             state: \.recentRecord,
