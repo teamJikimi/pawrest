@@ -13,22 +13,33 @@ import ComposableArchitecture
 struct SelfAssessmentResultView: View {
     @Bindable var store: StoreOf<SelfAssessmentResultFeature>
     @State private var cardHeight: CGFloat = 0
+    @State private var scrollOffset: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .top) {
+            Color.gray0.ignoresSafeArea()
             scoreCard
-            if cardHeight > 0 { scrollContent }
+            if cardHeight > 0 {
+                scrollContent
+                dimOverlay
+            }
+            navigationBar
         }
-        .background(.gray0)
-        .customNavigationBar(
-            store: store.scope(state: \.navBar, action: \.navBar)
-        )
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
     }
 }
 
 // MARK: - Subviews
 
 private extension SelfAssessmentResultView {
+
+    var navigationBar: some View {
+        NavigationBarView(
+            store: store.scope(state: \.navBar, action: \.navBar)
+        )
+        .zIndex(10)
+    }
 
     var scoreCard: some View {
         ScoreCardView(
@@ -38,7 +49,7 @@ private extension SelfAssessmentResultView {
             level: store.scoreLevel
         )
         .padding(.horizontal, 20)
-        .padding(.top, 16)
+        .padding(.top, 60)
         .background(
             GeometryReader { geo in
                 Color.clear.onAppear { cardHeight = geo.size.height }
@@ -47,16 +58,42 @@ private extension SelfAssessmentResultView {
         .zIndex(0)
     }
 
+    var dimOverlay: some View {
+        let progress = max(0, scrollOffset - cardHeight * 0.8) / (cardHeight * 0.2)
+        let dimOpacity = min(progress, 1.0) * 0.4
+        return Color.black
+            .opacity(dimOpacity)
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .zIndex(11)
+    }
+
     var scrollContent: some View {
         ScrollView {
             VStack(spacing: 0) {
-                Color.clear.frame(height: cardHeight + 16)
-                bottomSheet
+                GeometryReader { geo in
+                    Color.clear
+                        .onChange(of: geo.frame(in: .named("scroll")).minY) { _, newValue in
+                            scrollOffset = max(0, -newValue)
+                        }
+                }
+                .frame(height: 0)
+
+                Color.clear.frame(height: cardHeight + 20)
+                
+                ZStack(alignment: .top) {
+                    Color.gray0
+                        .padding(.top, 30)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    bottomSheet
+                }
             }
         }
-        .zIndex(1)
+        .coordinateSpace(name: "scroll")
+        .zIndex(12)
     }
-
+    
     var bottomSheet: some View {
         VStack(spacing: 12) {
             handle
@@ -67,10 +104,11 @@ private extension SelfAssessmentResultView {
             AssessmentHistorySection(historyState: store.historyState)
             noticeSection
             sourceSection
+            Spacer().frame(height: 150)
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 32)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             Color.gray0
                 .cornerRadius(30, corners: [.topLeft, .topRight])
@@ -78,8 +116,11 @@ private extension SelfAssessmentResultView {
                 .overlay(
                     RoundedCorner(radius: 30, corners: [.topLeft, .topRight])
                         .stroke(.gray30, lineWidth: 1)
+                        .padding(.bottom, -100)
+                        .clipped()
                 )
         )
+        
     }
 
     var handle: some View {
@@ -87,7 +128,6 @@ private extension SelfAssessmentResultView {
             .fill(.gray30)
             .frame(width: 36, height: 4)
             .padding(.top, 12)
-            .padding(.bottom, 4)
     }
 
     var noticeSection: some View {
@@ -157,50 +197,6 @@ private extension SelfAssessmentResultView {
                         previousDate: "2000.00.00",
                         currentScore: 30,
                         currentDate: "2000.00.00"
-                    )
-                )
-            ) {
-                SelfAssessmentResultFeature()
-            }
-        )
-    }
-}
-
-#Preview("악화") {
-    NavigationStack {
-        SelfAssessmentResultView(
-            store: Store(
-                initialState: SelfAssessmentResultState(
-                    assessmentType: .pbq,
-                    score: 40,
-                    historyState: .worsened(
-                        previousScore: 20,
-                        previousDate: "2000.00.00",
-                        currentScore: 40,
-                        currentDate: "2000.00.00",
-                        difference: 20
-                    )
-                )
-            ) {
-                SelfAssessmentResultFeature()
-            }
-        )
-    }
-}
-
-#Preview("완화") {
-    NavigationStack {
-        SelfAssessmentResultView(
-            store: Store(
-                initialState: SelfAssessmentResultState(
-                    assessmentType: .pds,
-                    score: 40,
-                    historyState: .improved(
-                        previousScore: 60,
-                        previousDate: "2000.00.00",
-                        currentScore: 40,
-                        currentDate: "2000.00.00",
-                        difference: 20
                     )
                 )
             ) {
