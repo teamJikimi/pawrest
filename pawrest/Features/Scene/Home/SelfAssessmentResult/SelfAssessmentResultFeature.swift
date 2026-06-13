@@ -15,14 +15,6 @@ enum AssessmentType: Equatable {
     case cesD
     case pds
 
-    var source: String {
-        switch self {
-        case .pbq:  return "Hunt & Padilla (2006)"
-        case .cesD: return "Radloff (1977)"
-        case .pds:  return "Foa et al. (1997)"
-        }
-    }
-    
     var title: String {
         switch self {
         case .pbq:  return "PBQ 펫로스 심리 척도"
@@ -36,6 +28,14 @@ enum AssessmentType: Equatable {
         case .pbq:  return 60
         case .cesD: return 60
         case .pds:  return 60
+        }
+    }
+
+    var source: String {
+        switch self {
+        case .pbq:  return "Hunt & Padilla (2006)"
+        case .cesD: return "Radloff (1977)"
+        case .pds:  return "Foa et al. (1997)"
         }
     }
 
@@ -69,12 +69,10 @@ enum AssessmentType: Equatable {
             if score < 28 { return .pbqLow }
             if score < 37 { return .pbqAverage }
             return .pbqHigh
-
         case .cesD:
             if score <= 20 { return .cesDNormal }
             if score <= 40 { return .cesDHighRisk }
             return .cesDDepression
-
         case .pds:
             if score <= 20 { return .pdsMild }
             if score <= 40 { return .pdsModerate }
@@ -84,19 +82,17 @@ enum AssessmentType: Equatable {
     }
 }
 
-// MARK: - Score Level
+// MARK: - Assessment Score Level
 
 enum AssessmentScoreLevel: Equatable {
     // PBQ
     case pbqLow
     case pbqAverage
     case pbqHigh
-
     // CES-D
     case cesDNormal
     case cesDHighRisk
     case cesDDepression
-
     // PDS
     case pdsMild
     case pdsModerate
@@ -161,7 +157,6 @@ enum AssessmentScoreLevel: Equatable {
 
     var badgeBackground: Color { scoreColor.opacity(0.15) }
 
-    
     var cardGradient: EllipticalGradient {
         switch self {
         case .pbqLow, .cesDNormal, .pdsMild:
@@ -194,14 +189,21 @@ enum AssessmentScoreLevel: Equatable {
             )
         }
     }
-    
-    
 }
 
-// MARK: - Interpretation Row Model
+// MARK: - Assessment Interpretation Row
 
 struct AssessmentInterpretationRow: Equatable {
     let level: AssessmentScoreLevel
+}
+
+// MARK: - Assessment History State
+
+enum AssessmentHistoryState: Equatable {
+    case noRecord
+    case noChange(previousScore: Int, previousDate: String, currentScore: Int, currentDate: String)
+    case worsened(previousScore: Int, previousDate: String, currentScore: Int, currentDate: String, difference: Int)
+    case improved(previousScore: Int, previousDate: String, currentScore: Int, currentDate: String, difference: Int)
 }
 
 // MARK: - State
@@ -215,8 +217,8 @@ struct SelfAssessmentResultState: Equatable {
     )
     var assessmentType: AssessmentType = .pbq
     var score: Int = 30
-    var hasHistory: Bool = false
     var historyState: AssessmentHistoryState = .noRecord
+
     var maxScore: Int { assessmentType.maxScore }
     var testTitle: String { assessmentType.title }
     var scoreLevel: AssessmentScoreLevel { assessmentType.scoreLevel(for: score) }

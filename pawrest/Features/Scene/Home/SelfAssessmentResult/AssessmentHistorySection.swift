@@ -7,13 +7,6 @@
 
 import SwiftUI
 
-enum AssessmentHistoryState: Equatable {
-    case noRecord
-    case noChange(previousScore: Int, previousDate: String, currentScore: Int, currentDate: String)
-    case worsened(previousScore: Int, previousDate: String, currentScore: Int, currentDate: String, difference: Int)
-    case improved(previousScore: Int, previousDate: String, currentScore: Int, currentDate: String, difference: Int)
-}
-
 // MARK: - View
 
 struct AssessmentHistorySection: View {
