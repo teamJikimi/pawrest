@@ -15,7 +15,7 @@ struct AssessmentInterpretationSection: View {
         VStack(alignment: .leading, spacing: 0) {
             Text("점수 해석 기준")
                 .typography(.title2)
-                .foregroundStyle(Color.gray90)
+                .foregroundStyle(.gray90)
                 .padding(.bottom, 12)
 
             VStack(spacing: 8) {
@@ -44,7 +44,7 @@ private struct InterpretationRow: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.gray0)
+                    .fill(.gray0)
                     .frame(width: 32, height: 32)
                 
                 Image(row.level.icon)
@@ -61,7 +61,7 @@ private struct InterpretationRow: View {
 
             Text(row.level.rangeText)
                 .typography(.body2R1)
-                .foregroundStyle(Color.gray80)
+                .foregroundStyle(.gray80)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(row.level.badgeBackground)

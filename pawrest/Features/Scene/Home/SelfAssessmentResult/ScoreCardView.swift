@@ -75,7 +75,7 @@ private struct ScoreProgressBar: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray20)
+                    .fill(.gray20)
                     .frame(height: 8)
                 
                 RoundedRectangle(cornerRadius: 4)
