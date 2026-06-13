@@ -1,0 +1,82 @@
+//
+//  RecommendContentCard.swift
+//  pawrest
+//
+//  Created by 곽예리 on 6/14/26.
+//
+
+import SwiftUI
+import ComposableArchitecture
+
+// MARK: - View
+
+struct RecommendedContentCard: View {
+    let store: StoreOf<RecommendedContentFeature>
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            headerSection
+            contentList
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 20)
+        .padding(.bottom, 21)
+        .background(.rowMuted)
+        .cornerRadius(20, corners: .allCorners)
+        .onAppear {
+            store.send(.onAppear)
+        }
+    }
+}
+
+// MARK: - Helper
+
+private extension RecommendedContentCard {
+    var headerSection: some View {
+        HStack {
+            Text("추천 콘텐츠")
+                .typography(.body1M)
+                .foregroundStyle(.gray90)
+
+            Spacer()
+
+            // TODO: 콘텐츠 수가 많아지면 전체 목록 화면으로 이동하는 > 버튼 추가
+        }
+    }
+
+    var contentList: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(store.items) { item in
+                    contentRow(item)
+                }
+            }
+            .padding(.trailing, 16)
+        }
+        .padding(.trailing, -16)
+    }
+
+    func contentRow(_ item: RecommendedContentItem) -> some View {
+        Button {
+            store.send(.itemTapped(item.id))
+        } label: {
+            HStack(spacing: 12) {
+                Image(item.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+
+                Text(item.title)
+                    .typography(.body2R2)
+                    .foregroundStyle(.gray80)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(12)
+            .frame(width: 220, alignment: .leading)
+            .background(.white)
+            .cornerRadius(10, corners: .allCorners)
+        }
+        .buttonStyle(.plain)
+    }
+}
