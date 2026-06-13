@@ -36,8 +36,8 @@ struct pawrestApp: App {
     
     var body: some Scene {
         WindowGroup {
-            TabBarView(store: Store(initialState: TabBarFeature.State()) {
-                TabBarFeature()
+            SelfAssessmentResultView(store: Store(initialState: SelfAssessmentResultFeature.State()) {
+                SelfAssessmentResultFeature()
             })
         }
         .modelContainer(sharedModelContainer) 
