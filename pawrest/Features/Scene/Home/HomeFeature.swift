@@ -14,13 +14,14 @@ struct HomeFeature: Reducer {
         var recommendedContent = RecommendedContentFeature.State()
         var recentRecord = RecentRecordFeature.State()
         var isAlarmPresented: Bool = false
+        var isReportPresented: Bool = false
         var navigationBar = NavigationBarState(
             title: "",
             leftButton: .logo,
             rightButton: .alarm
         )
     }
-
+    
     @CasePathable
     enum Action {
         case onAppear
@@ -30,11 +31,11 @@ struct HomeFeature: Reducer {
         case recentRecord(RecentRecordFeature.Action)
         case navigationBar(NavigationBarAction)
     }
-
+    
     private let emotionCheckInReducer = EmotionCheckInFeature()
     private let recommendedContentReducer = RecommendedContentFeature()
     private let recentRecordReducer = RecentRecordFeature()
-
+    
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .onAppear:
@@ -55,6 +56,10 @@ struct HomeFeature: Reducer {
                 .reduce(into: &state.recommendedContent, action: contentAction)
                 .map(Action.recommendedContent)
         case .recentRecord(let recordAction):
+            if case .reportTapped = recordAction {
+                state.isReportPresented = true
+                return .none
+            }
             return recentRecordReducer
                 .reduce(into: &state.recentRecord, action: recordAction)
                 .map(Action.recentRecord)

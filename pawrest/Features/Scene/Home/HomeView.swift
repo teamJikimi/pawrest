@@ -56,6 +56,16 @@ struct HomeView: View {
                     }
                 )
             }
+            .navigationDestination(isPresented: Binding(
+                get: { store.isReportPresented },
+                set: { _ in }
+            )) {
+                ReportView(
+                    store: Store(initialState: ReportFeature.State()) {
+                        ReportFeature()
+                    }
+                )
+            }
         }
     }
 }
