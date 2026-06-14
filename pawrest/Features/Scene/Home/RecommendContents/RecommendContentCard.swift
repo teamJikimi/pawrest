@@ -5,6 +5,13 @@
 //  Created by 곽예리 on 6/14/26.
 //
 
+//
+//  RecommendedContentCard.swift
+//  pawrest
+//
+//  Created by 소은 on 6/14/26.
+//
+
 import SwiftUI
 import ComposableArchitecture
 
@@ -16,9 +23,9 @@ struct RecommendedContentCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             headerSection
+                .padding(.horizontal, 16)
             contentList
         }
-        .padding(.horizontal, 16)
         .padding(.top, 20)
         .padding(.bottom, 21)
         .background(.rowMuted)
@@ -51,9 +58,8 @@ private extension RecommendedContentCard {
                     contentRow(item)
                 }
             }
-            .padding(.trailing, 16)
+            .padding(.horizontal, 16)
         }
-        .padding(.trailing, -16)
     }
 
     func contentRow(_ item: RecommendedContentItem) -> some View {
@@ -67,7 +73,7 @@ private extension RecommendedContentCard {
                     .frame(width: 36, height: 36)
 
                 Text(item.title)
-                    .typography(.body2R2)
+                    .typography(.body3R)
                     .foregroundStyle(.gray80)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
@@ -79,4 +85,15 @@ private extension RecommendedContentCard {
         }
         .buttonStyle(.plain)
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    RecommendedContentCard(
+        store: Store(initialState: RecommendedContentFeature.State()) {
+            RecommendedContentFeature()
+        }
+    )
+    .padding(.horizontal, 20)
 }
