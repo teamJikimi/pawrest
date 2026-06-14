@@ -12,6 +12,9 @@ struct TabBarView: View {
     let store: StoreOf<TabBarFeature>
     @State private var isTabBarHidden = false
     @State private var communityStore = Store(initialState: CommunityState()) { CommunityReducer() }
+    @State private var homeStore = Store(initialState: HomeFeature.State()) {
+        HomeFeature()
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -34,9 +37,10 @@ struct TabBarView: View {
         switch store.selectedTab {
         case .home:
             NavigationStack {
-                HomeView(store: Store(initialState: HomeFeature.State()) {
-                    HomeFeature()
-                })
+                HomeView(
+                    store: homeStore,
+                    isTabBarHidden: $isTabBarHidden
+                )
             }
             
         case .memorial:

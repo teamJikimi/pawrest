@@ -12,10 +12,15 @@ struct AlarmView: View {
     let store: StoreOf<AlarmFeature>
 
     var body: some View {
-        VStack {
-            Spacer().frame(height: 248)
-            emptyView
-            Spacer()
+        ZStack {
+            Color.gray10
+                .ignoresSafeArea()
+            VStack {
+                Spacer().frame(height: 248)
+                emptyView
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .onAppear {
             store.send(.onAppear)
@@ -25,7 +30,8 @@ struct AlarmView: View {
                 initialState: NavigationBarState(
                     title: "알림",
                     leftButton: .back,
-                    rightButton: .none
+                    rightButton: .none,
+                    backgroundColor: .gray10
                 )
             ) {
                 NavigationBarReducer()
