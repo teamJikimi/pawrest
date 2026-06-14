@@ -9,6 +9,6 @@ import SwiftUI
 
 struct RecommendContentDetailView: View {
     var body: some View {
-        // TODO: 추천 콘텐츠
+        // TODO: 추천 콘텐츠 내용
     }
 }
