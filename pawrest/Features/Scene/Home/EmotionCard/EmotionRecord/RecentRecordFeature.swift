@@ -24,6 +24,7 @@ struct RecentRecordFeature: Reducer {
         case nextDateTapped
         case deleteRecord(UUID)
         case recordsLoaded([EmotionRecordModel])
+        case reportTapped
     }
 
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
@@ -49,6 +50,9 @@ struct RecentRecordFeature: Reducer {
 
         case .recordsLoaded(let records):
             state.records = records
+            return .none
+        
+        case .reportTapped:
             return .none
         }
     }
