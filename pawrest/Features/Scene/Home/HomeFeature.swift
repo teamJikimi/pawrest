@@ -26,6 +26,7 @@ struct HomeFeature: Reducer {
     enum Action {
         case onAppear
         case addButtonTapped
+        case alarmDismissed
         case emotionCheckIn(EmotionCheckInFeature.Action)
         case recommendedContent(RecommendedContentFeature.Action)
         case recentRecord(RecentRecordFeature.Action)
@@ -41,6 +42,9 @@ struct HomeFeature: Reducer {
         case .onAppear:
             return .none
         case .addButtonTapped:
+            return .none
+        case .alarmDismissed:
+            state.isAlarmPresented = false
             return .none
         case .navigationBar(.alarmTapped):
             state.isAlarmPresented = true
