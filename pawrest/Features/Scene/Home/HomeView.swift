@@ -10,6 +10,7 @@ import ComposableArchitecture
 
 struct HomeView: View {
     let store: StoreOf<HomeFeature>
+    @Binding var isTabBarHidden: Bool
 
     var body: some View {
         NavigationStack {
@@ -49,17 +50,13 @@ struct HomeView: View {
                         AlarmFeature()
                     }
                 )
+                .onAppear {
+                    isTabBarHidden = true
+                }
+                .onDisappear() {
+                    isTabBarHidden = false
+                }
             }
         }
     }
-}
-
-#Preview {
-    HomeView(
-        store: Store(initialState: HomeFeature.State(
-            emotionCheckIn: .mock
-        )) {
-            HomeFeature()
-        }
-    )
 }
