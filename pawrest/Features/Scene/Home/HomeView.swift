@@ -42,7 +42,7 @@ struct HomeView: View {
             )
             .navigationDestination(isPresented: Binding(
                 get: { store.isAlarmPresented },
-                set: { _ in }
+                set: { _ in store.send(.alarmDismissed) }
             )) {
                 AlarmView(
                     store: Store(initialState: AlarmFeature.State()) {
