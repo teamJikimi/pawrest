@@ -72,6 +72,12 @@ struct HomeView: View {
                         ReportFeature()
                     }
                 )
+                .onAppear {
+                    isTabBarHidden = true
+                }
+                .onDisappear {
+                    isTabBarHidden = false
+                }
             }
         }
     }
