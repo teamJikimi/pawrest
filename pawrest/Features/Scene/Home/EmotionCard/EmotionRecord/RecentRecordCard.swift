@@ -35,19 +35,8 @@ struct RecentRecordCard: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.gray20, lineWidth: 1)
         )
-        .alert("삭제하시겠습니까?", isPresented: Binding(
-            get: { recordToDelete != nil },
-            set: { if !$0 { recordToDelete = nil } }
-        )) {
-            Button("확인") {
-            if let target = recordToDelete {
-                modelContext.delete(target)
-                recordToDelete = nil
-            }
-        }
-            Button("취소", role: .cancel) {
-                recordToDelete = nil
-            }
+        .alert("삭제하시겠습니까?", isPresented: deleteAlertBinding) {
+            deleteAlertButtons
         }
     }
 }
@@ -62,6 +51,18 @@ private extension RecentRecordCard {
                 .foregroundStyle(.gray90)
             
             Spacer()
+            
+            Button {
+                store.send(.reportTapped)
+                 } label: {
+                     Text("리포트")
+                         .typography(.body2R1)
+                         .foregroundStyle(.gray0)
+                         .frame(width: 60, height: 24)
+                         .background(Color.pawPrimary)
+                         .cornerRadius(11, corners: .allCorners)
+                 }
+                 .buttonStyle(.plain)
         }
     }
     
@@ -106,6 +107,27 @@ private extension RecentRecordCard {
     }
     
     var hasPreviousDay: Bool { true }
+    
+    var deleteAlertBinding: Binding<Bool> {
+        Binding(
+            get: { recordToDelete != nil },
+            set: { if !$0 { recordToDelete = nil } }
+        )
+    }
+
+    var deleteAlertButtons: some View {
+        Group {
+            Button("확인") {
+                if let target = recordToDelete {
+                    modelContext.delete(target)
+                    recordToDelete = nil
+                }
+            }
+            Button("취소", role: .cancel) {
+                recordToDelete = nil
+            }
+        }
+    }
     
     var hasNextDay: Bool {
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: store.selectedDate) ?? store.selectedDate
