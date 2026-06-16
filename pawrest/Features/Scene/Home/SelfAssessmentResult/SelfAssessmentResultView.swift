@@ -13,12 +13,14 @@ import ComposableArchitecture
 struct SelfAssessmentResultView: View {
     @Bindable var store: StoreOf<SelfAssessmentResultFeature>
     @State private var cardHeight: CGFloat = 0
+    @State private var scrollOffset: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .top) {
             Color.gray0.ignoresSafeArea()
             scoreCard
             if cardHeight > 0 {
+                dimOverlay
                 scrollContent
             }
         }
@@ -49,10 +51,27 @@ private extension SelfAssessmentResultView {
         .zIndex(0)
     }
 
+    var dimOverlay: some View {
+        let progress = max(0, scrollOffset) / cardHeight
+        let dimOpacity = min(progress, 1.0) * 0.4
+        return Color.black
+            .opacity(dimOpacity)
+            .frame(height: cardHeight + 60)
+            .allowsHitTesting(false)
+            .zIndex(0.5)
+    }
+
     var scrollContent: some View {
         ScrollView {
             VStack(spacing: 0) {
                 Color.clear.frame(height: cardHeight + 16)
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.onChange(of: geo.frame(in: .global).minY) { _, newValue in
+                                scrollOffset = -(newValue - 60)
+                            }
+                        }
+                    )
                 bottomSheet
             }
         }
@@ -85,7 +104,7 @@ private extension SelfAssessmentResultView {
                     }
                     .padding(.top, -20)
                 )
-                .overlay( 
+                .overlay(
                     RoundedCorner(radius: 30, corners: [.topLeft, .topRight])
                         .stroke(.gray30, lineWidth: 1)
                         .padding(.bottom, -100)
