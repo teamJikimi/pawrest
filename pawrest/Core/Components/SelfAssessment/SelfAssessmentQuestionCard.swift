@@ -46,17 +46,17 @@ private extension SelfAssessmentQuestionCard {
     var textSection: some View {
         if let category {
             Text(category)
-                .typography(.body2R1)
+                .typography(.body3M)
                 .foregroundColor(.pawPrimary)
                 .padding(.top, 18)
             
             Text(question.text)
-                .typography(.body2R2)
+                .typography(.body1R)
                 .foregroundColor(.gray80)
                 .padding(.top, 4)
         } else {
             Text(question.text)
-                .typography(.body2R2)
+                .typography(.body1R)
                 .foregroundColor(.gray80)
                 .padding(.top, 18)
         }
