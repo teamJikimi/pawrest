@@ -57,7 +57,7 @@ private extension SelfAssessmentSelectedOverlay {
     }
     
     var titleSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(type.title)
                 .typography(.title2)
                 .foregroundColor(.gray90)
@@ -110,4 +110,13 @@ private extension SelfAssessmentSelectedOverlay {
             .background(.gray20)
             .cornerRadius(6, corners: .allCorners)
     }
+}
+
+// SelfAssessmentSelectedOverlay 하단에
+#Preview {
+    SelfAssessmentSelectedOverlay(
+        type: .pbq,
+        onStart: {},
+        onDismiss: {}
+    )
 }
