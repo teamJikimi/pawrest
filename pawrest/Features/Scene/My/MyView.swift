@@ -20,6 +20,9 @@ struct MyView: View {
                     accountSection
                 }
                 .padding(20)
+                .safeAreaInset(edge: .bottom) {
+                    Color.clear.frame(height: 60)
+                }
             }
             .background(.gray0)
             .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))

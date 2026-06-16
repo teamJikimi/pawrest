@@ -11,6 +11,9 @@ import ComposableArchitecture
 struct HomeView: View {
     let store: StoreOf<HomeFeature>
     @Binding var isTabBarHidden: Bool
+    @State private var reportStore = Store(initialState: ReportFeature.State()) {
+        ReportFeature()
+    }
 
     var body: some View {
         NavigationStack {
@@ -37,6 +40,7 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
+                .padding(.bottom, 10)
             }
             .onAppear {
                 store.send(.onAppear)
@@ -65,13 +69,15 @@ struct HomeView: View {
             }
             .navigationDestination(isPresented: Binding(
                 get: { store.isReportPresented },
-                set: { _ in }
+                set: { if !$0 { store.send(.reportDismissed) } }
             )) {
-                ReportView(
-                    store: Store(initialState: ReportFeature.State()) {
-                        ReportFeature()
+                ReportView(store: reportStore)
+                    .onAppear {
+                        isTabBarHidden = true
                     }
-                )
+                    .onDisappear {
+                        isTabBarHidden = false
+                    }
             }
         }
     }
