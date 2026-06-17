@@ -14,36 +14,50 @@ struct HomeView: View {
     @State private var reportStore = Store(initialState: ReportFeature.State()) {
         ReportFeature()
     }
-
+    
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    EmotionCheckInCard(
-                        store: store.scope(
-                            state: \.emotionCheckIn,
-                            action: \.emotionCheckIn
+            ZStack {
+                ScrollView {
+                    VStack(spacing: 16) {
+                        EmotionCheckInCard(
+                            store: store.scope(
+                                state: \.emotionCheckIn,
+                                action: \.emotionCheckIn
+                            )
                         )
-                    )
-                    RecommendedContentCard(
-                        store: store.scope(
-                            state: \.recommendedContent,
-                            action: \.recommendedContent
+                        RecommendedContentCard(
+                            store: store.scope(
+                                state: \.recommendedContent,
+                                action: \.recommendedContent
+                            )
                         )
-                    )
-                    RecentRecordCard(
-                        store: store.scope(
-                            state: \.recentRecord,
-                            action: \.recentRecord
+                        RecentRecordCard(
+                            store: store.scope(
+                                state: \.recentRecord,
+                                action: \.recentRecord
+                            )
                         )
-                    )
-                    SelfAssessmentCard { type in
-                        store.send(.selfAssessmentTapped(type))
+                        SelfAssessmentCard { type in
+                            store.send(.selfAssessmentTapped(type))
+                        }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    .padding(.bottom, 80)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .padding(.bottom, 80)
+                if let selectedType = store.selectedSelfAssessmentType {
+                    SelfAssessmentSelectedOverlay(
+                        type: selectedType,
+                        onStart: {
+                            store.send(.selfAssessmentStartTapped)
+                        },
+                        onDismiss: {
+                            store.send(.selfAssessmentOverlayDismissed)
+                        }
+                    )
+                    .zIndex(1)
+                }
             }
             .onAppear {
                 store.send(.onAppear)
