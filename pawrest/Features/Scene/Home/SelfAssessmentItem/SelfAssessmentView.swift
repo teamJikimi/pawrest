@@ -51,18 +51,10 @@ struct SelfAssessmentView: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    store.send(.backButtonTapped)
-                } label: {
-                    Image(.iconBack)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                }
-            }
-        }
+        .customNavigationBar(
+            store: store.scope(state: \.navigationBar, action: \.navigationBar)
+        )
+        
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss { dismiss() }
         }
@@ -89,17 +81,15 @@ struct SelfAssessmentView: View {
                 set: { if !$0 { store.send(.resultDismissed) } }
             )
         ) {
-            if let score = store.totalScore {
-                SelfAssessmentResultView(
-                    store: Store(
-                        initialState: SelfAssessmentResultState(
-                            assessmentType: store.type.toResultType,
-                            score: score
-                        ),
-                        reducer: { SelfAssessmentResultFeature() }
-                    )
+            SelfAssessmentResultView(
+                store: Store(
+                    initialState: SelfAssessmentResultState(
+                        assessmentType: store.type.toResultType,
+                        score: store.totalScore ?? 0
+                    ),
+                    reducer: { SelfAssessmentResultFeature() }
                 )
-            }
+            )
         }
     }
 }
@@ -112,7 +102,7 @@ private extension SelfAssessmentView {
         VStack(alignment: .leading, spacing: 0) {
             Text(store.type.title)
                 .typography(.title1)
-                .foregroundColor(.gray90)
+                .foregroundColor(.black)
                 .padding(.top, 16)
             
             HStack(spacing: 6) {
