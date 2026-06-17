@@ -37,10 +37,13 @@ struct HomeView: View {
                             action: \.recentRecord
                         )
                     )
+                    SelfAssessmentCard { type in
+                        store.send(.selfAssessmentTapped(type))
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
-                .padding(.bottom, 10)
+                .padding(.bottom, 80)
             }
             .onAppear {
                 store.send(.onAppear)
@@ -60,25 +63,42 @@ struct HomeView: View {
                         AlarmFeature()
                     }
                 )
-                .onAppear {
-                    isTabBarHidden = true
-                }
-                .onDisappear() {
-                    isTabBarHidden = false
-                }
+                .onAppear { isTabBarHidden = true }
+                .onDisappear { isTabBarHidden = false }
             }
             .navigationDestination(isPresented: Binding(
                 get: { store.isReportPresented },
                 set: { if !$0 { store.send(.reportDismissed) } }
             )) {
                 ReportView(store: reportStore)
-                    .onAppear {
-                        isTabBarHidden = true
-                    }
-                    .onDisappear {
-                        isTabBarHidden = false
-                    }
+                    .onAppear { isTabBarHidden = true }
+                    .onDisappear { isTabBarHidden = false }
+            }
+            .navigationDestination(isPresented: Binding(
+                get: { store.isSelfAssessmentPresented },
+                set: { if !$0 { store.send(.selfAssessmentDismissed) } }
+            )) {
+                if let type = store.selfAssessmentType {
+                    SelfAssessmentView(
+                        store: Store(
+                            initialState: SelfAssessmentState(type: type)
+                        ) {
+                            SelfAssessmentReducer()
+                        }
+                    )
+                    .onAppear { isTabBarHidden = true }
+                    .onDisappear { isTabBarHidden = false }
+                }
             }
         }
     }
+}
+
+#Preview {
+    HomeView(
+        store: Store(initialState: HomeFeature.State()) {
+            HomeFeature()
+        },
+        isTabBarHidden: .constant(false)
+    )
 }
