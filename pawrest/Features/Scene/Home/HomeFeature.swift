@@ -27,6 +27,7 @@ struct HomeFeature: Reducer {
         case onAppear
         case addButtonTapped
         case alarmDismissed
+        case reportDismissed
         case emotionCheckIn(EmotionCheckInFeature.Action)
         case recommendedContent(RecommendedContentFeature.Action)
         case recentRecord(RecentRecordFeature.Action)
@@ -45,6 +46,9 @@ struct HomeFeature: Reducer {
             return .none
         case .alarmDismissed:
             state.isAlarmPresented = false
+            return .none
+        case .reportDismissed:
+            state.isReportPresented = false
             return .none
         case .navigationBar(.alarmTapped):
             state.isAlarmPresented = true
