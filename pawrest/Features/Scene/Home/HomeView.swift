@@ -17,47 +17,34 @@ struct HomeView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                ScrollView {
-                    VStack(spacing: 16) {
-                        EmotionCheckInCard(
-                            store: store.scope(
-                                state: \.emotionCheckIn,
-                                action: \.emotionCheckIn
-                            )
+            ScrollView {
+                VStack(spacing: 16) {
+                    EmotionCheckInCard(
+                        store: store.scope(
+                            state: \.emotionCheckIn,
+                            action: \.emotionCheckIn
                         )
-                        RecommendedContentCard(
-                            store: store.scope(
-                                state: \.recommendedContent,
-                                action: \.recommendedContent
-                            )
-                        )
-                        RecentRecordCard(
-                            store: store.scope(
-                                state: \.recentRecord,
-                                action: \.recentRecord
-                            )
-                        )
-                        SelfAssessmentCard { type in
-                            store.send(.selfAssessmentTapped(type))
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-                    .padding(.bottom, 80)
-                }
-                if let selectedType = store.selectedSelfAssessmentType {
-                    SelfAssessmentSelectedOverlay(
-                        type: selectedType,
-                        onStart: {
-                            store.send(.selfAssessmentStartTapped)
-                        },
-                        onDismiss: {
-                            store.send(.selfAssessmentOverlayDismissed)
-                        }
                     )
-                    .zIndex(1)
+                    RecommendedContentCard(
+                        store: store.scope(
+                            state: \.recommendedContent,
+                            action: \.recommendedContent
+                        )
+                    )
+                    RecentRecordCard(
+                        store: store.scope(
+                            state: \.recentRecord,
+                            action: \.recentRecord
+                        )
+                    )
+                    SelfAssessmentCard { type in
+                        store.send(.selfAssessmentTapped(type))
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 80)
+                
             }
             .onAppear {
                 store.send(.onAppear)
@@ -67,6 +54,30 @@ struct HomeView: View {
                     state: \.navigationBar,
                     action: \.navigationBar
                 )
+            )
+            .fullScreenCover(
+                isPresented: Binding(
+                    get: { store.selectedSelfAssessmentType != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            store.send(.selfAssessmentOverlayDismissed)
+                        }
+                    }
+                ),
+                content: {
+                    if let selectedType = store.selectedSelfAssessmentType {
+                        SelfAssessmentSelectedOverlay(
+                            type: selectedType,
+                            onStart: {
+                                store.send(.selfAssessmentStartTapped)
+                            },
+                            onDismiss: {
+                                store.send(.selfAssessmentOverlayDismissed)
+                            }
+                        )
+                        .presentationBackground(.clear)
+                    }
+                }
             )
             .navigationDestination(isPresented: Binding(
                 get: { store.isAlarmPresented },
