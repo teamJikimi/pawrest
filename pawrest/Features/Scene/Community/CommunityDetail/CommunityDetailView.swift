@@ -173,6 +173,7 @@ private extension CommunityDetailView {
             comment: parent,
             isReply: false,
             isMyComment: parent.author.id == store.currentUserID,
+            opensMenuUpward: isLastGroup && parent.replies.isEmpty,
             onAction: { action in
                 store.send(.commentAction(commentID: parent.id, action: action))
             }
@@ -191,6 +192,7 @@ private extension CommunityDetailView {
                     comment: reply,
                     isReply: true,
                     isMyComment: reply.author.id == store.currentUserID,
+                    opensMenuUpward: isLastGroup && rIdx == parent.replies.count - 1,
                     onAction: { action in
                         store.send(.commentAction(commentID: reply.id, action: action))
                     }
