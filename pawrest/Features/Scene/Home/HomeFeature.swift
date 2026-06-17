@@ -15,6 +15,8 @@ struct HomeFeature: Reducer {
         var recentRecord = RecentRecordFeature.State()
         var isAlarmPresented: Bool = false
         var isReportPresented: Bool = false
+        var isSelfAssessmentPresented: Bool = false
+        var selfAssessmentType: SelfAssessmentType? = nil
         var navigationBar = NavigationBarState(
             title: "",
             leftButton: .logo,
@@ -28,6 +30,8 @@ struct HomeFeature: Reducer {
         case addButtonTapped
         case alarmDismissed
         case reportDismissed
+        case selfAssessmentTapped(SelfAssessmentType)
+        case selfAssessmentDismissed
         case emotionCheckIn(EmotionCheckInFeature.Action)
         case recommendedContent(RecommendedContentFeature.Action)
         case recentRecord(RecentRecordFeature.Action)
@@ -49,6 +53,14 @@ struct HomeFeature: Reducer {
             return .none
         case .reportDismissed:
             state.isReportPresented = false
+            return .none
+        case .selfAssessmentTapped(let type):
+            state.selfAssessmentType = type
+            state.isSelfAssessmentPresented = true
+            return .none
+        case .selfAssessmentDismissed:
+            state.isSelfAssessmentPresented = false
+            state.selfAssessmentType = nil
             return .none
         case .navigationBar(.alarmTapped):
             state.isAlarmPresented = true
