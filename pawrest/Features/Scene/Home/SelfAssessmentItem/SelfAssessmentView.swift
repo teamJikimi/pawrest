@@ -90,7 +90,10 @@ struct SelfAssessmentView: View {
                         score: store.totalScore ?? 0
                     ),
                     reducer: { SelfAssessmentResultFeature() }
-                )
+                ),
+                onDismissAll: {
+                    store.send(.dismissAll)
+                }
             )
         }
     }

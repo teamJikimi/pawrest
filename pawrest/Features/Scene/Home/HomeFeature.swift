@@ -30,7 +30,6 @@ struct HomeFeature: Reducer {
     @CasePathable
     enum Action {
         case onAppear
-        case addButtonTapped
         case alarmDismissed
         case reportDismissed
         case selfAssessmentTapped(SelfAssessmentType)
@@ -53,8 +52,6 @@ struct HomeFeature: Reducer {
         switch action {
         case .onAppear:
             return .none
-        case .addButtonTapped:
-            return .none
         case .alarmDismissed:
             state.isAlarmPresented = false
             return .none
@@ -64,7 +61,6 @@ struct HomeFeature: Reducer {
             
         case .selfAssessmentTapped(let type):
             state.selectedSelfAssessmentType = type
-            //state.isSelfAssessmentPresented = true
             return .none
             
         case .selfAssessmentStartTapped:
