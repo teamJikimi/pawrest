@@ -20,6 +20,8 @@ struct SelfAssessmentSelectedOverlay: View {
             
             modalCard
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
     }
 }
 

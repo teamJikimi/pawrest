@@ -14,7 +14,7 @@ struct HomeView: View {
     @State private var reportStore = Store(initialState: ReportFeature.State()) {
         ReportFeature()
     }
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -44,6 +44,7 @@ struct HomeView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
                 .padding(.bottom, 80)
+                
             }
             .onAppear {
                 store.send(.onAppear)
@@ -53,6 +54,30 @@ struct HomeView: View {
                     state: \.navigationBar,
                     action: \.navigationBar
                 )
+            )
+            .fullScreenCover(
+                isPresented: Binding(
+                    get: { store.selectedSelfAssessmentType != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            store.send(.selfAssessmentOverlayDismissed)
+                        }
+                    }
+                ),
+                content: {
+                    if let selectedType = store.selectedSelfAssessmentType {
+                        SelfAssessmentSelectedOverlay(
+                            type: selectedType,
+                            onStart: {
+                                store.send(.selfAssessmentStartTapped)
+                            },
+                            onDismiss: {
+                                store.send(.selfAssessmentOverlayDismissed)
+                            }
+                        )
+                        .presentationBackground(.clear)
+                    }
+                }
             )
             .navigationDestination(isPresented: Binding(
                 get: { store.isAlarmPresented },
