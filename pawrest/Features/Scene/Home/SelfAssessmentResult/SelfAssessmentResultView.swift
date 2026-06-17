@@ -14,7 +14,8 @@ struct SelfAssessmentResultView: View {
     @Bindable var store: StoreOf<SelfAssessmentResultFeature>
     @State private var cardHeight: CGFloat = 0
     @State private var scrollOffset: CGFloat = 0
-
+    var onDismissAll: (() -> Void)? = nil
+    
     var body: some View {
         ZStack(alignment: .top) {
             Color.gray0.ignoresSafeArea()
@@ -27,13 +28,17 @@ struct SelfAssessmentResultView: View {
         .customNavigationBar(
             store: store.scope(state: \.navBar, action: \.navBar)
         )
+        .onChange(of: store.shouldDismissAll) { _, should in
+            print("shouldDismissAll changed: \(should)")
+            if should { onDismissAll?() }
+        }
     }
 }
 
 // MARK: - Subviews
 
 private extension SelfAssessmentResultView {
-
+    
     var scoreCard: some View {
         ScoreCardView(
             title: store.testTitle,
@@ -50,7 +55,7 @@ private extension SelfAssessmentResultView {
         )
         .zIndex(0)
     }
-
+    
     var dimOverlay: some View {
         let progress = max(0, scrollOffset) / cardHeight
         let dimOpacity = min(progress, 1.0) * 0.4
@@ -60,7 +65,7 @@ private extension SelfAssessmentResultView {
             .allowsHitTesting(false)
             .zIndex(0.5)
     }
-
+    
     var scrollContent: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -77,7 +82,7 @@ private extension SelfAssessmentResultView {
         }
         .zIndex(1)
     }
-
+    
     var bottomSheet: some View {
         VStack(spacing: 12) {
             handle
@@ -102,7 +107,7 @@ private extension SelfAssessmentResultView {
                         Rectangle()
                             .fill(Color.black)
                     }
-                    .padding(.top, -20)
+                        .padding(.top, -20)
                 )
                 .overlay(
                     RoundedCorner(radius: 30, corners: [.topLeft, .topRight])
@@ -112,14 +117,14 @@ private extension SelfAssessmentResultView {
                 )
         )
     }
-
+    
     var handle: some View {
         RoundedRectangle(cornerRadius: 2)
             .fill(.gray30)
             .frame(width: 36, height: 4)
             .padding(.top, 12)
     }
-
+    
     var noticeSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
@@ -139,7 +144,7 @@ private extension SelfAssessmentResultView {
         .background(.rowMuted)
         .cornerRadius(20, corners: .allCorners)
     }
-
+    
     var sourceSection: some View {
         HStack {
             Text("출처")

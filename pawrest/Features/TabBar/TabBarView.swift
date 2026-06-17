@@ -10,26 +10,14 @@ import ComposableArchitecture
 
 struct TabBarView: View {
     let store: StoreOf<TabBarFeature>
-    @State private var isTabBarHidden = false
     @State private var communityStore = Store(initialState: CommunityState()) { CommunityReducer() }
     @State private var homeStore = Store(initialState: HomeFeature.State()) {
         HomeFeature()
     }
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            contentView
-            
-            if !isTabBarHidden {
-                CustomTabBar(
-                    selectedTab: store.selectedTab,
-                    onTabSelected: { tab in
-                        store.send(.tabSelected(tab))
-                    }
-                )
-            }
-        }
-        .ignoresSafeArea(.keyboard)
+        contentView
+            .ignoresSafeArea(.keyboard)
     }
     
     @ViewBuilder
@@ -37,10 +25,13 @@ struct TabBarView: View {
         switch store.selectedTab {
         case .home:
             NavigationStack {
-                HomeView(
-                    store: homeStore,
-                    isTabBarHidden: $isTabBarHidden
-                )
+                HomeView(store: homeStore)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        CustomTabBar(
+                            selectedTab: store.selectedTab,
+                            onTabSelected: { store.send(.tabSelected($0)) }
+                        )
+                    }
             }
             
         case .memorial:
@@ -48,6 +39,12 @@ struct TabBarView: View {
                 MemorialView(store: Store(initialState: MemorialState()) {
                     MemorialReducer()
                 })
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CustomTabBar(
+                        selectedTab: store.selectedTab,
+                        onTabSelected: { store.send(.tabSelected($0)) }
+                    )
+                }
             }
             
         case .memory:
@@ -55,11 +52,23 @@ struct TabBarView: View {
                 MemoryView(store: Store(initialState: MemoryState()) {
                     MemoryReducer()
                 })
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CustomTabBar(
+                        selectedTab: store.selectedTab,
+                        onTabSelected: { store.send(.tabSelected($0)) }
+                    )
+                }
             }
             
         case .community:
             NavigationStack {
-                CommunityView(store: communityStore, isTabBarHidden: $isTabBarHidden)
+                CommunityView(store: communityStore)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        CustomTabBar(
+                            selectedTab: store.selectedTab,
+                            onTabSelected: { store.send(.tabSelected($0)) }
+                        )
+                    }
             }
             
         case .my:
@@ -67,6 +76,12 @@ struct TabBarView: View {
                 MyView(store: Store(initialState: MyFeature.State()) {
                     MyFeature()
                 })
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CustomTabBar(
+                        selectedTab: store.selectedTab,
+                        onTabSelected: { store.send(.tabSelected($0)) }
+                    )
+                }
             }
         }
     }

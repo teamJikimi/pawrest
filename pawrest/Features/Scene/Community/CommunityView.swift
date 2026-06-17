@@ -11,10 +11,8 @@ import ComposableArchitecture
 struct CommunityView: View {
     @Bindable var store: StoreOf<CommunityReducer>
     @FocusState private var isSearchFocused: Bool
-    @Binding var isTabBarHidden: Bool
     
     var body: some View {
-        
         VStack(spacing: 0) {
             searchAndSortSection
             
@@ -44,7 +42,6 @@ struct CommunityView: View {
                     ),
                     reducer: { CommunityMyPostReducer() }
                 ),
-                isTabBarHidden: $isTabBarHidden,
                 onPostsUpdated: { updatedPosts in
                     store.send(.myPostsUpdated(posts: updatedPosts))
                 }
@@ -72,12 +69,6 @@ struct CommunityView: View {
                     store.send(.newPostCreated(title: title, content: content, imageURLs: imageURLs))
                 }
             )
-        }
-        .onChange(of: store.isMyPostPresented) { _, isPresented in
-            isTabBarHidden = isPresented
-        }
-        .onChange(of: store.isWritePostPresented) { _, isPresented in
-            isTabBarHidden = isPresented
         }
     }
 }
@@ -120,7 +111,6 @@ private extension CommunityView {
             .padding(.horizontal, 20)
         }
         .scrollDismissesKeyboard(.immediately)
-        
         .safeAreaInset(edge: .bottom, spacing: 0) {
             Color.clear.frame(height: 80)
         }
@@ -150,8 +140,6 @@ private extension CommunityView {
                     store.send(.postDeleted(postID))
                 }
             )
-            .onAppear { isTabBarHidden = true }
-            .onDisappear { isTabBarHidden = false }
         } label: {
             CommunityCard(
                 post: post,
@@ -160,9 +148,6 @@ private extension CommunityView {
         }
         .buttonStyle(.plain)
     }
-}
-
-private extension CommunityView {
     
     var emptyStateView: some View {
         GeometryReader { geo in

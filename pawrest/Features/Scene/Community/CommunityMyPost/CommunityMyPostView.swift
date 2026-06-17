@@ -13,7 +13,6 @@ struct CommunityMyPostView: View {
     //MARK: - Properties
     
     @Bindable var store: StoreOf<CommunityMyPostReducer>
-    @Binding var isTabBarHidden: Bool
     @Environment(\.dismiss) private var dismiss
     
     var onPostsUpdated: (([Post]) -> Void)? = nil
@@ -31,7 +30,6 @@ struct CommunityMyPostView: View {
                 action: \.navigationBar
             )
         )
-//        .onAppear { isTabBarHidden = true }
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss {
                 onPostsUpdated?(store.posts)
@@ -86,7 +84,6 @@ private extension CommunityMyPostView {
                     store.send(.postDeleted(postId))
                 }
             )
-            .onAppear { isTabBarHidden = true }
         } label: {
             CommunityCard(
                 post: post,
