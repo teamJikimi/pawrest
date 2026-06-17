@@ -111,12 +111,3 @@ private extension SelfAssessmentSelectedOverlay {
             .cornerRadius(6, corners: .allCorners)
     }
 }
-
-// SelfAssessmentSelectedOverlay 하단에
-#Preview {
-    SelfAssessmentSelectedOverlay(
-        type: .pbq,
-        onStart: {},
-        onDismiss: {}
-    )
-}
