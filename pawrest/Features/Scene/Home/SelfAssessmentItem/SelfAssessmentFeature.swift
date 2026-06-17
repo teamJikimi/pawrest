@@ -55,6 +55,7 @@ enum SelfAssessmentAction: Equatable {
     case navigationBar(NavigationBarAction)
     
     case resultDismissed
+    case dismissAll
 }
 
 // MARK: - Reducer
@@ -111,6 +112,10 @@ struct SelfAssessmentReducer: Reducer {
                 
             case .resultDismissed:
                 state.isResultPresented = false
+                return .none
+            
+            case .dismissAll:
+                state.shouldDismiss = true
                 return .none
             }
         }

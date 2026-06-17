@@ -218,6 +218,7 @@ struct SelfAssessmentResultState: Equatable {
     var assessmentType: AssessmentType = .pbq
     var score: Int = 30
     var historyState: AssessmentHistoryState = .noRecord
+    var shouldDismissAll: Bool = false
 
     var maxScore: Int { assessmentType.maxScore }
     var testTitle: String { assessmentType.title }
@@ -230,6 +231,7 @@ struct SelfAssessmentResultState: Equatable {
 @CasePathable
 enum SelfAssessmentResultAction: Equatable {
     case navBar(NavigationBarAction)
+    case closeTapped
 }
 
 // MARK: - Reducer
@@ -241,7 +243,12 @@ struct SelfAssessmentResultFeature: Reducer {
         }
         Reduce { state, action in
             switch action {
+            case .navBar(.rightButtonTapped):
+                return .send(.closeTapped)
             case .navBar:
+                return .none
+            case .closeTapped:
+                state.shouldDismissAll = true
                 return .none
             }
         }

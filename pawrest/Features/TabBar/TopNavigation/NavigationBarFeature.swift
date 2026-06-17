@@ -181,7 +181,8 @@ struct NavigationBarView: View {
             
         case .close:
             Button {
-                dismiss()
+                
+                store.send(.rightButtonTapped)
             } label: {
                 Image(.iconClose)
                     .resizable()
