@@ -29,15 +29,22 @@ struct SelfAssessmentView: View {
             }
             .background(.gray10)
             
-            .onChange(of: store.firstUnansweredIndex) { _, _ in
-                
-            }
-            .onReceive(
-                NotificationCenter.default.publisher(for: .init("scrollToUnanswered"))
-            ) { _ in
-                if let index = store.firstUnansweredIndex {
+            //            .onChange(of: store.firstUnansweredIndex) { _, _ in
+            //
+            //            }
+            //            .onReceive(
+            //                NotificationCenter.default.publisher(for: .init("scrollToUnanswered"))
+            //            ) { _ in
+            //                if let index = store.firstUnansweredIndex {
+            //                    withAnimation {
+            //                        proxy.scrollTo("question_\(index)", anchor: .top)
+            //                    }
+            //                }
+            //            }
+            .onChange(of: store.scrollTargetIndex) { _, targetIndex in
+                if let targetIndex {
                     withAnimation {
-                        proxy.scrollTo("question_\(index)", anchor: .top)
+                        proxy.scrollTo("question_\(targetIndex)", anchor: .top)
                     }
                 }
             }
@@ -74,6 +81,25 @@ struct SelfAssessmentView: View {
             }
         } message: {
             Text("지금 나가면 응답 내용이 저장되지 않아요.")
+        }
+        
+        .navigationDestination(
+            isPresented: Binding(
+                get: { store.isResultPresented },
+                set: { if !$0 { store.send(.resultDismissed) } }
+            )
+        ) {
+            if let score = store.totalScore {
+                SelfAssessmentResultView(
+                    store: Store(
+                        initialState: SelfAssessmentResultState(
+                            assessmentType: store.type.toResultType,
+                            score: score
+                        ),
+                        reducer: { SelfAssessmentResultFeature() }
+                    )
+                )
+            }
         }
     }
 }

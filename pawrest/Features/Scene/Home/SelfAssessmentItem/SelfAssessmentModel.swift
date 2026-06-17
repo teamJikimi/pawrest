@@ -143,6 +143,14 @@ enum SelfAssessmentType: String, CaseIterable, Equatable, Identifiable {
         return total
     }
     
+    var toResultType: AssessmentType {
+        switch self {
+        case .pbq: return .pbq
+        case .cesD: return .cesD
+        case .pds: return .pds
+        }
+    }
+    
     func resultLabel(for score: Int) -> String {
         for range in resultRanges {
             let max = range.maxScore ?? Int.max

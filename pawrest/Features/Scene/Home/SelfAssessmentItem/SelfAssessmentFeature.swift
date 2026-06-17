@@ -21,12 +21,19 @@ struct SelfAssessmentState: Equatable {
         answers.firstIndex(where: { $0 == nil })
     }
     
+    var scrollTargetIndex: Int? = nil
+    
+    var isResultPresented: Bool = false
+    var totalScore: Int? = nil
+    
     init(type: SelfAssessmentType) {
         self.type = type
         self.questions = SelfAssessmentData.questions(for: type)
         self.answers = Array(repeating: nil, count: self.questions.count)
     }
 }
+
+// MARK: - Action
 
 @CasePathable
 enum SelfAssessmentAction: Equatable {
@@ -37,6 +44,8 @@ enum SelfAssessmentAction: Equatable {
     case backButtonTapped
     case exitAlertConfirmed
     case exitAlertCancelled
+    
+    case resultDismissed
 }
 
 // MARK: - Reducer
@@ -53,10 +62,14 @@ struct SelfAssessmentReducer: Reducer {
                 if state.firstUnansweredIndex != nil {
                     return .send(.scrollToUnanswered)
                 }
-                //결과화면 연결
+                if let score = state.type.calculateScore(answers: state.answers) {
+                    state.totalScore = score
+                    state.isResultPresented = true
+                }
                 return .none
                 
             case .scrollToUnanswered:
+                state.scrollTargetIndex = state.firstUnansweredIndex
                 return .none
                 
             case .backButtonTapped:
@@ -70,6 +83,10 @@ struct SelfAssessmentReducer: Reducer {
                 
             case .exitAlertCancelled:
                 state.showExitAlert = false
+                return .none
+                
+            case .resultDismissed:
+                state.isResultPresented = false
                 return .none
             }
         }
