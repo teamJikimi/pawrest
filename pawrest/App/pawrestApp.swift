@@ -40,6 +40,6 @@ struct pawrestApp: App {
                 TabBarFeature()
             })
         }
-        .modelContainer(sharedModelContainer) 
+        .modelContainer(sharedModelContainer)
     }
 }

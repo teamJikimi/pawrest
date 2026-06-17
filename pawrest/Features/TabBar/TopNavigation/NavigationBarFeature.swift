@@ -179,6 +179,17 @@ struct NavigationBarView: View {
             }
             .frame(width: 44, height: 44)
             
+        case .close:
+            Button {
+                dismiss()
+            } label: {
+                Image(.iconClose)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+            }
+            .frame(width: 44, height: 44)
+            
         case .none:
             Color.clear
                 .frame(width: 44, height: 44)

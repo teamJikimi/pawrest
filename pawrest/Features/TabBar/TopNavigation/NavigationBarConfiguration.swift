@@ -21,5 +21,6 @@ public enum NavRightItem: Equatable {
     case reportMenu
     case communityAddMenu
     case alarm
+    case close
     case none
 }
