@@ -17,6 +17,9 @@ struct HomeFeature: Reducer {
         var isReportPresented: Bool = false
         var isSelfAssessmentPresented: Bool = false
         var selfAssessmentType: SelfAssessmentType? = nil
+        
+        var selectedSelfAssessmentType: SelfAssessmentType? = nil
+        
         var navigationBar = NavigationBarState(
             title: "",
             leftButton: .logo,
@@ -31,6 +34,10 @@ struct HomeFeature: Reducer {
         case alarmDismissed
         case reportDismissed
         case selfAssessmentTapped(SelfAssessmentType)
+        
+        case selfAssessmentStartTapped
+        case selfAssessmentOverlayDismissed
+        
         case selfAssessmentDismissed
         case emotionCheckIn(EmotionCheckInFeature.Action)
         case recommendedContent(RecommendedContentFeature.Action)
@@ -54,10 +61,25 @@ struct HomeFeature: Reducer {
         case .reportDismissed:
             state.isReportPresented = false
             return .none
+            
         case .selfAssessmentTapped(let type):
-            state.selfAssessmentType = type
+            state.selectedSelfAssessmentType = type
+            //state.isSelfAssessmentPresented = true
+            return .none
+            
+        case .selfAssessmentStartTapped:
+            guard let selectedType = state.selectedSelfAssessmentType else {
+                return .none
+            }
+            state.selfAssessmentType = selectedType
+            state.selectedSelfAssessmentType = nil
             state.isSelfAssessmentPresented = true
             return .none
+            
+        case .selfAssessmentOverlayDismissed:
+            state.selectedSelfAssessmentType = nil
+            return .none
+            
         case .selfAssessmentDismissed:
             state.isSelfAssessmentPresented = false
             state.selfAssessmentType = nil

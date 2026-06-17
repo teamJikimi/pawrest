@@ -28,37 +28,38 @@ struct SelfAssessmentView: View {
                 .padding(.horizontal, 20)
             }
             .background(.gray10)
-            
-            .onChange(of: store.firstUnansweredIndex) { _, _ in
-                
-            }
-            .onReceive(
-                NotificationCenter.default.publisher(for: .init("scrollToUnanswered"))
-            ) { _ in
-                if let index = store.firstUnansweredIndex {
+
+            .onChange(of: store.scrollTargetIndex) { _, targetIndex in
+                if let targetIndex {
                     withAnimation {
-                        proxy.scrollTo("question_\(index)", anchor: .top)
+                        proxy.scrollTo("question_\(targetIndex)", anchor: .top)
                     }
                 }
             }
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    store.send(.backButtonTapped)
-                } label: {
-                    Image(.iconBack)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                }
+        .customNavigationBar(
+            store: store.scope(state: \.navigationBar, action: \.navigationBar)
+        )
+        .overlay(alignment: .topLeading) {
+            Button {
+                store.send(.backButtonTapped)
+            } label: {
+                Image(.iconBack)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+                    .foregroundStyle(.gray90)
             }
+            .frame(width: 44, height: 44)
+            .padding(.leading, 10)
         }
+
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss { dismiss() }
         }
+        
         .alert(
             "검사를 종료할까요?",
             isPresented: Binding(
@@ -75,6 +76,23 @@ struct SelfAssessmentView: View {
         } message: {
             Text("지금 나가면 응답 내용이 저장되지 않아요.")
         }
+        
+        .navigationDestination(
+            isPresented: Binding(
+                get: { store.isResultPresented },
+                set: { if !$0 { store.send(.resultDismissed) } }
+            )
+        ) {
+            SelfAssessmentResultView(
+                store: Store(
+                    initialState: SelfAssessmentResultState(
+                        assessmentType: store.type.toResultType,
+                        score: store.totalScore ?? 0
+                    ),
+                    reducer: { SelfAssessmentResultFeature() }
+                )
+            )
+        }
     }
 }
 
@@ -86,7 +104,7 @@ private extension SelfAssessmentView {
         VStack(alignment: .leading, spacing: 0) {
             Text(store.type.title)
                 .typography(.title1)
-                .foregroundColor(.gray90)
+                .foregroundColor(.black)
                 .padding(.top, 16)
             
             HStack(spacing: 6) {
