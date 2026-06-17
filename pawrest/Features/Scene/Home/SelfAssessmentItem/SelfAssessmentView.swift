@@ -156,28 +156,3 @@ private extension SelfAssessmentView {
             .cornerRadius(6, corners: .allCorners)
     }
 }
-
-// SelfAssessmentView 하단에
-#Preview("PBQ") {
-    NavigationStack {
-        SelfAssessmentView(
-            store: Store(
-                initialState: SelfAssessmentState(type: .pbq)
-            ) {
-                SelfAssessmentReducer()
-            }
-        )
-    }
-}
-
-#Preview("CES-D") {
-    NavigationStack {
-        SelfAssessmentView(
-            store: Store(
-                initialState: SelfAssessmentState(type: .cesD)
-            ) {
-                SelfAssessmentReducer()
-            }
-        )
-    }
-}
