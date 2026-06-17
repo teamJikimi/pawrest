@@ -14,9 +14,9 @@ struct HomeView: View {
     @State private var reportStore = Store(initialState: ReportFeature.State()) {
         ReportFeature()
     }
-    
+    @State private var selfAssessmentStore: StoreOf<SelfAssessmentReducer>? = nil
+
     var body: some View {
-        NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
                     EmotionCheckInCard(
@@ -44,10 +44,18 @@ struct HomeView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
                 .padding(.bottom, 80)
-                
             }
             .onAppear {
                 store.send(.onAppear)
+            }
+            .onChange(of: store.selfAssessmentType) { _, type in
+                if let type {
+                    selfAssessmentStore = Store(
+                        initialState: SelfAssessmentState(type: type)
+                    ) {
+                        SelfAssessmentReducer()
+                    }
+                }
             }
             .customNavigationBar(
                 store: store.scope(
@@ -103,19 +111,12 @@ struct HomeView: View {
                 get: { store.isSelfAssessmentPresented },
                 set: { if !$0 { store.send(.selfAssessmentDismissed) } }
             )) {
-                if let type = store.selfAssessmentType {
-                    SelfAssessmentView(
-                        store: Store(
-                            initialState: SelfAssessmentState(type: type)
-                        ) {
-                            SelfAssessmentReducer()
-                        }
-                    )
-                    .onAppear { isTabBarHidden = true }
-                    .onDisappear { isTabBarHidden = false }
+                if let selfAssessmentStore {
+                    SelfAssessmentView(store: selfAssessmentStore)
+                        .onAppear { isTabBarHidden = true }
+                        .onDisappear { isTabBarHidden = false }
                 }
             }
-        }
     }
 }
 
