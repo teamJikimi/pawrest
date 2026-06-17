@@ -15,7 +15,7 @@ struct SelfAssessmentState: Equatable {
     
     var navigationBar = NavigationBarState(
         title: "",
-        leftButton: .back,
+        leftButton: .none,
         rightButton: .none,
         backgroundColor: .gray10
     )
