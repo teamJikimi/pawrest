@@ -13,6 +13,13 @@ struct SelfAssessmentState: Equatable {
     let type: SelfAssessmentType
     let questions: [SelfAssessmentQuestion]
     
+    var navigationBar = NavigationBarState(
+        title: "",
+        leftButton: .back,
+        rightButton: .none,
+        backgroundColor: .gray10
+    )
+    
     var answers: [Int?]
     var showExitAlert: Bool = false
     var shouldDismiss: Bool = false
@@ -45,6 +52,8 @@ enum SelfAssessmentAction: Equatable {
     case exitAlertConfirmed
     case exitAlertCancelled
     
+    case navigationBar(NavigationBarAction)
+    
     case resultDismissed
 }
 
@@ -52,9 +61,24 @@ enum SelfAssessmentAction: Equatable {
 
 struct SelfAssessmentReducer: Reducer {
     var body: some Reducer<SelfAssessmentState, SelfAssessmentAction> {
+        Scope(state: \.navigationBar, action: \.navigationBar) {
+            NavigationBarReducer()
+        }
+        
         Reduce { state, action in
             switch action {
+            case .navigationBar(.leftButtonTapped):
+                state.showExitAlert = true
+                return .none
+                
+            case .navigationBar:
+                return .none
+                
             case .optionSelected(let questionIndex, let optionIndex):
+                guard state.answers.indices.contains(questionIndex),
+                      state.type.options.indices.contains(optionIndex)
+                else { return .none }
+                
                 state.answers[questionIndex] = optionIndex
                 return .none
                 
