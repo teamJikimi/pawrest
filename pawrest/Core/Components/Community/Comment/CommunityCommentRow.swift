@@ -26,6 +26,8 @@ struct CommunityCommentRow: View {
     let comment: Comment
     var isReply: Bool = false
     var isMyComment: Bool = false
+    var opensMenuUpward: Bool = false
+    
     let onAction: (Action) -> Void
     
     @State private var isMenuOpen = false
@@ -143,6 +145,7 @@ private extension CommunityCommentRow {
                 icon: .iconReplyMore,
                 size: .comment,
                 showsEdit: false,
+                opensUpward: opensMenuUpward,
                 onEdit: { onAction(.editTapped) },
                 onDelete: { onAction(.deleteTapped) },
                 onMenuVisibilityChanged: { isMenuOpen = $0 }
@@ -151,6 +154,7 @@ private extension CommunityCommentRow {
             ReportMenuButton (
                 icon: .iconReplyMore,
                 size :.comment,
+                opensUpward: opensMenuUpward,
                 onBoardSettings: { onAction(.reportBoardSettings)},
                 onReportAbuse: { onAction(.reportAbuse)},
                 onReportSpam: { onAction(.reportSpam)},

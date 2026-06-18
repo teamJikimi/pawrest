@@ -12,6 +12,7 @@ import SwiftUI
 struct ReportMenuButton: View {
     let icon: ImageResource
     var size: MenuButtonStyle = .defaultStyle
+    var opensUpward: Bool = false
     
     let onBoardSettings: () -> Void
     let onReportAbuse: () -> Void
@@ -149,7 +150,7 @@ struct ReportMenuButton: View {
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(.gray20, lineWidth: 1)
                 )
-                .offset(x: 0, y: size.buttonSize + 6)
+                .offset(x: 0, y: opensUpward ? (isExpanded ? -190 : -86) : size.buttonSize + 6)
                 .zIndex(1000)
             }
         }

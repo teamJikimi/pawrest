@@ -33,6 +33,7 @@ struct EditMenuButton: View {
     var size: MenuButtonStyle = .defaultStyle
     var iconColor: Color = .gray80
     var showsEdit: Bool = true
+    var opensUpward: Bool = false
     
     let onEdit: () -> Void
     let onDelete: () -> Void
@@ -112,7 +113,7 @@ struct EditMenuButton: View {
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(.gray20, lineWidth: 1)
                 )
-                .offset(x: 0, y: size.buttonSize + 6)
+                .offset(x: 0, y: opensUpward ? -(showsEdit ? 86 : 52) : size.buttonSize + 6)
                 .zIndex(1000)
             }
         }
