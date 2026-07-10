@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 
 struct SelfAssessmentView: View {
@@ -14,6 +15,10 @@ struct SelfAssessmentView: View {
     
     @Bindable var store: StoreOf<SelfAssessmentReducer>
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    
+    @Query(sort: \AssessmentRecord.date, order: .reverse)
+    private var assessmentRecords: [AssessmentRecord]
     
     //MARK: - Body
     
@@ -55,11 +60,20 @@ struct SelfAssessmentView: View {
             .frame(width: 44, height: 44)
             .padding(.leading, 10)
         }
-
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss { dismiss() }
         }
-        
+        .onChange(of: store.isResultPresented) { _, isPresented in
+            if !isPresented, let score = store.totalScore {
+                let record = AssessmentRecord(
+                    type: store.type,
+                    answers: store.answers.compactMap { $0 },
+                    totalScore: score
+                )
+                modelContext.insert(record)
+                try? modelContext.save()
+            }
+        }
         .alert(
             "검사를 종료할까요?",
             isPresented: Binding(
@@ -76,18 +90,54 @@ struct SelfAssessmentView: View {
         } message: {
             Text("지금 나가면 응답 내용이 저장되지 않아요.")
         }
-        
         .navigationDestination(
             isPresented: Binding(
                 get: { store.isResultPresented },
                 set: { if !$0 { store.send(.resultDismissed) } }
             )
         ) {
+            let currentScore = store.totalScore ?? 0
+            let previousRecord = assessmentRecords
+                .filter { $0.typeRawValue == store.type.rawValue }
+                .first
+
+            let historyState: AssessmentHistoryState = {
+                guard let prev = previousRecord else { return .noRecord }
+                let diff = currentScore - prev.totalScore
+                let prevDate = prev.date.formatted(date: .abbreviated, time: .omitted)
+                let currDate = Date().formatted(date: .abbreviated, time: .omitted)
+                if diff == 0 {
+                    return .noChange(
+                        previousScore: prev.totalScore,
+                        previousDate: prevDate,
+                        currentScore: currentScore,
+                        currentDate: currDate
+                    )
+                } else if diff > 0 {
+                    return .worsened(
+                        previousScore: prev.totalScore,
+                        previousDate: prevDate,
+                        currentScore: currentScore,
+                        currentDate: currDate,
+                        difference: diff
+                    )
+                } else {
+                    return .improved(
+                        previousScore: prev.totalScore,
+                        previousDate: prevDate,
+                        currentScore: currentScore,
+                        currentDate: currDate,
+                        difference: abs(diff)
+                    )
+                }
+            }()
+
             SelfAssessmentResultView(
                 store: Store(
                     initialState: SelfAssessmentResultState(
                         assessmentType: store.type.toResultType,
-                        score: store.totalScore ?? 0
+                        score: currentScore,
+                        historyState: historyState
                     ),
                     reducer: { SelfAssessmentResultFeature() }
                 ),

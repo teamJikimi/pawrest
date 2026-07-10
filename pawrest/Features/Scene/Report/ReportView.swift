@@ -6,10 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 
 struct ReportView: View {
     @Bindable var store: StoreOf<ReportFeature>
+    
+    @Query(sort: \AssessmentRecord.date, order: .reverse)
+    private var assessmentRecords: [AssessmentRecord]
     
     var body: some View {
         ScrollView {
@@ -28,7 +32,7 @@ struct ReportView: View {
                     statsSection(data)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
-                    diagnosticsSection(data)
+                    diagnosticsSection
                         .padding(.bottom, 20)
                     counselingSection
                         .padding(.horizontal, 20)
@@ -164,7 +168,8 @@ private extension ReportView {
         .cornerRadius(10, corners: .allCorners)
     }
     
-    func diagnosticsSection(_ data: ReportData) -> some View {
+    // ← 여기가 핵심 변경 부분
+    var diagnosticsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("자가진단 검사 기록")
@@ -175,22 +180,37 @@ private extension ReportView {
                     .foregroundStyle(.gray40)
             }
             .padding(.horizontal, 16)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(data.statusCards) { card in
-                        StatusCard(
-                            title: card.title,
-                            date: card.date,
-                            score: card.score,
-                            maxScore: card.maxScore,
-                            previousScore: card.previousScore,
-                            previousDate: card.previousDate,
-                            scaleType: card.scaleType
-                        )
-                        .frame(width: 220)
+            
+            if assessmentRecords.isEmpty {
+                Text("아직 검사 기록이 없어요")
+                    .typography(.body3R)
+                    .foregroundStyle(.gray40)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 24)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(assessmentRecords) { record in
+                            if let type = record.type {
+                                let previousRecord = assessmentRecords
+                                    .filter { $0.typeRawValue == record.typeRawValue && $0.date < record.date }
+                                    .first
+                                
+                                StatusCard(
+                                    title: type.title,
+                                    date: record.date.formatted(date: .abbreviated, time: .omitted),
+                                    score: record.totalScore,
+                                    maxScore: 60,
+                                    previousScore: previousRecord?.totalScore,
+                                    previousDate: previousRecord?.date,
+                                    scaleType: type.toScaleType
+                                )
+                                .frame(width: 220)
+                            }
+                        }
                     }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
             }
         }
         .padding(.vertical, 16)
@@ -236,14 +256,4 @@ private extension ReportView {
         .background(.gray20)
         .cornerRadius(10, corners: .allCorners)
     }
-}
-
-
-#Preview {
-    ReportView(
-        store: Store(
-            initialState: ReportFeature.State(),
-            reducer: { ReportFeature() }
-        )
-    )
 }
