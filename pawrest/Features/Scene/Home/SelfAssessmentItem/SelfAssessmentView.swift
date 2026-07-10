@@ -64,7 +64,7 @@ struct SelfAssessmentView: View {
             if shouldDismiss { dismiss() }
         }
         .onChange(of: store.isResultPresented) { _, isPresented in
-            if !isPresented, let score = store.totalScore {
+            if isPresented, let score = store.totalScore {
                 let record = AssessmentRecord(
                     type: store.type,
                     answers: store.answers.compactMap { $0 },
