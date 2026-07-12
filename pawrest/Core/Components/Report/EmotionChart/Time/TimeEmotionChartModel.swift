@@ -34,6 +34,16 @@ struct TimeSlotEmotion: Identifiable, Equatable {
             case .night:     return "밤"
             }
         }
+
+        func contains(hour: Int) -> Bool {
+            switch self {
+            case .morning:   return (5..<9).contains(hour)
+            case .forenoon:  return (9..<12).contains(hour)
+            case .afternoon: return (12..<17).contains(hour)
+            case .evening:   return (17..<21).contains(hour)
+            case .night:     return hour >= 21 || hour < 5
+            }
+        }
     }
 }
 
