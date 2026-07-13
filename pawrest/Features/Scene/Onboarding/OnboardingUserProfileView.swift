@@ -84,19 +84,19 @@ private extension OnboardingUserProfileView {
             selection: $selectedItem,
             matching: .images
         ) {
-            ZStack(alignment: .bottomTrailing) {
+            ZStack(alignment: .center) {
                 if let data = store.profileImage,
                    let uiImage = UIImage(data: data) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 100, height: 100)
+                        .frame(width: 86, height: 86)
                         .clipShape(Circle())
                 } else {
                     Image(.profileUser)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 100, height: 100)
+                        .frame(width: 86, height: 86)
                 }
             }
         }

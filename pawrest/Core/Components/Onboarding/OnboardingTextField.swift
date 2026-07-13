@@ -142,6 +142,7 @@ extension OnboardingTextField {
                 Image(.iconCalender)
                     .resizable()
                     .scaledToFit()
+                    .frame(width: 24, height: 24)
                     .foregroundColor(.gray60)
                     .padding(.leading, 16)
                     .padding(.trailing, 16)
