@@ -33,3 +33,15 @@ extension Date {
         Self.authorHeaderFormatter.string(from: self)
     }
 }
+
+extension Date {
+    private static let onboardingFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd"
+        return formatter
+    }()
+    
+    var formattedOnboarding: String {
+        Self.onboardingFormatter.string(from: self)
+    }
+}
