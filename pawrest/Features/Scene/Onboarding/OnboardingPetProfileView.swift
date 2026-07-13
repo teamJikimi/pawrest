@@ -45,6 +45,29 @@ struct OnboardingPetProfileView: View {
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
         )
+        
+        //스데 임시 연결
+        .navigationDestination(
+            isPresented: Binding(
+                get: { store.isIntroducePresented },
+                set: { if !$0 { store.send(.introduceDismissed) } }
+            )
+        ) {
+            OnboardingIntroduceView(
+                store: Store(
+                    initialState: OnboardingIntroduceState(
+                        nickname: store.nickname,
+                        petName: store.petName,
+                        userProfileImage: store.userProfileImage,
+                        petProfileImage: store.profileImage,
+                        petBirthday: store.birthday,
+                        petDeathDay: store.deathDay
+                    ),
+                    reducer: { OnboardingIntroduceReducer() }
+                )
+            )
+        }
+        
         .sheet(isPresented: Binding(
             get: { store.showBirthdayPicker },
             set: { if !$0 { store.send(.pickerDismissed) } }
@@ -182,19 +205,5 @@ private extension OnboardingPetProfileView {
             .environment(\.locale, Locale(identifier: "ko_KR"))
         }
         .presentationDetents([.height(300)])
-    }
-}
-
-// MARK: - Preview
-
-#Preview {
-    NavigationStack {
-        OnboardingPetProfileView(
-            store: Store(
-                initialState: OnboardingPetProfileState()
-            ) {
-                OnboardingPetProfileReducer()
-            }
-        )
     }
 }

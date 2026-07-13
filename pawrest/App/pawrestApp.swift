@@ -29,7 +29,11 @@ struct pawrestApp: App {
             Item.self,
             MemoryModel.self,
             EmotionRecordModel.self,
-            AssessmentRecord.self
+            AssessmentRecord.self,
+            
+            //스데 임시 연결
+            UserProfile.self,
+            PetProfile.self
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])
