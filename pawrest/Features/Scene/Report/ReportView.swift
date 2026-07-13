@@ -6,11 +6,57 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 
 struct ReportView: View {
     @Bindable var store: StoreOf<ReportFeature>
-    
+
+    @Query(sort: \AssessmentRecord.date, order: .reverse)
+    private var assessmentRecords: [AssessmentRecord]
+
+    @Query(sort: \EmotionRecordModel.recordedAt, order: .reverse)
+    private var emotionRecords: [EmotionRecordModel]
+
+    var currentDailyTimeData: DailyTimeEmotionData {
+        let calendar = Calendar.current
+        let date = store.dailyTimeData.date
+        let dayRecords = emotionRecords.filter { calendar.isDate($0.recordedAt, inSameDayAs: date) }
+        let slots = TimeSlotEmotion.TimeSlot.allCases.map { slot in
+            let record = dayRecords.first { slot.contains(hour: calendar.component(.hour, from: $0.recordedAt)) }
+            return TimeSlotEmotion(timeSlot: slot, level: record?.emotionTypeEnum?.toEmotionLevel)
+        }
+        return DailyTimeEmotionData(date: date, slots: slots, insight: nil)
+    }
+
+    var weekdayChartData: WeekdayEmotionData {
+        let calendar = Calendar.current
+        var buckets: [Int: [EmotionLevel]] = [:]
+        for record in emotionRecords {
+            let weekday = calendar.component(.weekday, from: record.recordedAt) - 1
+            if let level = record.emotionTypeEnum?.toEmotionLevel {
+                buckets[weekday, default: []].append(level)
+            }
+        }
+        let entries = (0..<7).map { weekday -> WeekdayEmotionData.WeekdayEntry in
+            let levels = buckets[weekday] ?? []
+            let avg = levels.isEmpty ? nil : EmotionLevel(rawValue: levels.map(\.rawValue).reduce(0, +) / levels.count)
+            return WeekdayEmotionData.WeekdayEntry(weekday: weekday, level: avg)
+        }
+        return WeekdayEmotionData(entries: entries, insight: nil)
+    }
+
+    var weeklyChartData: WeeklyEmotionChartData {
+        let calendar = Calendar.current
+        let today = Date()
+        let entries = (0..<7).reversed().map { offset -> WeeklyEmotionChartData.DailyEmotionEntry in
+            let date = calendar.date(byAdding: .day, value: -offset, to: today)!
+            let record = emotionRecords.first { calendar.isDate($0.recordedAt, inSameDayAs: date) }
+            return .init(date: date, level: record?.emotionTypeEnum?.toEmotionLevel)
+        }
+        return WeeklyEmotionChartData(entries: entries, insight: nil)
+    }
+
     var body: some View {
         ScrollView {
             if let data = store.reportData {
@@ -28,7 +74,7 @@ struct ReportView: View {
                     statsSection(data)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
-                    diagnosticsSection(data)
+                    diagnosticsSection
                         .padding(.bottom, 20)
                     counselingSection
                         .padding(.horizontal, 20)
@@ -51,7 +97,7 @@ private extension ReportView {
             .typography(.body2R1)
             .foregroundStyle(.gray80)
     }
-    
+
     func summaryBanner(_ data: ReportData) -> some View {
         HStack(spacing: 12) {
             Image(.systemIconDownChart)
@@ -81,7 +127,7 @@ private extension ReportView {
                     .stroke(.gray10, lineWidth: 1)
             )
     }
-    
+
     func chartSection(_ data: ReportData) -> some View {
         VStack(spacing: 0) {
             SegmentTabBar(items: ReportTab.allCases, selection: $store.selectedTab.sending(\.tabChanged))
@@ -90,17 +136,17 @@ private extension ReportView {
             chartContent(data)
         }
     }
-    
+
     @ViewBuilder
     func chartContent(_ data: ReportData) -> some View {
         switch store.selectedTab {
         case .daily:
-            EmotionLineChartCard(chartData: data.weeklyChart)
+            EmotionLineChartCard(chartData: weeklyChartData)
                 .padding(.horizontal, 16)
         case .time:
             TimeEmotionChartCard(
                 data: Binding(
-                    get: { store.dailyTimeData },
+                    get: { currentDailyTimeData },
                     set: { _ in }
                 ),
                 onPrevious: { store.send(.previousDayTapped) },
@@ -108,11 +154,11 @@ private extension ReportView {
             )
             .padding(.horizontal, 16)
         case .weekday:
-            WeekdayEmotionChartCard(data: data.weekdayData)
+            WeekdayEmotionChartCard(data: weekdayChartData)
                 .padding(.horizontal, 16)
         }
     }
-    
+
     func aiSummarySection(_ data: ReportData) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
@@ -131,7 +177,7 @@ private extension ReportView {
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
     }
-    
+
     func statsSection(_ data: ReportData) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("이번 주 함께한 순간들")
@@ -147,7 +193,7 @@ private extension ReportView {
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
     }
-    
+
     func statRow(label: String, value: String, color: Color?) -> some View {
         HStack {
             Text(label)
@@ -163,8 +209,8 @@ private extension ReportView {
         .background(.gray0)
         .cornerRadius(10, corners: .allCorners)
     }
-    
-    func diagnosticsSection(_ data: ReportData) -> some View {
+
+    var diagnosticsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("자가진단 검사 기록")
@@ -175,28 +221,42 @@ private extension ReportView {
                     .foregroundStyle(.gray40)
             }
             .padding(.horizontal, 16)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(data.statusCards) { card in
-                        StatusCard(
-                            title: card.title,
-                            date: card.date,
-                            score: card.score,
-                            maxScore: card.maxScore,
-                            previousScore: card.previousScore,
-                            previousDate: card.previousDate,
-                            scaleType: card.scaleType
-                        )
-                        .frame(width: 220)
+
+            if assessmentRecords.isEmpty {
+                Text("아직 검사 기록이 없어요")
+                    .typography(.body3R)
+                    .foregroundStyle(.gray40)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 24)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(assessmentRecords) { record in
+                            if let type = record.type {
+                                let previousRecord = assessmentRecords
+                                    .filter { $0.typeRawValue == record.typeRawValue && $0.date < record.date }
+                                    .first
+                                StatusCard(
+                                    title: type.title,
+                                    date: record.date.formatted(date: .abbreviated, time: .omitted),
+                                    score: record.totalScore,
+                                    maxScore: 60,
+                                    previousScore: previousRecord?.totalScore,
+                                    previousDate: previousRecord?.date,
+                                    scaleType: type.toScaleType
+                                )
+                                .frame(width: 220)
+                            }
+                        }
                     }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
             }
         }
         .padding(.vertical, 16)
         .background(.gray10)
     }
-    
+
     var counselingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
@@ -220,7 +280,7 @@ private extension ReportView {
         .background(.rowMuted)
         .cornerRadius(20, corners: .allCorners)
     }
-    
+
     func counselingRow(name: String, number: String) -> some View {
         HStack {
             Text(name)
@@ -237,7 +297,6 @@ private extension ReportView {
         .cornerRadius(10, corners: .allCorners)
     }
 }
-
 
 #Preview {
     ReportView(
