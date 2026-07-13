@@ -180,10 +180,8 @@ private extension OnboardingPetProfileView {
             .datePickerStyle(.wheel)
             .labelsHidden()
             .environment(\.locale, Locale(identifier: "ko_KR"))
-            
-            Spacer()
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.height(300)])
     }
 }
 
