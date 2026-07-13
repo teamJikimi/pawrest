@@ -211,3 +211,13 @@ class AssessmentRecord {
         self.date = date
     }
 }
+
+extension SelfAssessmentType {
+    var toScaleType: ScaleType {
+        switch self {
+        case .pbq:  return .pbq
+        case .cesD: return .cesd
+        case .pds:  return .pds
+        }
+    }
+}
