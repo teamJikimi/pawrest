@@ -39,15 +39,18 @@ struct OnboardingUserProfileView: View {
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
         )
-        
         .navigationDestination(
             isPresented: Binding(
                 get: { store.isPetProfilePresented },
                 set: { if !$0 { store.send(.petProfileDismissed) } }
             )
         ) {
-            // 2번째 페이지 연결
-            EmptyView()
+            OnboardingPetProfileView(
+                store: Store(
+                    initialState: OnboardingPetProfileState(),
+                    reducer: { OnboardingPetProfileReducer() }
+                )
+            )
         }
     }
 }
@@ -120,7 +123,7 @@ private extension OnboardingUserProfileView {
             isButtonEnabled: store.isDuplicateCheckEnabled,
             onCheck: { store.send(.duplicateCheckTapped) }
         )
-    }	
+    }
     
     var nextButton: some View {
         Button {
