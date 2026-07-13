@@ -72,7 +72,7 @@ private extension OnboardingTextField {
                 trailing
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.leading, 20)
         .frame(height: 45)
         .background(.gray10)
         .cornerRadius(10, corners: .allCorners)
@@ -119,10 +119,11 @@ extension OnboardingTextField {
                         .padding(.horizontal, 12)
                         .frame(height: 24)
                         .background(isButtonEnabled ? Color.gray60 : .gray40)
-                        .cornerRadius(4, corners: .allCorners)
+                        .cornerRadius(11, corners: .allCorners)
                 }
                 .disabled(!isButtonEnabled)
-                .padding(.leading, 12)
+                .padding(.leading, 20)
+                .padding(.trailing, 12)
             )
         )
     }
@@ -143,6 +144,7 @@ extension OnboardingTextField {
                     .scaledToFit()
                     .foregroundColor(.gray60)
                     .padding(.leading, 16)
+                    .padding(.trailing, 16)
             ),
             isEditable: false,
             onTap: onTap
