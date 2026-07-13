@@ -37,7 +37,7 @@ enum IndicatorStyle {
     var inactiveRadius: CGFloat {
         switch self {
         case .onboarding: return 3
-        case .tutorial: return 4  // ellipse 8x8 → radius 4 = 원
+        case .tutorial: return 4
         }
     }
 }
