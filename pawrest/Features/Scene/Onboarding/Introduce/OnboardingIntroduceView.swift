@@ -57,6 +57,8 @@ private extension OnboardingIntroduceView {
         Image(store.currentPageData.imageAsset)
             .resizable()
             .scaledToFit()
+        
+            //TODO: - QA 시 사이즈 확인, 일단 다 196으로 박아둠
             .frame(height: 196)
             .id(store.currentPage)
             .transition(.opacity)

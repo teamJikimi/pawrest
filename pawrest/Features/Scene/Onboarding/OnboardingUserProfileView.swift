@@ -39,6 +39,8 @@ struct OnboardingUserProfileView: View {
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
         )
+
+        //스데 임시 연결
         .navigationDestination(
             isPresented: Binding(
                 get: { store.isPetProfilePresented },
@@ -47,7 +49,10 @@ struct OnboardingUserProfileView: View {
         ) {
             OnboardingPetProfileView(
                 store: Store(
-                    initialState: OnboardingPetProfileState(),
+                    initialState: OnboardingPetProfileState(
+                        nickname: store.nickname,
+                        userProfileImage: store.profileImage
+                    ),
                     reducer: { OnboardingPetProfileReducer() }
                 )
             )

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 import ComposableArchitecture
 
 // MARK: - Page Data
@@ -42,6 +43,13 @@ struct OnboardingIntroduceState: Equatable {
     let nickname: String
     let petName: String
     var currentPage: Int = 0
+    
+    //스데 임시 연결
+    let userProfileImage: Data?
+    let petProfileImage: Data?
+    let petBirthday: Date?
+    let petDeathDay: Date?
+    
     
     var petNameWithParticle: String {
         //+이와, +와 로직
@@ -120,11 +128,14 @@ enum OnboardingIntroduceAction: Equatable {
     case nextTapped
     case previousTapped
     case finishTapped
+    
+    case saveCompleted
 }
 
 // MARK: - Reducer
 
 struct OnboardingIntroduceReducer: Reducer {
+    
     var body: some Reducer<OnboardingIntroduceState, OnboardingIntroduceAction> {
         Reduce { state, action in
             switch action {
@@ -140,7 +151,46 @@ struct OnboardingIntroduceReducer: Reducer {
                 }
                 return .none
                 
+                
+            //스데 임시 연결
             case .finishTapped:
+                let nickname = state.nickname
+                let userImage = state.userProfileImage
+
+                let petName = state.petName
+                let petImage = state.petProfileImage
+                let birthday = state.petBirthday
+                let deathDay = state.petDeathDay
+
+                return .run { send in
+                    let container = try ModelContainer(
+                        for: UserProfile.self,
+                            PetProfile.self
+                    )
+
+                    let context = ModelContext(container)
+
+                    let user = UserProfile(
+                        nickname: nickname,
+                        profileImage: userImage
+                    )
+
+                    let pet = PetProfile(
+                        name: petName,
+                        profileImage: petImage,
+                        birthday: birthday,
+                        deathDay: deathDay
+                    )
+
+                    context.insert(user)
+                    context.insert(pet)
+
+                    try context.save()
+
+                    await send(.saveCompleted)
+                }
+                
+            case .saveCompleted:
                 // 홈 화면 이동
                 return .none
             }
