@@ -77,6 +77,9 @@ struct OnboardingPetProfileView: View {
                 onConfirm: {
                     store.send(.birthdaySelected(tempBirthday))
                     store.send(.pickerDismissed)
+                },
+                onCancel: {
+                    store.send(.pickerDismissed)
                 }
             )
         }
@@ -88,6 +91,9 @@ struct OnboardingPetProfileView: View {
                 selection: $tempDeathDay,
                 onConfirm: {
                     store.send(.deathDaySelected(tempDeathDay))
+                    store.send(.pickerDismissed)
+                },
+                onCancel: {
                     store.send(.pickerDismissed)
                 }
             )
@@ -184,15 +190,22 @@ private extension OnboardingPetProfileView {
         .disabled(!store.isNextEnabled)
     }
     
-    func datePickerSheet(selection: Binding<Date>, onConfirm: @escaping () -> Void) -> some View {
+    func datePickerSheet(selection: Binding<Date>, onConfirm: @escaping () -> Void, onCancel: @escaping () -> Void) -> some View {
         VStack(spacing: 0) {
             HStack {
+                Button("취소") { onCancel() }
+                    .typography(.body1M)
+                    .foregroundColor(.gray70)
+
                 Spacer()
+                
                 Button("확인") { onConfirm() }
                     .typography(.body1M)
                     .foregroundColor(.pawPrimary)
-                    .padding(16)
             }
+            // 임시 패딩
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
             
             DatePicker(
                 "",
