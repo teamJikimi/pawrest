@@ -15,6 +15,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions:
                      [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         FirebaseApp.configure()
+        Task {
+            await NotificationService.shared.requestAuthorization()
+        }
         return true
     }
 }
@@ -28,7 +31,8 @@ struct pawrestApp: App {
         let schema = Schema([
             Item.self,
             MemoryModel.self,
-            EmotionRecordModel.self
+            EmotionRecordModel.self,
+            NotificationRecord.self
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])
