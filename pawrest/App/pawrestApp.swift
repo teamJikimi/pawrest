@@ -28,7 +28,8 @@ struct pawrestApp: App {
         let schema = Schema([
             Item.self,
             MemoryModel.self,
-            EmotionRecordModel.self
+            EmotionRecordModel.self,
+            AssessmentRecord.self
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])
