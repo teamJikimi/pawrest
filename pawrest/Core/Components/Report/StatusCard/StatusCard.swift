@@ -12,8 +12,8 @@ struct StatusCard: View {
     let date: String
     let score: Int
     let maxScore: Int
-    let previousScore: Int
-    let previousDate: Date
+    let previousScore: Int?
+    let previousDate: Date?
     let scaleType: ScaleType
 
     private var riskLevel: RiskLevel {
@@ -26,7 +26,8 @@ struct StatusCard: View {
     }
 
     private var scoreDelta: Int {
-        score - previousScore
+        guard let previousScore else { return 0 }
+        return score - previousScore
     }
 
     var body: some View {
@@ -93,56 +94,19 @@ private extension StatusCard {
             Text("이전 검사")
                 .typography(.date)
                 .foregroundStyle(.gray60)
-            Text(previousDate.formattedRelative)
-                .typography(.date)
-                .foregroundStyle(.gray40)
+            if let previousDate {
+                Text(previousDate.formattedRelative)
+                    .typography(.date)
+                    .foregroundStyle(.gray40)
+            }
             Spacer()
-            DeltaBadge(delta: scoreDelta)
+            if let _ = previousDate {
+                DeltaBadge(delta: scoreDelta)
+            } else {
+                Text("기록 없음")
+                    .typography(.date)
+                    .foregroundStyle(.gray60)
+            }
         }
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    VStack(spacing: 16) {
-        StatusCard(
-            title: "PBQ 펫로스 심리 척도",
-            date: "2026.05.31",
-            score: 38,
-            maxScore: 60,
-            previousScore: 48,
-            previousDate: Calendar.current.date(byAdding: .month, value: -1, to: Date())!,
-            scaleType: .pbq
-        )
-        StatusCard(
-            title: "CES-D 우울 척도",
-            date: "2026.05.31",
-            score: 18,
-            maxScore: 60,
-            previousScore: 18,
-            previousDate: Calendar.current.date(byAdding: .year, value: -1, to: Date())!,
-            scaleType: .cesd
-        )
-        StatusCard(
-            title: "PDS 외상 후 스트레스",
-            date: "2026.05.31",
-            score: 8,
-            maxScore: 51,
-            previousScore: 18,
-            previousDate: Calendar.current.date(byAdding: .month, value: -3, to: Date())!,
-            scaleType: .pds
-        )
-        StatusCard(
-            title: "PBQ 펫로스 심리 척도",
-            date: "2026.05.31",
-            score: 50,
-            maxScore: 60,
-            previousScore: 40,
-            previousDate: Calendar.current.date(byAdding: .year, value: -2, to: Date())!,
-            scaleType: .pbq
-        )
-    }
-    .padding()
-    .background(Color(.systemGroupedBackground))
 }
