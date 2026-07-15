@@ -15,6 +15,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions:
                      [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         FirebaseApp.configure()
+        Task {
+            _ = await NotificationService.shared.requestAuthorization()
+            NotificationService.shared.scheduleEmotionReminders(enabled: UserDefaults.standard.bool(forKey: "emotionReminderEnabled"))
+        }
         return true
     }
 }
@@ -29,7 +33,9 @@ struct pawrestApp: App {
             Item.self,
             MemoryModel.self,
             EmotionRecordModel.self,
+            NotificationRecord.self
             AssessmentRecord.self
+
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])
