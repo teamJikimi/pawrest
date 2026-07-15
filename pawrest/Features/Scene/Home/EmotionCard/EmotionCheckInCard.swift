@@ -96,6 +96,7 @@ private extension EmotionCheckInCard {
                     memo: memo
                 )
                 modelContext.insert(record)
+                NotificationService.shared.cancelTodayEmotionReminder()
                 store.send(.submitTapped)
             } label: {
                 Text("마음 상태 저장하기")
