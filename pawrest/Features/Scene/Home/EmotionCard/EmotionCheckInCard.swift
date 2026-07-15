@@ -99,7 +99,7 @@ private extension EmotionCheckInCard {
                 store.send(.submitTapped)
             } label: {
                 Text("마음 상태 저장하기")
-                    .typography(.body2Accent)
+//                    .typography(.body2Accent)
                     .foregroundStyle(.gray0)
                     .frame(maxWidth: .infinity)
                     .frame(height: 32)
