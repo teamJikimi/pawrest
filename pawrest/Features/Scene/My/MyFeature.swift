@@ -5,6 +5,7 @@
 //  Created by 소은 on 6/5/26.
 //
 
+import Foundation
 import ComposableArchitecture
 
 struct MyFeature: Reducer {
@@ -82,6 +83,8 @@ struct MyFeature: Reducer {
             return .none
         case .emotionReminderToggled(let value):
             state.isEmotionReminderOn = value
+            UserDefaults.standard.set(value, forKey: "emotionReminderEnabled")
+            NotificationService.shared.scheduleEmotionReminders(enabled: value)
             return .none
         case .weeklyReportToggled(let value):
             state.isWeeklyReportOn = value

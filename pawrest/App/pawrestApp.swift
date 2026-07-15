@@ -16,7 +16,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                      [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         FirebaseApp.configure()
         Task {
-            await NotificationService.shared.requestAuthorization()
+            _ = await NotificationService.shared.requestAuthorization()
+            NotificationService.shared.scheduleEmotionReminders(enabled: UserDefaults.standard.bool(forKey: "emotionReminderEnabled"))
         }
         return true
     }
