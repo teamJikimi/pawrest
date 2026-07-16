@@ -7,19 +7,17 @@
 
 import SwiftUI
 import ComposableArchitecture
+import Lottie
 
 struct MemorialView: View {
     @Bindable var store: StoreOf<MemorialReducer>
     
     var body: some View {
         VStack(spacing: 0) {
+            LottieView(animationName: "Flow_9", loopMode: .loop)
+                .frame(height: 300)
+            
             Spacer()
         }
-        .customNavigationBar(
-            store: store.scope(
-                state: \.navigationBar,
-                action: \.navigationBar
-            )
-        )
     }
 }
