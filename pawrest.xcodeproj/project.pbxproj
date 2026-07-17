@@ -323,7 +323,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = pawrest/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "이미지를 사진 앱에 저장하려면 권한이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 접근하려면 권한이 필요합니다.";
@@ -366,7 +365,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = pawrest/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "이미지를 사진 앱에 저장하려면 권한이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 접근하려면 권한이 필요합니다.";
