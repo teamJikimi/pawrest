@@ -18,6 +18,7 @@ extension Font {
     // MARK: Title (16~14px)
     static let title1 = Font.system(size: 16, weight: .bold)
     static let title2 = Font.system(size: 14, weight: .semibold)
+    static let title4 = Font.system(size: 20, weight: .bold)
 
     // MARK: Button (14px)
     static let button = Font.system(size: 14, weight: .semibold)
@@ -60,6 +61,8 @@ struct AppTypography {
     static let title1    = AppTypography(font: .title1,    tracking: -0.32, lineSpacing: 0)
     // Title2 (14px, lineHeight: 14, tracking: -2%)
     static let title2    = AppTypography(font: .title2,    tracking: -0.28, lineSpacing: 0)
+    // Title4 (20px, lineHeight: 28, tracking: -2%)
+    static let title4 = AppTypography(font: .title4, tracking: -0.4, lineSpacing: 8)
 
     // MARK: Button (14px, lineHeight: 18, tracking: 0%)
     // lineSpacing = 18 - 14 = 4
