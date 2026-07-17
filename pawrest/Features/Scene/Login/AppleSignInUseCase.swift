@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseAuth
 
 public final class AppleSignInUseCase {
     private let signInService: AppleSignInServiceProtocol
@@ -15,7 +16,21 @@ public final class AppleSignInUseCase {
     }
 
     public func signIn() async throws -> AppleSignInEntity {
-        try await signInService.signIn()
-        // TODO: 추가 로직
+        let entity = try await signInService.signIn()
+        
+        guard let tokenData = entity.identityToken,
+              let idTokenString = String(data: tokenData, encoding: .utf8) else {
+            throw AppleSignInServiceError.invalidCredential
+        }
+        
+        let credential = OAuthProvider.appleCredential(
+            withIDToken: idTokenString,
+            rawNonce: entity.nonce,
+            fullName: entity.fullName
+        )
+        
+        try await Auth.auth().signIn(with: credential)
+        
+        return entity
     }
 }

@@ -6,10 +6,12 @@
 //
 
 import AuthenticationServices
+import CryptoKit
 import UIKit
 
 public final class AppleSignInService: NSObject, AppleSignInServiceProtocol {
     private var continuation: CheckedContinuation<AppleSignInEntity, Error>?
+    private var currentNonce: String?
 
     public override init() {
         super.init()
@@ -18,9 +20,13 @@ public final class AppleSignInService: NSObject, AppleSignInServiceProtocol {
     public func signIn() async throws -> AppleSignInEntity {
         try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
+            
+            let nonce = randomNonceString()
+            currentNonce = nonce
 
             let request = ASAuthorizationAppleIDProvider().createRequest()
             request.requestedScopes = [.fullName, .email]
+            request.nonce = sha256(nonce)
 
             let controller = ASAuthorizationController(authorizationRequests: [request])
             controller.delegate = self
@@ -47,7 +53,8 @@ extension AppleSignInService: ASAuthorizationControllerDelegate {
             userIdentifier: credential.user,
             email: credential.email,
             fullName: credential.fullName,
-            identityToken: credential.identityToken
+            identityToken: credential.identityToken,
+            nonce: currentNonce ?? ""
         )
         continuation?.resume(returning: entity)
         continuation = nil
@@ -74,6 +81,42 @@ extension AppleSignInService: ASAuthorizationControllerPresentationContextProvid
         }
 
         return UIWindow(windowScene: windowScene)
+    }
+}
+
+// MARK: - Nonce Helper
+
+extension AppleSignInService {
+    private func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        let charset: [Character] = Array("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_")
+        var result = ""
+        var remainingLength = length
+        
+        while remainingLength > 0 {
+            let randoms: [UInt8] = (0..<16).map { _ in
+                var random: UInt8 = 0
+                _ = SecRandomCopyBytes(kSecRandomDefault, 1, &random)
+                return random
+            }
+            
+            randoms.forEach { random in
+                if remainingLength == 0 {
+                    return
+                }
+                if random < charset.count {
+                    result.append(charset[Int(random)])
+                    remainingLength -= 1
+                }
+            }
+        }
+        return result
+    }
+    
+    private func sha256(_ input: String) -> String {
+        let inputData = Data(input.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+        return hashedData.compactMap { String(format: "%02x", $0) }.joined()
     }
 }
 

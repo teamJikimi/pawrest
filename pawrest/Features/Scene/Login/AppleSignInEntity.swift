@@ -12,4 +12,5 @@ public struct AppleSignInEntity: Equatable {
     public let email: String?
     public let fullName: PersonNameComponents?
     public let identityToken: Data?
+    public let nonce: String
 }
