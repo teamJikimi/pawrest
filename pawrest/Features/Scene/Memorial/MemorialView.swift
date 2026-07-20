@@ -16,6 +16,26 @@ struct MemorialView: View {
         ZStack {
             VStack(spacing: 0) {
                 Spacer()
+                HStack(spacing: 0) {
+                    ZStack {
+                        Image(.imagePetNameSignboard)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 80, height: 99)
+                        Text(store.petName)
+                            .font(.custom("Ownglyph_PDH-Rg", size: 22))
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .padding(.horizontal, 25)
+                            .padding(.vertical, 9)
+                            .offset(y: -18)
+                    }
+                    .padding(.leading, 111)
+                    Spacer()
+                }
+                .padding(.bottom, 79)
+
                 Button {
                     store.send(.sendLetterButtonTapped)
                 } label: {
@@ -30,22 +50,6 @@ struct MemorialView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20 + tabBarContentHeight)
             }
-
-            if store.isLetterPresented,
-               let letterStore = store.scope(state: \.letter, action: \.letter) {
-                Color.black.opacity(0.4).ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    Spacer().frame(height: 144)
-                    LetterView(store: letterStore)
-                        .frame(height: 562)
-                        .background(.white)
-                        .cornerRadius(20, corners: .allCorners)
-                        .padding(.horizontal, 20)
-                    Spacer()
-                }
-                .transition(.opacity.combined(with: .scale(scale: 0.95)))
-            }
         }
         .background(
             Image(.memorialBackgroundView)
@@ -54,6 +58,16 @@ struct MemorialView: View {
                 .ignoresSafeArea()
         )
         .ignoresSafeArea(.keyboard)
-        .animation(.easeInOut(duration: 0.2), value: store.isLetterPresented)
+        .sheet(isPresented: Binding(
+            get: { store.isLetterPresented },
+            set: { if !$0 { store.send(.letter(.delegate(.didClose))) } }
+        )) {
+            if let letterStore = store.scope(state: \.letter, action: \.letter) {
+                LetterView(store: letterStore)
+                    .presentationDetents([.fraction(0.55)])
+                    .presentationCornerRadius(20)
+                    .presentationDragIndicator(.hidden)
+            }
+        }
     }
 }

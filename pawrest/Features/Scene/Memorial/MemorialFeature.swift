@@ -11,7 +11,7 @@ import ComposableArchitecture
 
 @ObservableState
 struct MemorialState: Equatable {
-    var petName: String = "@@"
+    var petName: String = "초코"
     var isLetterPresented: Bool = false
     var letter: LetterState?
 }
