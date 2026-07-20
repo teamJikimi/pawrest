@@ -9,19 +9,19 @@ import SwiftUI
 
 enum IndicatorStyle {
     case onboarding
-    case tutorial
+    case introduce
     
     var activeWidth: CGFloat {
         switch self {
         case .onboarding: return 28
-        case .tutorial: return 15
+        case .introduce: return 15
         }
     }
     
     var inactiveWidth: CGFloat {
         switch self {
         case .onboarding: return 13
-        case .tutorial: return 8
+        case .introduce: return 8
         }
     }
     
@@ -30,14 +30,14 @@ enum IndicatorStyle {
     var activeRadius: CGFloat {
         switch self {
         case .onboarding: return 3
-        case .tutorial: return 4
+        case .introduce: return 4
         }
     }
     
     var inactiveRadius: CGFloat {
         switch self {
         case .onboarding: return 3
-        case .tutorial: return 4
+        case .introduce: return 4
         }
     }
 }

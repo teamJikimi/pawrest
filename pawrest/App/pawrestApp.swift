@@ -33,8 +33,14 @@ struct pawrestApp: App {
             Item.self,
             MemoryModel.self,
             EmotionRecordModel.self,
-            NotificationRecord.self
+            AssessmentRecord.self,
+            
+            //스데 임시 연결
+            UserProfile.self,
+            PetProfile.self,
+            NotificationRecord.self,
             AssessmentRecord.self
+
 
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
