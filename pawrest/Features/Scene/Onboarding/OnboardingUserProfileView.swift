@@ -39,6 +39,8 @@ struct OnboardingUserProfileView: View {
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
         )
+
+        //스데 임시 연결
         .navigationDestination(
             isPresented: Binding(
                 get: { store.isPetProfilePresented },
@@ -47,7 +49,10 @@ struct OnboardingUserProfileView: View {
         ) {
             OnboardingPetProfileView(
                 store: Store(
-                    initialState: OnboardingPetProfileState(),
+                    initialState: OnboardingPetProfileState(
+                        nickname: store.nickname,
+                        userProfileImage: store.profileImage
+                    ),
                     reducer: { OnboardingPetProfileReducer() }
                 )
             )
@@ -83,24 +88,38 @@ private extension OnboardingUserProfileView {
     }
     
     var profileImageSection: some View {
-        PhotosPicker(
+        let clipShape = ProfileClipShape(
+            profileSize: 86,
+            cutoutSize: 24,
+            offset: CGPoint(x: 2, y: 2)
+        )
+        
+        return PhotosPicker(
             selection: $selectedItem,
             matching: .images
         ) {
-            ZStack(alignment: .center) {
-                if let data = store.profileImage,
-                   let uiImage = UIImage(data: data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 86, height: 86)
-                        .clipShape(Circle())
-                } else {
-                    Image(.profileUser)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 86, height: 86)
+            ZStack(alignment: .bottomTrailing) {
+                Group {
+                    if let data = store.profileImage,
+                       let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Image(.profileUser)
+                            .resizable()
+                            .scaledToFit()
+                    }
                 }
+                .frame(width: 86, height: 86)
+                .clipShape(clipShape)
+                .overlay(clipShape.stroke(.gray40, lineWidth: 1))
+                
+                Image(.iconImageEdit)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 27, height: 27)
+                    .offset(x: 3, y: 3)
             }
         }
         .onChange(of: selectedItem) { _, newItem in
