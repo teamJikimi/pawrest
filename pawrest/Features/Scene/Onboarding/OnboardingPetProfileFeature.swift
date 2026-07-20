@@ -18,6 +18,9 @@ struct OnboardingPetProfileState: Equatable {
         rightButton: .none
     )
     
+    let nickname: String
+    let userProfileImage: Data?
+    
     var petName: String = ""
     var profileImage: Data? = nil
     
@@ -53,6 +56,16 @@ struct OnboardingPetProfileState: Equatable {
     var isNextEnabled: Bool {
         isNameValid
     }
+    
+    var isIntroducePresented: Bool = false
+    
+    init(
+        nickname: String,
+        userProfileImage: Data?
+    ) {
+        self.nickname = nickname
+        self.userProfileImage = userProfileImage
+    }
 }
 
 // MARK: - Action
@@ -71,6 +84,8 @@ enum OnboardingPetProfileAction: Equatable {
     case pickerDismissed
     
     case nextTapped
+    
+    case introduceDismissed
 }
 
 // MARK: - Reducer
@@ -121,7 +136,11 @@ struct OnboardingPetProfileReducer: Reducer {
                 return .none
                 
             case .nextTapped:
-                // TODO: SwiftData 저장 + 튜토리얼 화면 이동
+                state.isIntroducePresented = true
+                return .none
+                
+            case .introduceDismissed:
+                state.isIntroducePresented = false
                 return .none
             }
         }
