@@ -14,9 +14,9 @@ private struct LineSpacedTextEditor: UIViewRepresentable {
     @Binding var text: String
     let lineHeight: CGFloat
     let availableWidth: CGFloat
-
+    
     func makeCoordinator() -> Coordinator { Coordinator(self) }
-
+    
     func makeUIView(context: Context) -> UITextView {
         let tv = UITextView()
         tv.backgroundColor = .clear
@@ -24,11 +24,12 @@ private struct LineSpacedTextEditor: UIViewRepresentable {
         tv.textContainerInset = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
         tv.textContainer.lineFragmentPadding = 0
         tv.translatesAutoresizingMaskIntoConstraints = false
+        tv.tintColor = .clear
         tv.delegate = context.coordinator
         applyStyle(to: tv, text: text)
         return tv
     }
-
+    
     func updateUIView(_ tv: UITextView, context: Context) {
         if let existing = tv.constraints.first(where: { $0.firstAttribute == .width }) {
             existing.constant = availableWidth
@@ -38,30 +39,30 @@ private struct LineSpacedTextEditor: UIViewRepresentable {
         guard tv.text != text else { return }
         applyStyle(to: tv, text: text)
     }
-
+    
     private func applyStyle(to tv: UITextView, text: String) {
         let style = NSMutableParagraphStyle()
         style.minimumLineHeight = lineHeight
         style.maximumLineHeight = lineHeight
-
+        
         let attrs: [NSAttributedString.Key: Any] = [
             .paragraphStyle: style,
             .font: UIFont.systemFont(ofSize: 14),
             .foregroundColor: UIColor.label
         ]
         tv.typingAttributes = attrs
-
+        
         if !text.isEmpty {
             tv.attributedText = NSAttributedString(string: text, attributes: attrs)
         } else {
             tv.text = ""
         }
     }
-
+    
     class Coordinator: NSObject, UITextViewDelegate {
         var parent: LineSpacedTextEditor
         init(_ parent: LineSpacedTextEditor) { self.parent = parent }
-
+        
         func textViewDidChange(_ textView: UITextView) {
             parent.text = textView.text ?? ""
         }
@@ -72,19 +73,19 @@ private struct LineSpacedTextEditor: UIViewRepresentable {
 
 struct LetterView: View {
     @Bindable var store: StoreOf<LetterReducer>
-
-    private let lineSpacing: CGFloat = 28
+    
+    private let lineSpacing: CGFloat = 40
     private let firstLineY: CGFloat = 16 + 20
     private let minLineCount: Int = 11
-
+    
     private func dynamicHeight(for text: String, editorWidth: CGFloat) -> CGFloat {
         let baseHeight = CGFloat(minLineCount) * lineSpacing + (16 + lineSpacing) + 16
         guard editorWidth > 0, !text.isEmpty else { return baseHeight }
-
+        
         let style = NSMutableParagraphStyle()
         style.minimumLineHeight = lineSpacing
         style.maximumLineHeight = lineSpacing
-
+        
         let attributed = NSAttributedString(
             string: text,
             attributes: [
@@ -100,28 +101,28 @@ struct LetterView: View {
         let lineCount = max(minLineCount, Int(ceil(rect.height / lineSpacing)))
         return CGFloat(lineCount) * lineSpacing + (16 + lineSpacing) + 16
     }
-
+    
     var body: some View {
         let content = store.content
-
+        
         ZStack(alignment: .top) {
             Color.white.ignoresSafeArea()
-
+            
             VStack(spacing: 0) {
                 HStack {
                     Spacer()
                     Button {
                         store.send(.closeTapped)
                     } label: {
-                        Image(.iconImageXmark)
-                            .scaledToFill()
-                            .foregroundStyle(.gray60)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.gray90)
                             .frame(width: 24, height: 24)
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
-
+                
                 VStack(spacing: 8) {
                     Image(.letter)
                         .resizable()
@@ -133,7 +134,7 @@ struct LetterView: View {
                 }
                 .padding(.top, 12)
                 .padding(.bottom, 20)
-
+                
                 GeometryReader { geo in
                     let canvasWidth = geo.size.width
                     let editorWidth = canvasWidth - 40
@@ -154,12 +155,12 @@ struct LetterView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+                
                 Button {
                     store.send(.sendButtonTapped)
                 } label: {
                     Text("편지 보내기")
-                        .typography(.body2M)
+                        .typography(.button)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
@@ -168,18 +169,18 @@ struct LetterView: View {
                 }
                 .disabled(!store.isSendEnabled)
                 .padding(.horizontal, 20)
-                .padding(.bottom, 32)
+                .padding(.bottom, 16)
             }
             .simultaneousGesture(TapGesture().onEnded {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             })
         }
     }
-
+    
     private func letterPaper(height: CGFloat) -> some View {
         Canvas { context, size in
             var y: CGFloat = 16 + lineSpacing
-
+            
             var dashPath = Path()
             dashPath.move(to: CGPoint(x: 20, y: y))
             dashPath.addLine(to: CGPoint(x: size.width - 20, y: y))
@@ -189,7 +190,7 @@ struct LetterView: View {
                 style: StrokeStyle(lineWidth: 0.5, dash: [6, 4])
             )
             y += lineSpacing
-
+            
             while y < size.height - 16 {
                 var path = Path()
                 path.move(to: CGPoint(x: 20, y: y))
@@ -200,13 +201,4 @@ struct LetterView: View {
         }
         .frame(height: height)
     }
-}
-
-#Preview {
-    LetterView(
-        store: Store(
-            initialState: LetterState(petName: "초코"),
-            reducer: { LetterReducer() }
-        )
-    )
 }
