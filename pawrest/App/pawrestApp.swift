@@ -49,8 +49,8 @@ struct pawrestApp: App {
     
     var body: some Scene {
         WindowGroup {
-            TabBarView(store: Store(initialState: TabBarFeature.State()) {
-                TabBarFeature()
+            AppView(store: Store(initialState: AppState()){
+                AppReducer()
             })
         }
         .modelContainer(sharedModelContainer)
