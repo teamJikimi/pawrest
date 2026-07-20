@@ -14,74 +14,70 @@ struct TabBarView: View {
     @State private var homeStore = Store(initialState: HomeFeature.State()) {
         HomeFeature()
     }
-    
+
     var body: some View {
-        contentView
-            .ignoresSafeArea(.keyboard)
+        ZStack(alignment: .bottom) {
+            contentView
+            CustomTabBar(
+                selectedTab: store.selectedTab,
+                onTabSelected: { store.send(.tabSelected($0)) }
+            )
+        }
+        .ignoresSafeArea(.keyboard)
     }
-    
+
     @ViewBuilder
     private var contentView: some View {
         switch store.selectedTab {
         case .home:
             NavigationStack {
                 HomeView(store: homeStore)
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        CustomTabBar(
-                            selectedTab: store.selectedTab,
-                            onTabSelected: { store.send(.tabSelected($0)) }
-                        )
-                    }
             }
-            
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
+                    .opacity(0)
+                    .allowsHitTesting(false)
+            }
+
         case .memorial:
             NavigationStack {
                 MemorialView(store: Store(initialState: MemorialState()) {
                     MemorialReducer()
                 })
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    CustomTabBar(
-                        selectedTab: store.selectedTab,
-                        onTabSelected: { store.send(.tabSelected($0)) }
-                    )
-                }
             }
-            
+
         case .memory:
             NavigationStack {
                 MemoryView(store: Store(initialState: MemoryState()) {
                     MemoryReducer()
                 })
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    CustomTabBar(
-                        selectedTab: store.selectedTab,
-                        onTabSelected: { store.send(.tabSelected($0)) }
-                    )
-                }
             }
-            
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
+                    .opacity(0)
+                    .allowsHitTesting(false)
+            }
+
         case .community:
             NavigationStack {
                 CommunityView(store: communityStore)
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        CustomTabBar(
-                            selectedTab: store.selectedTab,
-                            onTabSelected: { store.send(.tabSelected($0)) }
-                        )
-                    }
             }
-            
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
+                    .opacity(0)
+                    .allowsHitTesting(false)
+            }
+
         case .my:
             NavigationStack {
                 MyView(store: Store(initialState: MyFeature.State()) {
                     MyFeature()
                 })
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    CustomTabBar(
-                        selectedTab: store.selectedTab,
-                        onTabSelected: { store.send(.tabSelected($0)) }
-                    )
-                }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
+                    .opacity(0)
+                    .allowsHitTesting(false)
             }
         }
     }
@@ -92,7 +88,7 @@ struct TabBarView: View {
 struct CustomTabBar: View {
     let selectedTab: TabBarFeature.State.Tab
     let onTabSelected: (TabBarFeature.State.Tab) -> Void
-    
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
@@ -100,9 +96,7 @@ struct CustomTabBar: View {
                     TabBarButton(
                         tab: tab,
                         isSelected: selectedTab == tab,
-                        action: {
-                            onTabSelected(tab)
-                        }
+                        action: { onTabSelected(tab) }
                     )
                 }
             }
@@ -130,14 +124,13 @@ struct TabBarButton: View {
     let tab: TabBarFeature.State.Tab
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Image(isSelected ? tab.iconNameFill : tab.iconName)
                     .renderingMode(.original)
                     .frame(width: 24, height: 24)
-                
                 Text(tab.title)
                     .typography(.date)
             }
