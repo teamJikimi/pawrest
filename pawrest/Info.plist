@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleGetInfoString</key>
 	<string></string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>OwnglyphBakDahyunche.ttf</string>
+	</array>
 	<key>UIDesignRequiresCompatibility</key>
 	<true/>
 </dict>
