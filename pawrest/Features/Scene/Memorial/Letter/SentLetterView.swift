@@ -101,9 +101,13 @@ struct SentLetterView: View {
 
     private var bottomView: some View {
         VStack(spacing: 12) {
-            Text(remainingTimeText)
-                .typography(.body2R1)
-                .foregroundStyle(.gray50)
+            HStack {
+                Spacer()
+                Text(remainingTimeText)
+                    .typography(.body3R)
+                    .foregroundStyle(.gray50)
+            }
+            .padding(.trailing, 20)
 
             if isEditing {
                 Button {
