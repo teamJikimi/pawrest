@@ -37,6 +37,20 @@ enum EmotionType: String, CaseIterable {
     }
 }
 
+// MARK: - EmotionLevel mapping
+
+extension EmotionType {
+    var toEmotionLevel: EmotionLevel {
+        switch self {
+        case .comfortable: return .relaxed
+        case .stable:      return .stable
+        case .normal:      return .normal
+        case .frustrated:  return .frustrated
+        case .depressed:   return .depressed
+        }
+    }
+}
+
 // MARK: - Mock
 
 extension EmotionCheckInFeature.State {
