@@ -7,57 +7,66 @@
 
 import ComposableArchitecture
 
+struct PendingLetter: Equatable {
+    let petName: String
+    let content: String
+}
+
 // MARK: - State
 
 @ObservableState
 struct MemorialState: Equatable {
-    var navigationBar = NavigationBarState(
-        title: "게시글",
-        leftButton: .back,
-        rightButton: .reportMenu
-    )
+    var petName: String = "초코"
+    var isLetterPresented: Bool = false
+    var pendingSave: PendingLetter? = nil
+    var letter: LetterState?
 }
 
 // MARK: - Action
 
 @CasePathable
 enum MemorialAction: Equatable {
-    case navigationBar(NavigationBarAction)
+    case sendLetterButtonTapped
+    case letterDismissed
+    case letterSaved
+    case letter(LetterAction)
 }
 
 // MARK: - Reducer
 
 struct MemorialReducer: Reducer {
     var body: some Reducer<MemorialState, MemorialAction> {
-        Scope(state: \.navigationBar, action: \.navigationBar) {
-            NavigationBarReducer()
-        }
-        
         Reduce { state, action in
             switch action {
-            case .navigationBar(.leftButtonTapped):
-                print("뒤로가기")
+            case .sendLetterButtonTapped:
+                state.letter = LetterState(petName: state.petName)
+                state.isLetterPresented = true
                 return .none
-                
-            case .navigationBar(.reportBoardSettings):
-                print("게시판 설정")
+
+            case .letter(.delegate(.didSend)):
+                state.pendingSave = PendingLetter(
+                    petName: state.petName,
+                    content: state.letter?.content ?? ""
+                )
+                state.isLetterPresented = false
+                state.letter = nil
                 return .none
-                
-            case .navigationBar(.reportAbuse):
-                print("욕설/비하")
+
+            case .letter(.delegate(.didClose)), .letterDismissed:
+                state.isLetterPresented = false
+                state.letter = nil
                 return .none
-                
-            case .navigationBar(.reportSpam):
-                print("스팸")
+
+            case .letterSaved:
+                state.pendingSave = nil
                 return .none
-                
-            case .navigationBar(.blockTapped):
-                print("차단")
-                return .none
-                
-            case .navigationBar:
+
+            case .letter:
                 return .none
             }
+        }
+        .ifLet(\.letter, action: \.letter) {
+            LetterReducer()
         }
     }
 }
