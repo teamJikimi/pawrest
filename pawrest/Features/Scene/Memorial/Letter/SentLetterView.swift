@@ -1,35 +1,60 @@
 //
-//  LetterView.swift
+//  SentLetterView.swift
 //  pawrest
 //
-//  Created by 소은 on 7/20/26.
+//  Created by 소은 on 7/23/26.
 //
 
 import SwiftUI
-import ComposableArchitecture
+import SwiftData
 import UIKit
+import Combine
 
-// MARK: - LetterView
+struct SentLetterView: View {
+    @Bindable var letter: LetterModel
+    let deliveryInterval: TimeInterval
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
 
-struct LetterView: View {
-    @Bindable var store: StoreOf<LetterReducer>
+    @State private var isEditing = false
+    @State private var editContent = ""
+    @State private var now = Date()
 
     private let lineSpacing: CGFloat = 40
     private let firstLineY: CGFloat = 16 + 20
     private let minLineCount: Int = 11
 
-    var body: some View {
-        let content = store.content
+    private var isSaveEnabled: Bool {
+        !editContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
+    private var remainingTimeText: String {
+        let delivery = letter.sentAt.addingTimeInterval(deliveryInterval)
+        let remaining = delivery.timeIntervalSince(now)
+        guard remaining > 0 else { return "곧 전달됩니다" }
+        let hours = Int(remaining) / 3600
+        let minutes = (Int(remaining) % 3600) / 60
+        return "\(hours)시간 \(minutes)분 후 하늘로 전달됩니다."
+    }
+
+    var body: some View {
         VStack(spacing: 0) {
             headerView
+                .zIndex(1)
             titleView
             GeometryReader { geo in
-                letterScrollView(content: content, geo: geo)
+                letterScrollView(geo: geo)
             }
-            sendButton
+            bottomView
         }
         .simultaneousGesture(TapGesture().onEnded { hideKeyboard() })
+        .onAppear {
+            editContent = letter.content
+            now = Date()
+        }
+        .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { date in
+            now = date
+        }
     }
 
     // MARK: - Subviews
@@ -37,8 +62,19 @@ struct LetterView: View {
     private var headerView: some View {
         HStack {
             Spacer()
+            EditMenuButton(
+                icon: .iconEllipsis,
+                onEdit: {
+                    isEditing = true
+                },
+                onDelete: {
+                    modelContext.delete(letter)
+                    try? modelContext.save()
+                    dismiss()
+                }
+            )
             Button {
-                store.send(.closeTapped)
+                dismiss()
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 16, weight: .medium))
@@ -56,34 +92,46 @@ struct LetterView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 36, height: 36)
-            Text("\(store.petName)에게 마음을 전해보세요.")
+            Text("\(letter.petName)에게")
                 .typography(.body1M)
                 .foregroundStyle(.pawPrimary)
         }
         .padding(.top, 12)
     }
 
-    private var sendButton: some View {
-        Button {
-            store.send(.sendButtonTapped)
-        } label: {
-            Text("편지 보내기")
-                .typography(.button)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(store.isSendEnabled ? Color.pawPrimary : Color.gray40)
-                .cornerRadius(12, corners: .allCorners)
+    private var bottomView: some View {
+        VStack(spacing: 12) {
+            Text(remainingTimeText)
+                .typography(.body2R1)
+                .foregroundStyle(.gray50)
+
+            if isEditing {
+                Button {
+                    guard isSaveEnabled else { return }
+                    letter.content = editContent
+                    letter.sentAt = Date()
+                    try? modelContext.save()
+                    isEditing = false
+                } label: {
+                    Text("저장")
+                        .typography(.button)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(isSaveEnabled ? Color.pawPrimary : Color.gray40)
+                        .cornerRadius(12, corners: .allCorners)
+                }
+                .disabled(!isSaveEnabled)
+                .padding(.horizontal, 20)
+            }
         }
-        .disabled(!store.isSendEnabled)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 32)
+        .padding(.vertical, 16)
     }
 
-    private func letterScrollView(content: String, geo: GeometryProxy) -> some View {
+    private func letterScrollView(geo: GeometryProxy) -> some View {
         let canvasWidth = geo.size.width
         let editorWidth = canvasWidth - 40
-        let editorHeight = dynamicHeight(text: content, width: editorWidth)
+        let editorHeight = dynamicHeight(text: editContent, width: editorWidth)
         let paperHeight = max(geo.size.height, editorHeight + firstLineY + lineSpacing + 16)
 
         return ScrollView(showsIndicators: false) {
@@ -92,12 +140,10 @@ struct LetterView: View {
                     .frame(width: canvasWidth, height: paperHeight)
 
                 LineSpacedTextEditor(
-                    text: Binding(
-                        get: { content },
-                        set: { store.send(.contentChanged($0)) }
-                    ),
+                    text: $editContent,
                     lineHeight: lineSpacing,
-                    availableWidth: editorWidth
+                    availableWidth: editorWidth,
+                    isEditable: isEditing
                 )
                 .frame(width: editorWidth, height: editorHeight)
                 .padding(.horizontal, 20)
