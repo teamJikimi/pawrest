@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		434D3012300141CD00423C3C /* Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 434D3011300141C700423C3C /* Local.xcconfig */; };
 		43956F0D2F894E60003FDE1F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F0C2F894E60003FDE1F /* FirebaseCore */; };
 		43956F0F2F894EB0003FDE1F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F0E2F894EB0003FDE1F /* FirebaseAuth */; };
 		43956F112F894EB7003FDE1F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F102F894EB7003FDE1F /* FirebaseFirestore */; };
@@ -18,9 +19,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		434D3011300141C700423C3C /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
 		43BA8D832F7E2F8700540947 /* pawrest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pawrest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		F6CEE4F63012181E009FE8CD /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
+
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -171,6 +174,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				434D3012300141CD00423C3C /* Local.xcconfig in Resources */,
+
 				F6CD1E892FBCF3C70065FFC9 /* Development.xcconfig in Resources */,
 				F6CEE4F73012181E009FE8CD /* Local.xcconfig in Resources */,
 			);
@@ -318,6 +323,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = pawrest/pawrest.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -326,7 +332,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = pawrest/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "이미지를 사진 앱에 저장하려면 권한이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 접근하려면 권한이 필요합니다.";
@@ -360,15 +365,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = pawrest/pawrest.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4U5H969Z3G;
+
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = pawrest/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "이미지를 사진 앱에 저장하려면 권한이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 접근하려면 권한이 필요합니다.";

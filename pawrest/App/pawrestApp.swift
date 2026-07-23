@@ -15,6 +15,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions:
                      [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         FirebaseApp.configure()
+        Task {
+            _ = await NotificationService.shared.requestAuthorization()
+            NotificationService.shared.scheduleEmotionReminders(enabled: UserDefaults.standard.bool(forKey: "emotionReminderEnabled"))
+        }
         return true
     }
 }
@@ -30,6 +34,14 @@ struct pawrestApp: App {
             MemoryModel.self,
             EmotionRecordModel.self,
             LetterModel.self
+            AssessmentRecord.self,
+            
+            //스데 임시 연결
+            UserProfile.self,
+            PetProfile.self,
+            NotificationRecord.self,
+            AssessmentRecord.self
+
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])
@@ -37,8 +49,8 @@ struct pawrestApp: App {
     
     var body: some Scene {
         WindowGroup {
-            TabBarView(store: Store(initialState: TabBarFeature.State()) {
-                TabBarFeature()
+            AppView(store: Store(initialState: AppState()){
+                AppReducer()
             })
         }
         .modelContainer(sharedModelContainer)
