@@ -33,7 +33,7 @@ struct pawrestApp: App {
             Item.self,
             MemoryModel.self,
             EmotionRecordModel.self,
-            LetterModel.self
+            LetterModel.self,
             AssessmentRecord.self,
             
             //스데 임시 연결
