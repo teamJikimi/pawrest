@@ -15,6 +15,8 @@ struct MemorialView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \LetterModel.sentAt) private var letters: [LetterModel]
 
+    @State private var selectedLetter: LetterModel? = nil
+
     private let tabBarContentHeight: CGFloat = 62
     private let deliveryInterval: TimeInterval = 24 * 60 * 60
 
@@ -24,6 +26,10 @@ struct MemorialView: View {
 
     private func airplaneCount(now: Date) -> Int {
         min(activeLetters(now: now).count, 2)
+    }
+
+    private func deliveredCount(now: Date) -> Int {
+        letters.filter { $0.sentAt.addingTimeInterval(deliveryInterval) <= now }.count
     }
 
     private func remainingTimeText(now: Date) -> String {
@@ -43,7 +49,7 @@ struct MemorialView: View {
             GeometryReader { geo in
                 ZStack(alignment: .top) {
                     bottomArea(isFull: isFull, now: now)
-                    headerView
+                    headerView(now: now)
                     airplanes(geo: geo, now: now)
                 }
                 .background(
@@ -66,6 +72,12 @@ struct MemorialView: View {
                     .presentationDragIndicator(.hidden)
             }
         }
+        .sheet(item: $selectedLetter) { letter in
+            SentLetterView(letter: letter, deliveryInterval: deliveryInterval)
+                .presentationDetents([.fraction(0.55)])
+                .presentationCornerRadius(20)
+                .presentationDragIndicator(.hidden)
+        }
         .onChange(of: store.pendingSave) { _, pending in
             guard let pending else { return }
             let model = LetterModel(petName: pending.petName, content: pending.content)
@@ -77,7 +89,7 @@ struct MemorialView: View {
 
     // MARK: - Subviews
 
-    private var headerView: some View {
+    private func headerView(now: Date) -> some View {
         VStack(alignment: .leading, spacing: -12) {
             HStack(alignment: .center, spacing: 6) {
                 Image(.imageLetterWhite)
@@ -89,7 +101,7 @@ struct MemorialView: View {
                         .typography(.body2R1)
                         .foregroundStyle(.gray80)
                     HStack(alignment: .lastTextBaseline, spacing: 2) {
-                        Text(String(format: "%02d", letters.count))
+                        Text(String(format: "%02d", deliveredCount(now: now)))
                             .typography(.pageTitle)
                             .foregroundStyle(.pawPrimary)
                         Text("통")
@@ -109,7 +121,7 @@ struct MemorialView: View {
         }
         .padding(.top, 66)
     }
-    
+
     private func bottomArea(isFull: Bool, now: Date) -> some View {
         VStack(spacing: 0) {
             Spacer()
@@ -128,10 +140,10 @@ struct MemorialView: View {
                         .padding(.vertical, 9)
                         .offset(y: -18)
                 }
-                .padding(.leading, 111)
+                .padding(.leading, 120)
                 Spacer()
             }
-            .padding(.bottom, 79)
+            .padding(.bottom, 85)
 
             VStack(spacing: 10) {
                 if isFull {
@@ -159,17 +171,30 @@ struct MemorialView: View {
 
     @ViewBuilder
     private func airplanes(geo: GeometryProxy, now: Date) -> some View {
+        let active = activeLetters(now: now)
         let count = airplaneCount(now: now)
+
         if count >= 1 {
-            LottieView(animationName: "Flow_9", loopMode: .loop)
-                .frame(width: 120, height: 120)
-                .position(x: 83.84, y: 214.77)
+            Button {
+                selectedLetter = active[0]
+            } label: {
+                LottieView(animationName: "Flow_9", loopMode: .loop)
+                    .frame(width: 120, height: 120)
+            }
+            .buttonStyle(.plain)
+            .position(x: 83.84, y: 214.77)
         }
+
         if count >= 2 {
-            LottieView(animationName: "Flow_9", loopMode: .loop)
-                .frame(width: 120, height: 120)
-                .rotationEffect(.degrees(-30))
-                .position(x: 297, y: 352)
+            Button {
+                selectedLetter = active[1]
+            } label: {
+                LottieView(animationName: "Flow_9", loopMode: .loop)
+                    .frame(width: 120, height: 120)
+                    .rotationEffect(.degrees(-40))
+            }
+            .buttonStyle(.plain)
+            .position(x: 287, y: 352)
         }
     }
 }
