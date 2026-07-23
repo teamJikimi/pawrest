@@ -7,12 +7,18 @@
 
 import ComposableArchitecture
 
+struct PendingLetter: Equatable {
+    let petName: String
+    let content: String
+}
+
 // MARK: - State
 
 @ObservableState
 struct MemorialState: Equatable {
     var petName: String = "초코"
     var isLetterPresented: Bool = false
+    var pendingSave: PendingLetter? = nil
     var letter: LetterState?
 }
 
@@ -21,6 +27,8 @@ struct MemorialState: Equatable {
 @CasePathable
 enum MemorialAction: Equatable {
     case sendLetterButtonTapped
+    case letterDismissed
+    case letterSaved
     case letter(LetterAction)
 }
 
@@ -35,9 +43,22 @@ struct MemorialReducer: Reducer {
                 state.isLetterPresented = true
                 return .none
 
-            case .letter(.delegate(.didSend)), .letter(.delegate(.didClose)):
+            case .letter(.delegate(.didSend)):
+                state.pendingSave = PendingLetter(
+                    petName: state.petName,
+                    content: state.letter?.content ?? ""
+                )
                 state.isLetterPresented = false
                 state.letter = nil
+                return .none
+
+            case .letter(.delegate(.didClose)), .letterDismissed:
+                state.isLetterPresented = false
+                state.letter = nil
+                return .none
+
+            case .letterSaved:
+                state.pendingSave = nil
                 return .none
 
             case .letter:
