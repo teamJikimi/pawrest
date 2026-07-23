@@ -143,7 +143,7 @@ struct MemorialView: View {
                 .padding(.leading, 120)
                 Spacer()
             }
-            .padding(.bottom, 85)
+            .padding(.bottom, 65)
 
             VStack(spacing: 10) {
                 if isFull {
