@@ -54,7 +54,9 @@ private extension TimeEmotionChartCard {
             Button(action: onPrevious) {
                 Image(.iconBack)
                     .resizable()
+                    .renderingMode(.template)
                     .frame(width: 18, height: 18)
+                    .foregroundStyle(.gray80)
             }
             Spacer()
             Text(data.dateLabel)
