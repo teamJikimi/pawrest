@@ -28,14 +28,14 @@ struct ReportStats: Equatable {
 struct StatusCardData: Identifiable, Equatable {
     let id: UUID
     let title: String
-    let date: String
+    let date: Date
     let score: Int
     let maxScore: Int
     let previousScore: Int
     let previousDate: Date
     let scaleType: ScaleType
 
-    init(id: UUID = UUID(), title: String, date: String, score: Int, maxScore: Int, previousScore: Int, previousDate: Date, scaleType: ScaleType) {
+    init(id: UUID = UUID(), title: String, date: Date, score: Int, maxScore: Int, previousScore: Int, previousDate: Date, scaleType: ScaleType) {
         self.id = id
         self.title = title
         self.date = date
