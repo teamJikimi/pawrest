@@ -19,4 +19,12 @@ enum ScaleType {
         case .pds:  return .fromPDS(score: score)
         }
     }
+
+    var maxScore: Int {
+        switch self {
+        case .pbq:  return 60
+        case .cesd: return 60
+        case .pds:  return 51
+        }
+    }
 }

@@ -47,10 +47,3 @@ struct EmotionChartScrollView: View {
         )
     }
 }
-
-#Preview {
-    EmotionChartScrollView(
-        weeklyData: .mock,
-        weekdayData: .mock
-    )
-}

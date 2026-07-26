@@ -9,7 +9,7 @@ import SwiftUI
 
 struct StatusCard: View {
     let title: String
-    let date: String
+    let date: Date
     let score: Int
     let maxScore: Int
     let previousScore: Int?
@@ -29,6 +29,10 @@ struct StatusCard: View {
         guard let previousScore else { return 0 }
         return score - previousScore
     }
+    
+    private var formattedDate: String {
+        date.formattedRelative
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -39,8 +43,10 @@ struct StatusCard: View {
             previousScoreRow
         }
         .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(.gray0)
         .cornerRadius(16, corners: .allCorners)
+        .clipped()
     }
 }
 
@@ -53,7 +59,7 @@ private extension StatusCard {
                 Text(title)
                     .typography(.body2M)
                     .foregroundStyle(.gray80)
-                Text(date)
+                Text(formattedDate)
                     .typography(.date)
                     .foregroundStyle(.gray50)
             }
@@ -76,17 +82,18 @@ private extension StatusCard {
     }
 
     var progressBar: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(.gray30)
-                    .frame(height: 8)
+        ZStack(alignment: .leading) {
+            Capsule()
+                .fill(.gray30)
+                .frame(height: 8)
+            GeometryReader { geo in
                 Capsule()
                     .fill(riskLevel.color)
                     .frame(width: geo.size.width * progress, height: 8)
             }
+            .frame(height: 8)
         }
-        .frame(height: 10)
+        .frame(height: 8)
     }
 
     var previousScoreRow: some View {

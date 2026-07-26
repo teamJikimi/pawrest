@@ -43,8 +43,10 @@ public struct DeltaBadge: View {
             
             Text(delta == 0 ? "0점" : "\(abs(delta))점")
                 .typography(.date)
+                .lineLimit(1)
         }
         .foregroundStyle(displayColor)
+        .fixedSize()
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .background(displayBackground)
