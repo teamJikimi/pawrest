@@ -29,5 +29,3 @@ fastlane/screenshots
 *.log
 *.tmp
 
-# Xcode - Local Config
-Config/Local.xcconfig
