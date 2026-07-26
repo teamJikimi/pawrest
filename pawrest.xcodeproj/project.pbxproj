@@ -14,6 +14,7 @@
 		F6CD1C7A2FB8E97E0065FFC9 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = F6CD1C792FB8E97E0065FFC9 /* ComposableArchitecture */; };
 		F6CD1E892FBCF3C70065FFC9 /* Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */; };
 		F6CEEED530164DDF009FE8CD /* Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CEEED430164DDF009FE8CD /* Local.xcconfig */; };
+
 		F6FAD4242FBEC4E100040703 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = F6FAD4232FBEC4E100040703 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
@@ -22,6 +23,7 @@
 		43BA8D832F7E2F8700540947 /* pawrest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pawrest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		F6CEEED430164DDF009FE8CD /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
+
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
