@@ -35,7 +35,7 @@ struct SettingsRow: View {
                 trailingView
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 18)
         }
         .buttonStyle(.plain)
     }

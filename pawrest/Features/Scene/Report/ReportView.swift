@@ -75,6 +75,7 @@ struct ReportView: View {
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
                     diagnosticsSection
+                        .padding(.horizontal, 20)
                         .padding(.bottom, 20)
                     counselingSection
                         .padding(.horizontal, 20)
@@ -238,24 +239,28 @@ private extension ReportView {
                                     .first
                                 StatusCard(
                                     title: type.title,
-                                    date: record.date.formatted(date: .abbreviated, time: .omitted),
+                                    date: record.date,
                                     score: record.totalScore,
-                                    maxScore: 60,
+                                    maxScore: type.toScaleType.maxScore,
                                     previousScore: previousRecord?.totalScore,
                                     previousDate: previousRecord?.date,
                                     scaleType: type.toScaleType
                                 )
-                                .frame(width: 220)
+                                .frame(width: 220, height: 164)
                             }
                         }
                     }
                     .padding(.horizontal, 16)
                 }
+                .frame(height: 164)
+                .scrollContentBackground(.hidden)
             }
         }
         .padding(.vertical, 16)
         .background(.gray10)
+        .cornerRadius(20, corners: .allCorners)
     }
+
 
     var counselingSection: some View {
         VStack(alignment: .leading, spacing: 12) {

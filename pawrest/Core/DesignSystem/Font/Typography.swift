@@ -8,7 +8,6 @@
 import SwiftUI
 
 // MARK: - Font Extension
-/// Core/DesignSystem/Typography.swift
 
 extension Font {
 
@@ -42,11 +41,12 @@ extension Font {
 
     // MARK: Date (10px)
     static let date = Font.system(size: 10, weight: .regular)
+
+    // MARK: Caption (10px)
+    static let caption = Font.system(size: 10, weight: .regular)
 }
 
-// MARK: - AppTypography (font + tracking + lineSpacing 묶음)
-/// lineSpacing = lineHeight - fontSize
-/// tracking   = fontSize × letterSpacingRate
+// MARK: - AppTypography
 
 struct AppTypography {
     let font: Font
@@ -57,42 +57,35 @@ struct AppTypography {
     static let pageTitle = AppTypography(font: .pageTitle, tracking: -0.18, lineSpacing: 0)
 
     // MARK: Title
-    // Title1 (16px, lineHeight: 16, tracking: -2%)
     static let title1    = AppTypography(font: .title1,    tracking: -0.32, lineSpacing: 0)
-    // Title2 (14px, lineHeight: 14, tracking: -2%)
     static let title2    = AppTypography(font: .title2,    tracking: -0.28, lineSpacing: 0)
-    // Title4 (20px, lineHeight: 28, tracking: -2%)
-    static let title4 = AppTypography(font: .title4, tracking: -0.4, lineSpacing: 8)
+    static let title4    = AppTypography(font: .title4,    tracking: -0.4,  lineSpacing: 8)
 
     // MARK: Button (14px, lineHeight: 18, tracking: 0%)
-    // lineSpacing = 18 - 14 = 4
     static let button    = AppTypography(font: .button,    tracking: 0,     lineSpacing: 4)
 
     // MARK: Body1 (14px, tracking: -2%)
-    // Accent / m : lineHeight 14 → lineSpacing 0
-    // r          : lineHeight 20 → lineSpacing 6
     static let body1Accent = AppTypography(font: .body1Accent, tracking: -0.28, lineSpacing: 0)
     static let body1M      = AppTypography(font: .body1M,      tracking: -0.28, lineSpacing: 0)
     static let body1R      = AppTypography(font: .body1R,      tracking: -0.28, lineSpacing: 6)
 
     // MARK: Body2 (12px, tracking: -2%)
-    // Accent / m / r1 : lineHeight 12 → lineSpacing 0
-    // r2              : lineHeight 18 → lineSpacing 6
     static let body2Accent = AppTypography(font: .body2Accent, tracking: -0.24, lineSpacing: 0)
     static let body2M      = AppTypography(font: .body2M,      tracking: -0.24, lineSpacing: 0)
     static let body2R1     = AppTypography(font: .body2R1,     tracking: -0.24, lineSpacing: 0)
     static let body2R2     = AppTypography(font: .body2R2,     tracking: -0.24, lineSpacing: 6)
 
-    // MARK: Body3 (11px, lineHeight: 11)
-    // Accent : tracking -2%
-    // m / r  : tracking -1%
+    // MARK: Body3 (11px)
     static let body3Accent = AppTypography(font: .body3Accent, tracking: -0.22, lineSpacing: 0)
     static let body3M      = AppTypography(font: .body3M,      tracking: -0.11, lineSpacing: 0)
     static let body3R      = AppTypography(font: .body3R,      tracking: -0.11, lineSpacing: 0)
-    static let body4R      = AppTypography(font: .body4R,       tracking: -0.2, lineSpacing: 0)
-    
+    static let body4R      = AppTypography(font: .body4R,      tracking: -0.2,  lineSpacing: 0)
+
     // MARK: Date (10px, lineHeight: 10, tracking: -2%)
     static let date        = AppTypography(font: .date,        tracking: -0.20, lineSpacing: 0)
+
+    // MARK: Caption (10px, lineHeight: 10, tracking: -2%)
+    static let caption     = AppTypography(font: .caption,     tracking: -0.20, lineSpacing: 0)
 }
 
 // MARK: - ViewModifier

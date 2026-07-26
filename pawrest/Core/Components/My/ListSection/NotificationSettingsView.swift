@@ -21,11 +21,11 @@ struct NotificationSettingsView: View {
             
             VStack(spacing: 0) {
                 notificationToggleRow(title: "감정 기록 리마인더", isOn: $emotionReminder)
-                Divider().padding(.leading, 16)
+                Divider().padding(.horizontal, 16)
                 notificationToggleRow(title: "심리 검사 리마인더", isOn: $weeklyReport)
-                Divider().padding(.leading, 16)
+                Divider().padding(.horizontal, 16)
                 notificationToggleRow(title: "사별 기념일", isOn: $petMemory)
-                Divider().padding(.leading, 16)
+                Divider().padding(.horizontal, 16)
                 notificationToggleRow(title: "커뮤니티 반응", isOn: $communityReaction)
             }
             .background(.white)
