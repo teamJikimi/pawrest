@@ -121,11 +121,12 @@ private extension MyView {
                 }
             }
             .padding(.top, 40 + 12)
-            .padding(.leading, 16 + 86 + 12)
+            .padding(.leading, 16 + 88 + 12)
             .padding(.bottom, 34)
             
             petThumbnail
-                .offset(x: 16, y: 40 - 30)
+                .offset(x: 16, y: 5)
+                .padding(.top, 16)
         }
         .padding(.vertical, 8)
     }
@@ -143,16 +144,17 @@ private extension MyView {
                     .scaledToFill()
             }
         }
-        .frame(width: 86, height: 86)
+        .frame(width: 88, height: 88)
         .clipShape(Circle())
-        .overlay(
+        .background(
             Circle()
-                .stroke(Color.white, lineWidth: 5)
+                .fill(Color.white)
+                .frame(width: 98, height: 98)
         )
         .overlay(
             Circle()
                 .stroke(.primaryLight, lineWidth: 1)
-                .padding(-5)
+                .frame(width: 98, height: 98)
         )
     }
     
