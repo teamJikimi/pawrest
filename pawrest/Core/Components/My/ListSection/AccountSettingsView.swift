@@ -21,13 +21,13 @@ struct AccountSettingsView: View {
             
             VStack(spacing: 0) {
                 SettingsRow(title: "차단 목록", type: .chevron, action: onBlockedList)
-                Divider().padding(.leading, 16)
+                Divider().padding(.horizontal, 16)
                 SettingsRow(title: "개인정보 처리방침", type: .chevron, action: onPrivacyPolicy)
-                Divider().padding(.leading, 16)
+                Divider().padding(.horizontal, 16)
                 SettingsRow(title: "앱 버전", type: .value("v.1.0.2"))
-                Divider().padding(.leading, 16)
+                Divider().padding(.horizontal, 16)
                 SettingsRow(title: "계정 탈퇴", type: .destructive, action: onDeleteAccount)
-                Divider().padding(.leading, 16)
+                Divider().padding(.horizontal, 16)
                 SettingsRow(title: "로그아웃", type: .destructive, action: onLogout)
             }
             .background(.white)
