@@ -14,11 +14,11 @@ struct AssessmentInterpretationSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("점수 해석 기준")
-                .typography(.title2)
+                .typography(.body1Accent)
                 .foregroundStyle(.gray90)
                 .padding(.bottom, 12)
 
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 ForEach(rows, id: \.level.label) { row in
                     InterpretationRow(
                         row: row,
@@ -54,21 +54,34 @@ private struct InterpretationRow: View {
             }
             
             Text(row.level.label)
-                .typography(.body1M)
+                .typography(.body2Accent)
                 .foregroundStyle(row.level.scoreColor)
 
             Spacer()
 
             Text(row.level.rangeText)
-                .typography(.body2R1)
+                .typography(.body3R)
                 .foregroundStyle(.gray80)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
                 .background(row.level.badgeBackground)
                 .cornerRadius(6, corners: .allCorners)
         }
-        .padding(12)
+        .padding(8)
         .background(row.level.scoreColor.opacity(0.1))
         .cornerRadius(12, corners: .allCorners)
     }
+}
+
+
+#Preview {
+    AssessmentInterpretationSection(
+        rows: [
+            AssessmentInterpretationRow(level: .cesDNormal),
+            AssessmentInterpretationRow(level: .cesDHighRisk),
+            AssessmentInterpretationRow(level: .cesDDepression)
+        ],
+        currentLevel: .cesDHighRisk
+    )
+    .padding(20)
 }

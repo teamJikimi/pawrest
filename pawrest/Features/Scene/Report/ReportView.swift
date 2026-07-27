@@ -75,7 +75,6 @@ struct ReportView: View {
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
                     diagnosticsSection
-                        .padding(.horizontal, 20)
                         .padding(.bottom, 20)
                     counselingSection
                         .padding(.horizontal, 20)
@@ -105,10 +104,10 @@ private extension ReportView {
                 .resizable()
                 .frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 4) {
-                Text(data.summaryTitle)
+                Text(data.summaryTitle.isEmpty ? "이번 주 감정 기록을 남겨보세요" : data.summaryTitle)
                     .typography(.body2M)
                     .foregroundStyle(.gray80)
-                Text(data.summaryBody)
+                Text(data.summaryBody.isEmpty ? "기록이 쌓이면 변화를 확인할 수 있어요" : data.summaryBody)
                     .typography(.body3R)
                     .foregroundStyle(.gray60)
             }
@@ -168,9 +167,9 @@ private extension ReportView {
                     .typography(.body1M)
                     .foregroundStyle(.gray80)
             }
-            Text(data.aiSummary)
-                .typography(.body2R2)
-                .foregroundStyle(.gray70)
+            Text(data.aiSummary.isEmpty ? "이번 주 감정 기록이 쌓이면\nAI가 감정을 분석해드려요." : data.aiSummary)
+                .typography(.body3R)
+                .foregroundStyle(data.aiSummary.isEmpty ? .gray60 : .gray60)
                 .lineSpacing(4)
         }
         .padding(20)
@@ -189,8 +188,10 @@ private extension ReportView {
                 statRow(label: "가장 많이 느낀 감정", value: data.stats.mostFrequentEmotion, color: Color(.gray80))
                 statRow(label: "하늘에 전달된 편지 수", value: "\(data.stats.lettersSent)통", color: Color(.accent))
             }
+            
         }
-        .padding(16)
+        .padding(.vertical, 20)
+        .padding(.horizontal,16)
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
     }
@@ -198,11 +199,11 @@ private extension ReportView {
     func statRow(label: String, value: String, color: Color?) -> some View {
         HStack {
             Text(label)
-                .typography(.body3R)
+                .typography(.body2R1)
                 .foregroundStyle(.gray60)
             Spacer()
             Text(value)
-                .typography(.body2M)
+                .typography(.body2Accent)
                 .foregroundStyle(color ?? Color(.gray80))
         }
         .padding(.vertical, 14)
@@ -218,10 +219,12 @@ private extension ReportView {
                     .typography(.body1M)
                     .foregroundStyle(.gray80)
                 Text("의학적 진단이 아닌 참고 지표에요")
-                    .typography(.date)
-                    .foregroundStyle(.gray40)
+                    .typography(.caption)
+                    .foregroundStyle(.gray60)
+                    .padding(.bottom, 6)
             }
-            .padding(.horizontal, 16)
+            .padding(.leading, 36)
+            .padding(.bottom, 12)
 
             if assessmentRecords.isEmpty {
                 Text("아직 검사 기록이 없어요")
@@ -246,11 +249,13 @@ private extension ReportView {
                                     previousDate: previousRecord?.date,
                                     scaleType: type.toScaleType
                                 )
-                                .frame(width: 220, height: 164)
+                                .frame(width: 260, height: 175)
+                                .clipped()
                             }
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.leading, 36)
+                    .padding(.bottom, 20)
                 }
                 .frame(height: 164)
                 .scrollContentBackground(.hidden)
@@ -258,7 +263,6 @@ private extension ReportView {
         }
         .padding(.vertical, 16)
         .background(.gray10)
-        .cornerRadius(20, corners: .allCorners)
     }
 
 
@@ -274,9 +278,10 @@ private extension ReportView {
                         .foregroundStyle(.gray80)
                 }
                 Text("많은 분들이 전문 상담으로 마음의 짐을 덜었어요\n힘들 땐 전문 상담기관을 찾아보는 건 어떨까요?")
-                    .typography(.body4R)
+                    .typography(.caption)
                     .foregroundStyle(.gray60)
                     .lineSpacing(4)
+                    .padding(.top, 2)
             }
             counselingRow(name: "정신건강 위기상담전화", number: "1577-0199")
             counselingRow(name: "보건복지콜센터", number: "129")

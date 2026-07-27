@@ -55,7 +55,7 @@ extension LoginView {
                 .frame(height: 63)
             
             Text("사랑은 시들지 않습니다, 그저 푸르게 자랄 뿐")
-                .typography(.body2R1) // 확인 필요
+                .typography(.body2Accent) // 확인 필요
                 .foregroundStyle(.pawPrimary)
         }
     }
@@ -71,9 +71,9 @@ extension LoginView {
             }
             .foregroundStyle(.black)
             .frame(maxWidth: .infinity)
-            .frame(height: 42)
+            .frame(height: 48)
             .background(.white)
-            .cornerRadius(16, corners: .allCorners)
+            .cornerRadius(15, corners: .allCorners)
         }
         .disabled(store.isLoading)
     }

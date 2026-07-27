@@ -45,15 +45,17 @@ private extension SegmentTabBar {
         
         ZStack {
             if isSelected {
-                RoundedCorner(radius: 6, corners: .allCorners)
+                RoundedCorner(radius: 10, corners: .allCorners)
                     .fill(.gray70)
                     .matchedGeometryEffect(id: "indicator", in: namespace)
+                    .padding(.vertical, 2)
             }
             Text(item.title)
-                .typography(isSelected ? .body3M : .body3R)
+                .typography(isSelected ? .body2M : .body2R1)
                 .foregroundColor(isSelected ? .gray0 : .gray70)
         }
-        .frame(maxWidth: .infinity, minHeight: 28, maxHeight: 28)
+        .frame(height: 36)
+        .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
         .onTapGesture {
             withAnimation(.spring(response: 0.2, dampingFraction: 1)){
@@ -87,8 +89,4 @@ private struct SegmentTabBarPreview: View {
         }
         .padding(.vertical, 40)
     }
-}
-
-#Preview {
-    SegmentTabBarPreview()
 }

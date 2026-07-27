@@ -99,13 +99,16 @@ struct SelfAssessmentView: View {
             let currentScore = store.totalScore ?? 0
             let previousRecord = assessmentRecords
                 .filter { $0.typeRawValue == store.type.rawValue }
+                .dropFirst()
                 .first
 
             let historyState: AssessmentHistoryState = {
                 guard let prev = previousRecord else { return .noRecord }
                 let diff = currentScore - prev.totalScore
-                let prevDate = prev.date.formatted(date: .abbreviated, time: .omitted)
-                let currDate = Date().formatted(date: .abbreviated, time: .omitted)
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy.MM.dd"
+                let prevDate = formatter.string(from: prev.date)
+                let currDate = formatter.string(from: Date())
                 if diff == 0 {
                     return .noChange(
                         previousScore: prev.totalScore,

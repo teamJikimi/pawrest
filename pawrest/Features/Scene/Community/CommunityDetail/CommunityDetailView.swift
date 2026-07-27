@@ -110,7 +110,7 @@ private extension CommunityDetailView {
     var contentSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(store.post.title)
-                .typography(.title2)
+                .typography(.body1Accent)
                 .foregroundColor(.gray80)
                 .padding(.top, 18)
             

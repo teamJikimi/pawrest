@@ -45,6 +45,7 @@ struct HomeView: View {
             .padding(.top, 16)
             .padding(.bottom, 80)
         }
+        .scrollDismissesKeyboard(.immediately)
         .onAppear {
             store.send(.onAppear)
         }
@@ -117,12 +118,4 @@ struct HomeView: View {
             }
         }
     }
-}
-
-#Preview {
-    HomeView(
-        store: Store(initialState: HomeFeature.State()) {
-            HomeFeature()
-        }
-    )
 }

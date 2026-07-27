@@ -14,6 +14,7 @@ struct MemorialView: View {
     @Bindable var store: StoreOf<MemorialReducer>
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \LetterModel.sentAt) private var letters: [LetterModel]
+    @Query private var petProfiles: [PetProfile]
 
     @State private var selectedLetter: LetterModel? = nil
 
@@ -59,6 +60,16 @@ struct MemorialView: View {
                         .ignoresSafeArea()
                 )
                 .ignoresSafeArea(.keyboard)
+            }
+        }
+        .onAppear {
+            if let name = petProfiles.first?.name {
+                store.send(.setPetName(name))
+            }
+        }
+        .onChange(of: petProfiles.first?.name) { _, name in
+            if let name {
+                store.send(.setPetName(name))
             }
         }
         .sheet(isPresented: Binding(
@@ -143,7 +154,7 @@ struct MemorialView: View {
                 .padding(.leading, 120)
                 Spacer()
             }
-            .padding(.bottom, 65)
+            .padding(.bottom, 75)
 
             VStack(spacing: 10) {
                 if isFull {

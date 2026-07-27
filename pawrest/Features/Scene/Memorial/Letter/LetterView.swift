@@ -9,8 +9,6 @@ import SwiftUI
 import ComposableArchitecture
 import UIKit
 
-// MARK: - LetterView
-
 struct LetterView: View {
     @Bindable var store: StoreOf<LetterReducer>
 
@@ -29,10 +27,7 @@ struct LetterView: View {
             }
             sendButton
         }
-        .simultaneousGesture(TapGesture().onEnded { hideKeyboard() })
     }
-
-    // MARK: - Subviews
 
     private var headerView: some View {
         HStack {
@@ -77,7 +72,7 @@ struct LetterView: View {
         }
         .disabled(!store.isSendEnabled)
         .padding(.horizontal, 20)
-        .padding(.bottom, 32)
+        .padding(.vertical, 20)
     }
 
     private func letterScrollView(content: String, geo: GeometryProxy) -> some View {
@@ -86,7 +81,7 @@ struct LetterView: View {
         let editorHeight = dynamicHeight(text: content, width: editorWidth)
         let paperHeight = max(geo.size.height, editorHeight + firstLineY + lineSpacing + 16)
 
-        return ScrollView(showsIndicators: false) {
+        return ScrollView(.vertical, showsIndicators: false) {
             ZStack(alignment: .topLeading) {
                 letterPaper(width: canvasWidth, height: paperHeight)
                     .frame(width: canvasWidth, height: paperHeight)
@@ -97,13 +92,14 @@ struct LetterView: View {
                         set: { store.send(.contentChanged($0)) }
                     ),
                     lineHeight: lineSpacing,
-                    availableWidth: editorWidth
+                    isEditable: true
                 )
                 .frame(width: editorWidth, height: editorHeight)
                 .padding(.horizontal, 20)
                 .padding(.top, firstLineY + 8)
             }
         }
+        .scrollDismissesKeyboard(.immediately)
     }
 
     private func dynamicHeight(text: String, width: CGFloat) -> CGFloat {
@@ -150,12 +146,5 @@ struct LetterView: View {
                 y += lineSpacing
             }
         }
-    }
-
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder),
-            to: nil, from: nil, for: nil
-        )
     }
 }
