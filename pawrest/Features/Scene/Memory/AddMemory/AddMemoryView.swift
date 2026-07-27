@@ -34,6 +34,10 @@ struct AddMemoryView: View {
                 saveButton
                     .padding(.horizontal, 20)
             }
+            .scrollDismissesKeyboard(.immediately)
+            .onTapGesture {
+                isFocused = false
+            }
         }
         .navigationBarBackButtonHidden(true)
         .customNavigationBar(
@@ -42,9 +46,7 @@ struct AddMemoryView: View {
                 action: \.navigationBar
             )
         )
-        .onChange(of: store.state) { oldValue, newValue in
-            // saveButtonTapped 직후 처리를 위한 onChange
-        }
+        .onChange(of: store.state) { oldValue, newValue in }
     }
 }
 
@@ -85,11 +87,11 @@ extension AddMemoryView {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(.gray20, lineWidth: 1)
         )
-        .onChange(of: store.title) { oldValue, newValue in  // 추가
-                if newValue.count > 22 {
-                    store.send(.titleChanged(String(newValue.prefix(22))))
-                }
+        .onChange(of: store.title) { oldValue, newValue in
+            if newValue.count > 22 {
+                store.send(.titleChanged(String(newValue.prefix(22))))
             }
+        }
     }
     
     private var contentTextField: some View {
@@ -132,8 +134,6 @@ extension AddMemoryView {
         do {
             try modelContext.save()
             print("✅ 저장 성공: \(album.title)")
-            
-            // TCA의 dismiss로 화면 닫기
             store.send(.saveButtonTapped)
         } catch {
             print("❌ 저장 실패: \(error)")

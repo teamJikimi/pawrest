@@ -88,7 +88,7 @@ private extension CommunityCommentRow {
         CommunityAuthorHeader(
             author: comment.author,
             date: comment.createdAt,
-            profileSize: 25,
+            profileSize: 32,
             nameStyle: .comment)
     }
     

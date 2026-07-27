@@ -42,7 +42,7 @@ private extension RecommendedContentCard {
     var headerSection: some View {
         HStack {
             Text("추천 콘텐츠")
-                .typography(.body1M)
+                .typography(.body1Accent)
                 .foregroundStyle(.gray90)
 
             Spacer()
@@ -73,13 +73,14 @@ private extension RecommendedContentCard {
                     .frame(width: 36, height: 36)
 
                 Text(item.title)
-                    .typography(.body3R)
+                    .font(.system(size: 14, weight: .regular))
+                    .lineSpacing(1)
                     .foregroundStyle(.gray80)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(12)
-            .frame(width: 220, alignment: .leading)
+            .padding(14)
+            .frame(width: 180, alignment: .leading)
             .background(.white)
             .cornerRadius(10, corners: .allCorners)
         }

@@ -16,7 +16,7 @@ struct PendingLetter: Equatable {
 
 @ObservableState
 struct MemorialState: Equatable {
-    var petName: String = "초코"
+    var petName: String = ""
     var isLetterPresented: Bool = false
     var pendingSave: PendingLetter? = nil
     var letter: LetterState?
@@ -30,6 +30,7 @@ enum MemorialAction: Equatable {
     case letterDismissed
     case letterSaved
     case letter(LetterAction)
+    case setPetName(String)
 }
 
 // MARK: - Reducer
@@ -38,6 +39,10 @@ struct MemorialReducer: Reducer {
     var body: some Reducer<MemorialState, MemorialAction> {
         Reduce { state, action in
             switch action {
+            case .setPetName(let name):
+                state.petName = name
+                return .none
+
             case .sendLetterButtonTapped:
                 state.letter = LetterState(petName: state.petName)
                 state.isLetterPresented = true

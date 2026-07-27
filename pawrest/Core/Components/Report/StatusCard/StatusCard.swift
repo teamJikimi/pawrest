@@ -53,21 +53,22 @@ struct StatusCard: View {
 // MARK: - Subviews
 
 private extension StatusCard {
+    
     var headerRow: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .typography(.body2M)
-                    .foregroundStyle(.gray80)
-                Text(formattedDate)
-                    .typography(.date)
-                    .foregroundStyle(.gray50)
-            }
-            Spacer()
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .typography(.body2M)
+                .foregroundStyle(.gray80)
+            Text(formattedDate)
+                .typography(.date)
+                .foregroundStyle(.gray50)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .topTrailing) {
             RiskBadge(level: riskLevel)
         }
     }
-
+    
     var scoreRow: some View {
         HStack(alignment: .firstTextBaseline, spacing: 2) {
             Spacer()

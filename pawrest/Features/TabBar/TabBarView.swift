@@ -18,12 +18,12 @@ struct TabBarView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             contentView
-            CustomTabBar(
-                selectedTab: store.selectedTab,
-                onTabSelected: { store.send(.tabSelected($0)) }
-            )
-            .opacity(communityStore.isDetailPresented ? 0 : 1)
-            .allowsHitTesting(!communityStore.isDetailPresented)
+            if !homeStore.isSelfAssessmentPresented {
+                CustomTabBar(
+                    selectedTab: store.selectedTab,
+                    onTabSelected: { store.send(.tabSelected($0)) }
+                )
+            }
         }
         .ignoresSafeArea(.keyboard)
     }
@@ -71,9 +71,11 @@ struct TabBarView: View {
             }
 
         case .my:
-            MyView(store: Store(initialState: MyFeature.State()) {
-                MyFeature()
-            })
+            NavigationStack {
+                MyView(store: Store(initialState: MyFeature.State()) {
+                    MyFeature()
+                })
+            }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
                     .opacity(0)

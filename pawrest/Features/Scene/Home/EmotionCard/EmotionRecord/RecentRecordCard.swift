@@ -26,9 +26,11 @@ struct RecentRecordCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             headerSection
+                .padding(.horizontal, 20)
             recordList
+                .padding(.horizontal, 16)
         }
-        .padding(20)
+        .padding(.vertical, 20)
         .background(.white)
         .cornerRadius(20, corners: .allCorners)
         .overlay(
@@ -47,22 +49,22 @@ private extension RecentRecordCard {
     var headerSection: some View {
         HStack {
             Text("최근 기록")
-                .typography(.body1M)
+                .typography(.body1Accent)
                 .foregroundStyle(.gray90)
             
             Spacer()
             
             Button {
                 store.send(.reportTapped)
-                 } label: {
-                     Text("리포트")
-                         .typography(.body2R1)
-                         .foregroundStyle(.gray0)
-                         .frame(width: 60, height: 24)
-                         .background(Color.pawPrimary)
-                         .cornerRadius(11, corners: .allCorners)
-                 }
-                 .buttonStyle(.plain)
+            } label: {
+                Text("리포트")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(.gray0)
+                    .frame(width: 60, height: 24)
+                    .background(Color.pawPrimary)
+                    .cornerRadius(11, corners: .allCorners)
+            }
+            .buttonStyle(.plain)
         }
     }
     
@@ -139,7 +141,8 @@ private extension RecentRecordCard {
             dateNavigator
             
             Divider()
-                .padding(.horizontal, -20)
+                .padding(.horizontal, -16)
+                .padding(.vertical, 10)
             
             if filteredRecords.isEmpty {
                 emptyView
@@ -147,13 +150,14 @@ private extension RecentRecordCard {
                 ForEach(filteredRecords, id: \.id) { record in
                     recordRow(record)
                 }
+                .padding(.top, 8)
             }
         }
     }
     
     var emptyView: some View {
         Text("아직 오늘의 감정이 없어요")
-            .typography(.body3R)
+            .typography(.caption)
             .foregroundStyle(.gray60)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 24)
@@ -164,7 +168,7 @@ private extension RecentRecordCard {
             if let emotion = record.emotionTypeEnum {
                 ZStack {
                     Circle()
-                        .stroke(.primaryLight , lineWidth: 1)
+                        .stroke(.primaryLight, lineWidth: 1)
                         .frame(width: 36, height: 36)
                     Image(emotion.imageName)
                         .resizable()
@@ -213,6 +217,6 @@ private extension RecentRecordCard {
                     .stroke(.gray20, lineWidth: 1)
             )
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, 0)
     }
 }

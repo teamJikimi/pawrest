@@ -13,7 +13,7 @@ public struct RiskBadge: View {
         Text(level.label)
             .typography(.caption)
             .foregroundStyle(.gray0)
-            .padding(.horizontal, 14)
+            .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(level.color)
             .clipShape(Capsule())

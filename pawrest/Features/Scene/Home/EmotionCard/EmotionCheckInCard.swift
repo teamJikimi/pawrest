@@ -17,7 +17,7 @@ struct EmotionCheckInCard: View {
     @Environment(\.modelContext) private var modelContext
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             headerSection
             emotionButtons
             if store.selectedEmotion != nil {
@@ -41,7 +41,7 @@ private extension EmotionCheckInCard {
                 .typography(.date)
                 .foregroundStyle(.gray60)
             Text("지금 마음 상태는 어떤가요?")
-                .typography(.body1M)
+                .typography(.body1Accent)
                 .foregroundStyle(.gray90)
         }
     }
@@ -67,7 +67,7 @@ private extension EmotionCheckInCard {
                 
                 if store.memoText.isEmpty {
                     Text("현재 상태에 대해 간단히 메모해보세요.")
-                        .typography(.body3R)
+                        .typography(.body2R2)
                         .foregroundStyle(.gray50)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
@@ -85,7 +85,7 @@ private extension EmotionCheckInCard {
                 .background(.clear)
                 .frame(height: 104)
                 .padding(.horizontal, 10)
-                .padding(.vertical, 8)
+                .padding(.top, 8)
             }
             
             Button {
@@ -103,9 +103,9 @@ private extension EmotionCheckInCard {
                     .typography(.body2Accent)
                     .foregroundStyle(.gray0)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 32)
+                    .frame(height: 40)
                     .background(.pawPrimary)
-                    .cornerRadius(24, corners: .allCorners)
+                    .cornerRadius(12, corners: .allCorners)
             }
         }
     }

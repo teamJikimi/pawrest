@@ -94,7 +94,7 @@ private extension CommunityCommentInputBar {
             Image(text.isEmpty ? .iconSendDefault : .iconSendActive)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
         .disabled(text.isEmpty)
