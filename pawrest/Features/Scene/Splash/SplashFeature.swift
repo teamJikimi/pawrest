@@ -8,12 +8,8 @@
 import Foundation
 import ComposableArchitecture
 
-// MARK: - State
-
 @ObservableState
 struct SplashState: Equatable {}
-
-// MARK: - Action
 
 @CasePathable
 enum SplashAction: Equatable {
@@ -23,10 +19,9 @@ enum SplashAction: Equatable {
     @CasePathable
     enum Delegate: Equatable {
         case finished
+        case alreadyOnboarded
     }
 }
-
-// MARK: - Reducer
 
 struct SplashReducer: Reducer {
     var body: some Reducer<SplashState, SplashAction> {
@@ -35,7 +30,12 @@ struct SplashReducer: Reducer {
             case .onAppear:
                 return .run { send in
                     try await Task.sleep(for: .seconds(2))
-                    await send(.delegate(.finished))
+                    let isOnboarded = UserDefaults.standard.bool(forKey: "isOnboardingComplete")
+                    if isOnboarded {
+                        await send(.delegate(.alreadyOnboarded))
+                    } else {
+                        await send(.delegate(.finished))
+                    }
                 }
 
             case .delegate:
@@ -44,4 +44,3 @@ struct SplashReducer: Reducer {
         }
     }
 }
-
