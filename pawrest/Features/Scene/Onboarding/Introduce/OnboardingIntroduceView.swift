@@ -11,8 +11,12 @@ import ComposableArchitecture
 
 struct OnboardingIntroduceView: View {
 
+    // MARK: - Properties
+
     @Bindable var store: StoreOf<OnboardingIntroduceReducer>
     @Environment(\.modelContext) private var modelContext
+    
+    // MARK: - Body
     
     var body: some View {
         VStack(spacing: 0) {
@@ -114,7 +118,7 @@ private extension OnboardingIntroduceView {
                 .cornerRadius(14, corners: .allCorners)
         }
     }
-
+    
     func saveAndFinish() {
         let user = UserProfile(nickname: store.nickname, profileImage: store.userProfileImage)
         let pet = PetProfile(
