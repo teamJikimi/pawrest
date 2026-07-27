@@ -11,19 +11,19 @@ import ComposableArchitecture
 
 struct OnboardingPetProfileView: View {
     
-    // MARK: - Properties
-    
     @Bindable var store: StoreOf<OnboardingPetProfileReducer>
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
     
-    // MARK: - Body
-    
     var body: some View {
         VStack(spacing: 0) {
+            backButton
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 16)
+
             headerSection
-                .padding(.top, 35)
+                .padding(.top, 19)
             
             Color.clear.frame(height: 45)
             
@@ -42,32 +42,6 @@ struct OnboardingPetProfileView: View {
             nextButton
         }
         .padding(.horizontal, 20)
-        .customNavigationBar(
-            store: store.scope(state: \.navigationBar, action: \.navigationBar)
-        )
-        
-        //스데 임시 연결
-        .navigationDestination(
-            isPresented: Binding(
-                get: { store.isIntroducePresented },
-                set: { if !$0 { store.send(.introduceDismissed) } }
-            )
-        ) {
-            OnboardingIntroduceView(
-                store: Store(
-                    initialState: OnboardingIntroduceState(
-                        nickname: store.nickname,
-                        petName: store.petName,
-                        userProfileImage: store.userProfileImage,
-                        petProfileImage: store.profileImage,
-                        petBirthday: store.birthday,
-                        petDeathDay: store.deathDay
-                    ),
-                    reducer: { OnboardingIntroduceReducer() }
-                )
-            )
-        }
-        
         .sheet(isPresented: Binding(
             get: { store.showBirthdayPicker },
             set: { if !$0 { store.send(.pickerDismissed) } }
@@ -105,6 +79,19 @@ struct OnboardingPetProfileView: View {
 
 private extension OnboardingPetProfileView {
     
+    var backButton: some View {
+        Button {
+            store.send(.navigationBar(.leftButtonTapped))
+        } label: {
+            Image(.iconBack)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
+                .foregroundStyle(.gray90)
+        }
+        .frame(width: 44, height: 44)
+    }
+
     var headerSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("추억할 아이를\n소개해주세요.")
@@ -217,7 +204,6 @@ private extension OnboardingPetProfileView {
                     .typography(.body1M)
                     .foregroundColor(.pawPrimary)
             }
-            // 임시 패딩
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
             

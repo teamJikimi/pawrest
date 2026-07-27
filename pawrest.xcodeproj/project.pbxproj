@@ -15,6 +15,7 @@
 		F6CD1E892FBCF3C70065FFC9 /* Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */; };
 
 		F6CEF19930165CA7009FE8CD /* Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CEF19830165CA7009FE8CD /* Local.xcconfig */; };
+
 		F6FAD4242FBEC4E100040703 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = F6FAD4232FBEC4E100040703 /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 

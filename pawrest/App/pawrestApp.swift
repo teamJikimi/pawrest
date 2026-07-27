@@ -35,21 +35,26 @@ struct pawrestApp: App {
             EmotionRecordModel.self,
             LetterModel.self,
             AssessmentRecord.self,
-            
-            //스데 임시 연결
             UserProfile.self,
             PetProfile.self,
             NotificationRecord.self,
-            AssessmentRecord.self
-
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])
     }()
+
+    var initialAppState: AppState {
+        var state = AppState()
+        let context = ModelContext(sharedModelContainer)
+        let descriptor = FetchDescriptor<UserProfile>()
+        let users = try? context.fetch(descriptor)
+        state.destination = (users?.isEmpty == false) ? .tabBar : .splash
+        return state
+    }
     
     var body: some Scene {
         WindowGroup {
-            AppView(store: Store(initialState: AppState()){
+            AppView(store: Store(initialState: initialAppState) {
                 AppReducer()
             })
         }

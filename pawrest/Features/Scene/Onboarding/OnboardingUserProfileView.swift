@@ -11,12 +11,8 @@ import ComposableArchitecture
 
 struct OnboardingUserProfileView: View {
     
-    // MARK: - Properties
-    
     @Bindable var store: StoreOf<OnboardingUserProfileReducer>
     @State private var selectedItem: PhotosPickerItem? = nil
-    
-    // MARK: - Body
     
     var body: some View {
         VStack(spacing: 0) {
@@ -39,24 +35,6 @@ struct OnboardingUserProfileView: View {
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
         )
-
-        //스데 임시 연결
-        .navigationDestination(
-            isPresented: Binding(
-                get: { store.isPetProfilePresented },
-                set: { if !$0 { store.send(.petProfileDismissed) } }
-            )
-        ) {
-            OnboardingPetProfileView(
-                store: Store(
-                    initialState: OnboardingPetProfileState(
-                        nickname: store.nickname,
-                        userProfileImage: store.profileImage
-                    ),
-                    reducer: { OnboardingPetProfileReducer() }
-                )
-            )
-        }
     }
 }
 
