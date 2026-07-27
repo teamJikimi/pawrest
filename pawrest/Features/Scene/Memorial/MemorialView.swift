@@ -130,7 +130,7 @@ struct MemorialView: View {
                 .frame(width: 176, height: 20)
                 .clipped()
         }
-        .padding(.top, 66)
+        .padding(.top, 26)
     }
 
     private func bottomArea(isFull: Bool, now: Date) -> some View {
@@ -154,7 +154,7 @@ struct MemorialView: View {
                 .padding(.leading, 120)
                 Spacer()
             }
-            .padding(.bottom, 75)
+            .padding(.bottom, 55)
 
             VStack(spacing: 10) {
                 if isFull {
@@ -190,10 +190,10 @@ struct MemorialView: View {
                 selectedLetter = active[0]
             } label: {
                 LottieView(animationName: "Flow_9", loopMode: .loop)
-                    .frame(width: 120, height: 120)
+                    .frame(width: 160, height: 160)
             }
             .buttonStyle(.plain)
-            .position(x: 83.84, y: 214.77)
+            .position(x: 93.84, y: 214.77)
         }
 
         if count >= 2 {
@@ -201,8 +201,8 @@ struct MemorialView: View {
                 selectedLetter = active[1]
             } label: {
                 LottieView(animationName: "Flow_9", loopMode: .loop)
-                    .frame(width: 120, height: 120)
-                    .rotationEffect(.degrees(-40))
+                    .frame(width: 160, height: 160)
+                    .rotationEffect(.degrees(-35))
             }
             .buttonStyle(.plain)
             .position(x: 287, y: 352)
