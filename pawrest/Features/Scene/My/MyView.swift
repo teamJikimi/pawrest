@@ -6,11 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 
 struct MyView: View {
     @Bindable var store: StoreOf<MyFeature>
-    
+    @Query private var userProfiles: [UserProfile]
+    @Query private var petProfiles: [PetProfile]
+
     var body: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             ScrollView {
@@ -26,6 +29,18 @@ struct MyView: View {
             }
             .background(.gray0)
             .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
+            .onAppear {
+                if let user = userProfiles.first, let pet = petProfiles.first {
+                    store.send(.onAppear(
+                        nickname: user.nickname,
+                        petName: pet.name,
+                        petBirthday: pet.birthday,
+                        petDeathDay: pet.deathDay,
+                        userImage: user.profileImage,
+                        petImage: pet.profileImage
+                    ))
+                }
+            }
         } destination: { (pathStore: StoreOf<MyFeature.Path>) in
             switch pathStore.state {
             case .blockedList(let state):
@@ -55,11 +70,19 @@ private extension MyView {
     // MARK: 사용자 헤더
     var userHeader: some View {
         HStack(spacing: 8) {
-            Image(.profileSmall)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 32, height: 32)
-                .clipShape(Circle())
+            Group {
+                if let data = store.user.userImageData, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image(.profileSmall)
+                        .resizable()
+                        .scaledToFill()
+                }
+            }
+            .frame(width: 32, height: 32)
+            .clipShape(Circle())
             
             Text(store.user.userName)
                 .typography(.body2Accent)
@@ -133,8 +156,8 @@ private extension MyView {
     // MARK: 펫 썸네일
     var petThumbnail: some View {
         Group {
-            if let _ = store.user.petImageURL {
-                Image(.imagePet)
+            if let data = store.user.petImageData, let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
             } else {
