@@ -69,11 +69,9 @@ struct TabBarView: View {
             }
 
         case .my:
-            NavigationStack {
-                MyView(store: Store(initialState: MyFeature.State()) {
-                    MyFeature()
-                })
-            }
+            MyView(store: Store(initialState: MyFeature.State()) {
+                MyFeature()
+            })
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
                     .opacity(0)
