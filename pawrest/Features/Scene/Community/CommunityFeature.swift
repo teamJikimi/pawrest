@@ -78,7 +78,8 @@ enum CommunityAction: Equatable {
     
     case myPostDismissed
     case writePostDismissed
-    case detailPresented(Bool)
+    case detailPresented
+    case detailDismissed
     
     case newPostCreated(title: String, content: String, imageURLs: [String])
     case myPostsUpdated(posts: [Post])
@@ -138,8 +139,12 @@ struct CommunityReducer: Reducer {
                 state.isWritePostPresented = false
                 return .none
 
-            case .detailPresented(let isPresented):
-                state.isDetailPresented = isPresented
+            case .detailPresented:
+                state.isDetailPresented = true
+                return .none
+
+            case .detailDismissed:
+                state.isDetailPresented = false
                 return .none
                 
             case .newPostCreated(let title, let content, let imageURLs):

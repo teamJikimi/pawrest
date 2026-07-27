@@ -140,8 +140,8 @@ private extension CommunityView {
                     store.send(.postDeleted(postID))
                 }
             )
-            .onAppear { store.send(.detailPresented(true)) }
-            .onDisappear { store.send(.detailPresented(false)) }
+            .onAppear { store.send(.detailPresented) }
+            .onDisappear { store.send(.detailDismissed) }
         } label: {
             CommunityCard(
                 post: post,
