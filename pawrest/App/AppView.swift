@@ -17,6 +17,12 @@ struct AppView: View {
             SplashView(store: store.scope(state: \.splash, action: \.splash))
         case .login:
             LoginView(store: store.scope(state: \.login, action: \.login))
+        case .onboardingUserProfile:
+            OnboardingUserProfileView(store: store.scope(state: \.onboardingUserProfile, action: \.onboardingUserProfile))
+        case .onboardingPetProfile:
+            OnboardingPetProfileView(store: store.scope(state: \.onboardingPetProfile, action: \.onboardingPetProfile))
+        case .onboardingIntroduce:
+            OnboardingIntroduceView(store: store.scope(state: \.onboardingIntroduce, action: \.onboardingIntroduce))
         case .tabBar:
             TabBarView(store: store.scope(state: \.tabBar, action: \.tabBar))
         }

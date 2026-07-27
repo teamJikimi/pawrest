@@ -7,6 +7,7 @@
 
 import Foundation
 import ComposableArchitecture
+import SwiftData
 
 struct MyFeature: Reducer {
     
@@ -63,6 +64,7 @@ struct MyFeature: Reducer {
     // MARK: - Action
     @CasePathable
     enum Action {
+        case onAppear(nickname: String, petName: String, petBirthday: Date?, petDeathDay: Date?, userImage: Data?, petImage: Data?)
         case profileEditTapped
         case emotionReminderToggled(Bool)
         case weeklyReportToggled(Bool)
@@ -79,6 +81,20 @@ struct MyFeature: Reducer {
     // MARK: - Reducer
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
+        case let .onAppear(nickname, petName, petBirthday, petDeathDay, userImage, petImage):
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy.MM.dd"
+            let birthStr = petBirthday.map { formatter.string(from: $0) } ?? "-"
+            let deathStr = petDeathDay.map { formatter.string(from: $0) } ?? "-"
+            state.user = MyModel(
+                userName: nickname,
+                petName: petName,
+                petBirthDate: birthStr,
+                petDeathDate: deathStr,
+                userImageData: userImage,
+                petImageData: petImage
+            )
+            return .none
         case .profileEditTapped:
             return .none
         case .emotionReminderToggled(let value):

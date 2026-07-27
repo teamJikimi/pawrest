@@ -135,7 +135,7 @@ extension AlbumDetailCard {
             Spacer()
             
             Text(date)
-                .typography(.date)
+                .typography(.caption)
                 .foregroundStyle(.white)
             
             Spacer()

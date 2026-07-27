@@ -43,7 +43,7 @@ extension Font {
     static let date = Font.system(size: 10, weight: .regular)
 
     // MARK: Caption (10px)
-    static let caption = Font.system(size: 10, weight: .regular)
+    static let caption = Font.system(size: 12, weight: .regular)
 }
 
 // MARK: - AppTypography
