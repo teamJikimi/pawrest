@@ -19,28 +19,30 @@ struct OnboardingIntroduceView: View {
     // MARK: - Body
     
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-            
-            imageSection
-            
-            Color.clear.frame(height: 56)
-            
-            textSection
-            
-            if store.showPagination {
-                Color.clear.frame(height: 36)
-                OnboardingPagination(
-                    totalSteps: 4,
-                    currentStep: store.currentPage - 1,
-                    style: .introduce
-                )
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                Color.clear.frame(height: 40)
+                
+                imageSection(availableHeight: geometry.size.height)
+                
+                Color.clear.frame(height: 8)
+                
+                textSection
+                
+                if store.showPagination {
+                    Color.clear.frame(height: 36)
+                    OnboardingPagination(
+                        totalSteps: 4,
+                        currentStep: store.currentPage - 1,
+                        style: .introduce
+                    )
+                }
+                
+                Spacer()
+                
+                buttonSection
+                    .padding(.top, 80)
             }
-            
-            Spacer()
-            
-            buttonSection
-                .padding(.bottom, 40)
         }
         .padding(.horizontal, 20)
         .navigationBarBackButtonHidden(true)
@@ -53,24 +55,28 @@ struct OnboardingIntroduceView: View {
 
 private extension OnboardingIntroduceView {
     
-    var imageSection: some View {
+    func imageSection(availableHeight: CGFloat) -> some View {
         Image(store.currentPageData.imageAsset)
             .resizable()
             .scaledToFit()
-            .frame(height: 196)
+            .frame(height: availableHeight * 0.50, alignment: .bottom) // 화면 높이의 42% — 필요시 비율 조정
+            .offset(y:8)
             .id(store.currentPage)
             .transition(.opacity)
     }
     
     var textSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             highlightedTitle(store.currentPageData.titleParts)
             
             if let subtitle = store.currentPageData.subtitle {
                 Text(subtitle)
-                    .typography(.body1R)
+                    .font(.system(size: 16, weight: .regular))
+                    .tracking(-0.28)
+                    .lineSpacing(4)
                     .foregroundColor(.gray70)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -80,8 +86,11 @@ private extension OnboardingIntroduceView {
             result + Text(part.text)
                 .foregroundColor(part.isHighlighted ? .pawPrimary : .gray90)
         }
-        .typography(.title4)
+        .font(.system(size: 22, weight: .bold))
+        .tracking(-0.4)
+        .lineSpacing(3)
         .multilineTextAlignment(.center)
+        .fixedSize(horizontal: false, vertical: true)
     }
     
     @ViewBuilder
