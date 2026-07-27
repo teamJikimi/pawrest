@@ -51,19 +51,24 @@ private extension SelfAssessmentQuestionCard {
                 .padding(.top, 18)
             
             Text(question.text)
-                .typography(.body1R)
+                .font(.system(size: 16, weight: .medium))
+                .lineSpacing(1)
+                .typography(.body1M)
                 .foregroundColor(.gray80)
                 .padding(.top, 4)
         } else {
             Text(question.text)
-                .typography(.body1R)
+                .font(.system(size: 16, weight: .medium))
+                .lineSpacing(3)
                 .foregroundColor(.gray80)
                 .padding(.top, 18)
         }
     }
     
     var divider: some View {
-        CommunityDivider()
+        Rectangle()
+            .fill(Color.gray20)
+            .frame(height: 1)
             .padding(.top, 18)
     }
     

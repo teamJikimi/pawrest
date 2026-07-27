@@ -15,7 +15,7 @@ struct SelfAssessmentRadioButton: View {
         Button(action: action) {
             Image(isSelected ? .radioButtonSelected : .radioButtonDefault)
                 .resizable()
-                .frame(width: 20, height: 20)
+                .frame(width: 24, height: 24)
         }
     }
 }
