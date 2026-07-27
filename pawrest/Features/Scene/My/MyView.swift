@@ -13,7 +13,7 @@ struct MyView: View {
     @Bindable var store: StoreOf<MyFeature>
     @Query private var userProfiles: [UserProfile]
     @Query private var petProfiles: [PetProfile]
-
+    
     var body: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             ScrollView {
@@ -27,6 +27,7 @@ struct MyView: View {
                     Color.clear.frame(height: 60)
                 }
             }
+            .environment(\.font, nil)
             .background(.gray0)
             .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
             .onAppear {
@@ -83,6 +84,10 @@ private extension MyView {
             }
             .frame(width: 32, height: 32)
             .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(.gray20, lineWidth: 1)
+            )
             
             Text(store.user.userName)
                 .typography(.body2Accent)
@@ -94,7 +99,7 @@ private extension MyView {
                 store.send(.profileEditTapped)
             } label: {
                 Text("프로필 수정")
-                    .typography(.date)
+                    .typography(.caption)
                     .foregroundStyle(.pawPrimary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -130,7 +135,7 @@ private extension MyView {
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(store.user.petName)
-                    .typography(.body1Accent)
+                    .typography(.body1Bold)
                     .foregroundStyle(.gray80)
                 
                 HStack(spacing: 4) {
@@ -139,7 +144,7 @@ private extension MyView {
                         .frame(width: 10, height: 10)
                     
                     Text("\(store.user.petBirthDate) - \(store.user.petDeathDate)")
-                        .typography(.date)
+                        .typography(.caption)
                         .foregroundStyle(.gray50)
                 }
             }
