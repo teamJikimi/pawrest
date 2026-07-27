@@ -18,7 +18,7 @@ struct CommunityAuthorHeader: View {
     
     let author: Author
     let date: Date
-    var profileSize: CGFloat = 32
+    var profileSize: CGFloat = 36
     var nameStyle: CommunityAuthorNameStyle = .card
     
     
@@ -30,6 +30,7 @@ struct CommunityAuthorHeader: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 authorName
+                    .typography(.body2Accent)
                 
                 Text(date.formattedAuthorHeader)
                     .typography(.date)

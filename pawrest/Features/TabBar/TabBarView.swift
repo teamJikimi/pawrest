@@ -18,10 +18,12 @@ struct TabBarView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             contentView
-            CustomTabBar(
-                selectedTab: store.selectedTab,
-                onTabSelected: { store.send(.tabSelected($0)) }
-            )
+            if !homeStore.isSelfAssessmentPresented {
+                CustomTabBar(
+                    selectedTab: store.selectedTab,
+                    onTabSelected: { store.send(.tabSelected($0)) }
+                )
+            }
         }
         .ignoresSafeArea(.keyboard)
     }

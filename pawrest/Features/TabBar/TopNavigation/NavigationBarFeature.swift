@@ -138,7 +138,7 @@ struct NavigationBarView: View {
                 Image(.iconNavigationPlus)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 24, height: 24)
+                    .frame(width: 30, height: 30)
             }
             .frame(width: 44, height: 44)
             
@@ -166,7 +166,7 @@ struct NavigationBarView: View {
                 onWritePost: { store.send(.writePostTapped) },
                 onMyPosts: { store.send(.myPostsTapped) }
             )
-
+            .frame(width: 44, height: 44)
             
         case .alarm:
             Button {
@@ -181,7 +181,6 @@ struct NavigationBarView: View {
             
         case .close:
             Button {
-                
                 store.send(.rightButtonTapped)
             } label: {
                 Image(.iconClose)

@@ -9,9 +9,10 @@ import ComposableArchitecture
 
 struct TabBarFeature: Reducer {
     
-@ObservableState
-public struct State: Equatable {
+    @ObservableState
+    public struct State: Equatable {
         var selectedTab: Tab = .home
+        var isTabBarHidden: Bool = false
         
         enum Tab: Int, CaseIterable {
             case home = 0
@@ -48,12 +49,16 @@ public struct State: Equatable {
     
     enum Action {
         case tabSelected(State.Tab)
+        case setTabBarHidden(Bool)
     }
     
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .tabSelected(let tab):
             state.selectedTab = tab
+            return .none
+        case .setTabBarHidden(let hidden):
+            state.isTabBarHidden = hidden
             return .none
         }
     }

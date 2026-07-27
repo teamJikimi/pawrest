@@ -11,9 +11,9 @@ public struct NoticeItem: View {
     
     public var body: some View {
         HStack(alignment: .center, spacing: 6) {
-            Text("•")
-                .typography(.title1)
-                .foregroundStyle(.pawSecondary)
+            Circle()
+                .fill(.pawSecondary)
+                .frame(width: 6, height: 6)
             Text(text)
                 .typography(.body2R1)
                 .foregroundStyle(.gray70)

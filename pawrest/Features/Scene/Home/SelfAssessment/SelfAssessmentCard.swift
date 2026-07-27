@@ -37,7 +37,7 @@ private extension SelfAssessmentCard {
                 .frame(width: 14, height: 14)
             
             Text("심리 검사")
-                .typography(.body1M)
+                .typography(.body1Accent)
                 .foregroundStyle(.gray90)
         }
         .padding(.bottom, 12)
@@ -55,7 +55,7 @@ private extension SelfAssessmentCard {
                 
                 Spacer()
             }
-            .padding(.leading, 12)
+            .padding(.leading, 13)
             .padding(.vertical, 16)
             .frame(maxWidth: .infinity)
             .background(.gray0)
