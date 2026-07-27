@@ -18,9 +18,11 @@ struct AppView: View {
         case .login:
             LoginView(store: store.scope(state: \.login, action: \.login))
         case .onboardingUserProfile:
-            NavigationStack {
-                OnboardingUserProfileView(store: store.scope(state: \.onboardingUserProfile, action: \.onboardingUserProfile))
-            }
+            OnboardingUserProfileView(store: store.scope(state: \.onboardingUserProfile, action: \.onboardingUserProfile))
+        case .onboardingPetProfile:
+            OnboardingPetProfileView(store: store.scope(state: \.onboardingPetProfile, action: \.onboardingPetProfile))
+        case .onboardingIntroduce:
+            OnboardingIntroduceView(store: store.scope(state: \.onboardingIntroduce, action: \.onboardingIntroduce))
         case .tabBar:
             TabBarView(store: store.scope(state: \.tabBar, action: \.tabBar))
         }

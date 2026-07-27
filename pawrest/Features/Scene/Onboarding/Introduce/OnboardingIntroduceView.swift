@@ -6,15 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 
 struct OnboardingIntroduceView: View {
-    
-    // MARK: - Properties
-    
+
     @Bindable var store: StoreOf<OnboardingIntroduceReducer>
-    
-    // MARK: - Body
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
         VStack(spacing: 0) {
@@ -43,8 +41,6 @@ struct OnboardingIntroduceView: View {
         .padding(.horizontal, 20)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
-        
-        //애니메이션 임의로 넣어놧는데 디자인QA 하면서 확인
         .animation(.easeInOut(duration: 0.3), value: store.currentPage)
     }
 }
@@ -57,8 +53,6 @@ private extension OnboardingIntroduceView {
         Image(store.currentPageData.imageAsset)
             .resizable()
             .scaledToFit()
-        
-            //TODO: - QA 시 사이즈 확인, 일단 다 196으로 박아둠
             .frame(height: 196)
             .id(store.currentPage)
             .transition(.opacity)
@@ -100,7 +94,7 @@ private extension OnboardingIntroduceView {
                 }
                 primaryButton("다음") {
                     if store.isLastPage {
-                        store.send(.finishTapped)
+                        saveAndFinish()
                     } else {
                         store.send(.nextTapped)
                     }
@@ -120,7 +114,21 @@ private extension OnboardingIntroduceView {
                 .cornerRadius(14, corners: .allCorners)
         }
     }
-    
+
+    func saveAndFinish() {
+        let user = UserProfile(nickname: store.nickname, profileImage: store.userProfileImage)
+        let pet = PetProfile(
+            name: store.petName,
+            profileImage: store.petProfileImage,
+            birthday: store.petBirthday,
+            deathDay: store.petDeathDay
+        )
+        modelContext.insert(user)
+        modelContext.insert(pet)
+        try? modelContext.save()
+        store.send(.saveCompleted)
+    }
+
     func secondaryButton(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
