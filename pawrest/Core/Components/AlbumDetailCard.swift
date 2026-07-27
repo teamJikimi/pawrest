@@ -152,7 +152,7 @@ extension AlbumDetailCard {
             if content.count > 92 {
                 ScrollView(showsIndicators: false) {
                     Text(content)
-                        .typography(.body1R)
+                        .typography(.body2R2)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }

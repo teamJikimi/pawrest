@@ -80,7 +80,7 @@ private extension AssessmentHistorySection {
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("이전 검사 기록")
-                .typography(.title2)
+                .typography(.body1Accent)
                 .foregroundStyle(.gray90)
 
             HStack(spacing: 0) {
@@ -116,11 +116,11 @@ private extension AssessmentHistorySection {
             Image(.iconScoreNeutral)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: 32, height: 32)
 
             Text("변화 없음")
                 .typography(.body2R1)
-                .foregroundStyle(Color.gray50)
+                .foregroundStyle(.gray70)
         }
     }
 
@@ -129,7 +129,7 @@ private extension AssessmentHistorySection {
             Image(.iconScoreUp)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: 32, height: 32)
 
             Text("\(difference)점 증가")
                 .typography(.body2R1)
@@ -142,7 +142,7 @@ private extension AssessmentHistorySection {
             Image(.iconScoreDown)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: 32, height: 32)
 
             Text("\(difference)점 감소")
                 .typography(.body2R1)
@@ -160,17 +160,17 @@ private struct ScoreHistoryCard: View {
     let isHighlighted: Bool
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Text(label)
-                .typography(.body2R1)
-                .foregroundStyle(.gray60)
-                .padding(.horizontal, 7)
+                .typography(.body3M)
+                .foregroundStyle(isHighlighted ? .gray80 : .gray60)
+                .padding(.horizontal, 9)
                 .padding(.vertical, 3)
                 .background(isHighlighted ? .primaryLight : .gray40)
-                .cornerRadius(10, corners: .allCorners)
-
+                .cornerRadius(7, corners: .allCorners)
+            
             Text("\(score)")
-                .typography(.pageTitle)
+                .typography(.body2M)
                 .foregroundStyle(isHighlighted ? .gray80 : .gray60)
 
             Text(date)
@@ -181,5 +181,6 @@ private struct ScoreHistoryCard: View {
         .padding(.vertical, 12)
         .background(isHighlighted ? .gray0 : .gray20)
         .cornerRadius(10, corners: .allCorners)
+        .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 0)
     }
 }

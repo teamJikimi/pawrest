@@ -130,10 +130,10 @@ private extension SelfAssessmentResultView {
             HStack(spacing: 6) {
                 Image(.iconNotion)
                 Text("안내 사항")
-                    .typography(.body1M)
+                    .typography(.body1Accent)
                     .foregroundStyle(.gray90)
             }
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 5) {
                 NoticeItem(text: "본 검사는 의학적 진단을 대체하지 않습니다.")
                 NoticeItem(text: "정확한 진단을 위해서는 전문가와의 상담이 필요합니다.")
                 NoticeItem(text: "해당 검사 결과는 7일간 리포트 감정 요약에 반영됩니다.")
@@ -158,6 +158,8 @@ private extension SelfAssessmentResultView {
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .background(.gray20)
-        .cornerRadius(20, corners: .allCorners)
+        .cornerRadius(18, corners: .allCorners)
     }
 }
+
+

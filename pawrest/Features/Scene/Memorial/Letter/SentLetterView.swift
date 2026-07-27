@@ -47,7 +47,6 @@ struct SentLetterView: View {
             }
             bottomView
         }
-        .simultaneousGesture(TapGesture().onEnded { hideKeyboard() })
         .onAppear {
             editContent = letter.content
             now = Date()
@@ -64,9 +63,7 @@ struct SentLetterView: View {
             Spacer()
             EditMenuButton(
                 icon: .iconEllipsis,
-                onEdit: {
-                    isEditing = true
-                },
+                onEdit: { isEditing = true },
                 onDelete: {
                     modelContext.delete(letter)
                     try? modelContext.save()
@@ -138,7 +135,7 @@ struct SentLetterView: View {
         let editorHeight = dynamicHeight(text: editContent, width: editorWidth)
         let paperHeight = max(geo.size.height, editorHeight + firstLineY + lineSpacing + 16)
 
-        return ScrollView(showsIndicators: false) {
+        return ScrollView(.vertical, showsIndicators: false) {
             ZStack(alignment: .topLeading) {
                 letterPaper(width: canvasWidth, height: paperHeight)
                     .frame(width: canvasWidth, height: paperHeight)
@@ -146,7 +143,6 @@ struct SentLetterView: View {
                 LineSpacedTextEditor(
                     text: $editContent,
                     lineHeight: lineSpacing,
-                    availableWidth: editorWidth,
                     isEditable: isEditing
                 )
                 .frame(width: editorWidth, height: editorHeight)
@@ -154,6 +150,7 @@ struct SentLetterView: View {
                 .padding(.top, firstLineY + 8)
             }
         }
+        .scrollDismissesKeyboard(.immediately)
     }
 
     private func dynamicHeight(text: String, width: CGFloat) -> CGFloat {
@@ -200,12 +197,5 @@ struct SentLetterView: View {
                 y += lineSpacing
             }
         }
-    }
-
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder),
-            to: nil, from: nil, for: nil
-        )
     }
 }

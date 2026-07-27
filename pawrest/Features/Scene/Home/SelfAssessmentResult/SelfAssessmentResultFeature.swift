@@ -133,8 +133,10 @@ enum AssessmentScoreLevel: Equatable {
         switch self {
         case .pbqLow, .cesDNormal, .pdsMild:
             return .iconLevelLow
-        case .pbqAverage, .pdsModerate:
+        case .pdsModerate:
             return .iconLevelModerate
+        case .pbqAverage:
+            return .iconLevelHigh
         case .cesDHighRisk, .pdsModerateToSevere:
             return .iconLevelHigh
         case .pbqHigh, .cesDDepression, .pdsSevere:
@@ -148,8 +150,10 @@ enum AssessmentScoreLevel: Equatable {
             return Color(.pawPrimary)
         case .pbqAverage, .pdsModerate:
             return Color(.pawWarning)
-        case .cesDHighRisk, .pdsModerateToSevere:
+        case .pdsModerateToSevere:
             return Color(.accent)
+        case .cesDHighRisk:
+            return Color(.pawWarning)
         case .pbqHigh, .cesDDepression, .pdsSevere:
             return Color(.danger)
         }

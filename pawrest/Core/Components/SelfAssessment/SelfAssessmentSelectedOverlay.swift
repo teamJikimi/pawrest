@@ -34,7 +34,9 @@ private extension SelfAssessmentSelectedOverlay {
             closeButton
             titleSection
             tagSection
-            CommunityDivider()
+            Rectangle()
+                .fill(.gray20)
+                .frame(height: 1)
                 .padding(.top, 16)
             disclaimerSection
             startButton
@@ -61,11 +63,11 @@ private extension SelfAssessmentSelectedOverlay {
     var titleSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(type.title)
-                .typography(.title2)
+                .typography(.pageTitle)
                 .foregroundColor(.gray90)
             
             Text(type.description)
-                .typography(.body2R2)
+                .typography(.body3R)
                 .foregroundColor(.gray80)
         }
         .padding(.top, 4)
@@ -81,7 +83,7 @@ private extension SelfAssessmentSelectedOverlay {
     
     var disclaimerSection: some View {
         Text(type.disclaimer)
-            .typography(.body4R)
+            .typography(.caption)
             .foregroundColor(.gray60)
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -96,16 +98,16 @@ private extension SelfAssessmentSelectedOverlay {
                 .typography(.body2Accent)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 32)
+                .frame(height: 40)
                 .background(.pawPrimary)
-                .cornerRadius(10, corners: .allCorners)
+                .cornerRadius(12, corners: .allCorners)
         }
         .padding(.top, 16)
     }
     
     func introTag(_ text: String) -> some View {
         Text(text)
-            .typography(.body2R1)
+            .typography(.body3M)
             .foregroundColor(.gray80)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
