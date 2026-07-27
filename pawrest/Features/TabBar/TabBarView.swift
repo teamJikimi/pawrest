@@ -22,6 +22,8 @@ struct TabBarView: View {
                 selectedTab: store.selectedTab,
                 onTabSelected: { store.send(.tabSelected($0)) }
             )
+            .opacity(communityStore.isDetailPresented ? 0 : 1)
+            .allowsHitTesting(!communityStore.isDetailPresented)
         }
         .ignoresSafeArea(.keyboard)
     }

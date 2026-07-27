@@ -17,7 +17,7 @@ struct MyView: View {
     var body: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     petProfileSection
                     notificationSection
                     accountSection
@@ -60,15 +60,13 @@ struct MyView: View {
 // MARK: - Subviews
 private extension MyView {
     
-    // MARK: 펫 프로필 섹션
     var petProfileSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             userHeader
             petProfileCard
         }
     }
     
-    // MARK: 사용자 헤더
     var userHeader: some View {
         HStack(spacing: 8) {
             Group {
@@ -82,7 +80,7 @@ private extension MyView {
                         .scaledToFill()
                 }
             }
-            .frame(width: 32, height: 32)
+            .frame(width: 40, height: 40)
             .clipShape(Circle())
             .overlay(
                 Circle()
@@ -90,7 +88,7 @@ private extension MyView {
             )
             
             Text(store.user.userName)
-                .typography(.body2Accent)
+                .typography(.body1Accent)
                 .foregroundStyle(.gray80)
             
             Spacer()
@@ -109,11 +107,9 @@ private extension MyView {
                     )
             }
         }
-        .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
-    // MARK: 펫 프로필 카드
     var petProfileCard: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 20)
@@ -135,7 +131,7 @@ private extension MyView {
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(store.user.petName)
-                    .typography(.body1Bold)
+                    .typography(.pageTitle)
                     .foregroundStyle(.gray80)
                 
                 HStack(spacing: 4) {
@@ -144,7 +140,7 @@ private extension MyView {
                         .frame(width: 10, height: 10)
                     
                     Text("\(store.user.petBirthDate) - \(store.user.petDeathDate)")
-                        .typography(.caption)
+                        .typography(.body2R1)
                         .foregroundStyle(.gray50)
                 }
             }
@@ -156,10 +152,8 @@ private extension MyView {
                 .offset(x: 16, y: 5)
                 .padding(.top, 16)
         }
-        .padding(.vertical, 8)
     }
     
-    // MARK: 펫 썸네일
     var petThumbnail: some View {
         Group {
             if let data = store.user.petImageData, let uiImage = UIImage(data: data) {
@@ -186,7 +180,6 @@ private extension MyView {
         )
     }
     
-    // MARK: 알림 설정 섹션
     var notificationSection: some View {
         NotificationSettingsView(
             emotionReminder: $store.isEmotionReminderOn.sending(\.emotionReminderToggled),
@@ -196,7 +189,6 @@ private extension MyView {
         )
     }
     
-    // MARK: 계정 관리 섹션
     var accountSection: some View {
         AccountSettingsView(
             onBlockedList: { store.send(.blockedListTapped) },
@@ -204,13 +196,5 @@ private extension MyView {
             onDeleteAccount: { store.send(.deleteAccountTapped) },
             onLogout: { store.send(.logoutTapped) }
         )
-    }
-}
-
-#Preview {
-    NavigationStack {
-        MyView(store: Store(initialState: MyFeature.State()) {
-            MyFeature()
-        })
     }
 }

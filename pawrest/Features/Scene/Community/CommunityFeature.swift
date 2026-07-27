@@ -31,9 +31,9 @@ struct CommunityState: Equatable {
     
     var isMyPostPresented: Bool = false
     var isWritePostPresented: Bool = false
+    var isDetailPresented: Bool = false
     
     var posts: [Post]
-    
     var currentUserID: UUID
     
     var displayedPosts: [Post] {
@@ -53,7 +53,7 @@ struct CommunityState: Equatable {
             return filtered.sorted { $0.likeCount > $1.likeCount }
         }
     }
-    //CommunityModel 더미 연결용
+
     init(
         currentUserID: UUID = CommunityDummy.currentUserID,
         posts: [Post] = CommunityDummy.posts
@@ -78,6 +78,7 @@ enum CommunityAction: Equatable {
     
     case myPostDismissed
     case writePostDismissed
+    case detailPresented(Bool)
     
     case newPostCreated(title: String, content: String, imageURLs: [String])
     case myPostsUpdated(posts: [Post])
@@ -125,7 +126,6 @@ struct CommunityReducer: Reducer {
             case .likeTapped(let postID):
                 guard let idx = state.posts.firstIndex(where: { $0.id == postID })
                 else { return .none }
-                
                 state.posts[idx].isLiked.toggle()
                 state.posts[idx].likeCount += state.posts[idx].isLiked ? 1 : -1
                 return .none
@@ -136,6 +136,10 @@ struct CommunityReducer: Reducer {
                 
             case .writePostDismissed:
                 state.isWritePostPresented = false
+                return .none
+
+            case .detailPresented(let isPresented):
+                state.isDetailPresented = isPresented
                 return .none
                 
             case .newPostCreated(let title, let content, let imageURLs):
