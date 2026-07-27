@@ -166,7 +166,7 @@ struct NavigationBarView: View {
                 onWritePost: { store.send(.writePostTapped) },
                 onMyPosts: { store.send(.myPostsTapped) }
             )
-            .frame(width: 30, height: 30)
+
             
         case .alarm:
             Button {

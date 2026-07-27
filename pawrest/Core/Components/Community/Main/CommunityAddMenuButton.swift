@@ -9,18 +9,18 @@ import SwiftUI
 
 struct CommunityAddMenuButton: View {
     let icon: ImageResource
-    
+
     let onWritePost: () -> Void
     let onMyPosts: () -> Void
-    
+
     @State private var isShowingMenu = false
     var onMenuVisibilityChanged: ((Bool) -> Void)? = nil
-    
+
     private func closeMenu() {
         isShowingMenu = false
         onMenuVisibilityChanged?(false)
     }
-    
+
     var body: some View {
         Button(action: {
             isShowingMenu.toggle()
@@ -29,12 +29,12 @@ struct CommunityAddMenuButton: View {
             Image(icon)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: 30, height: 30)
         }
-        .frame(width: 44, height: 44)
+        .frame(width: 50, height: 50)
         .background(alignment: .topTrailing) {
             if isShowingMenu {
-                VStack(spacing: 0){
+                VStack(spacing: 0) {
                     Button(action: {
                         onWritePost()
                         closeMenu()
@@ -43,9 +43,9 @@ struct CommunityAddMenuButton: View {
                             Text("글 쓰기")
                                 .typography(.body2R1)
                                 .foregroundColor(.gray80)
-                            
+
                             Spacer()
-                            
+
                             Image(.iconWritePost)
                                 .resizable()
                                 .scaledToFit()
@@ -55,7 +55,7 @@ struct CommunityAddMenuButton: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                     }
-                    
+
                     Button(action: {
                         onMyPosts()
                         closeMenu()
@@ -64,9 +64,9 @@ struct CommunityAddMenuButton: View {
                             Text("나의 글 관리")
                                 .typography(.body2R1)
                                 .foregroundColor(.gray80)
-                            
+
                             Spacer()
-                            
+
                             Image(.iconMyPosts)
                                 .resizable()
                                 .scaledToFit()
@@ -84,7 +84,7 @@ struct CommunityAddMenuButton: View {
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(.gray20, lineWidth: 1)
                 )
-                .offset(x: 0, y: 44 + 6)
+                .offset(x: 0, y: 56)
                 .zIndex(1000)
             }
         }
