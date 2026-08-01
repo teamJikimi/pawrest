@@ -11,10 +11,14 @@ import ComposableArchitecture
 
 struct OnboardingPetProfileView: View {
     
+    // MARK: - Properties
+    
     @Bindable var store: StoreOf<OnboardingPetProfileReducer>
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
+    
+    // MARK: - Body
     
     var body: some View {
         VStack(spacing: 0) {
@@ -42,6 +46,9 @@ struct OnboardingPetProfileView: View {
             nextButton
         }
         .padding(.horizontal, 20)
+        .customNavigationBar(
+            store: store.scope(state: \.navigationBar, action: \.navigationBar)
+        )
         .sheet(isPresented: Binding(
             get: { store.showBirthdayPicker },
             set: { if !$0 { store.send(.pickerDismissed) } }
@@ -104,43 +111,43 @@ private extension OnboardingPetProfileView {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
-    var profileImageSection: some View {
+    var profileImageLabel: some View {
         let clipShape = ProfileClipShape(
             profileSize: 86,
             cutoutSize: 24,
             offset: CGPoint(x: 2, y: 2)
         )
-        
-        return PhotosPicker(
-            selection: $selectedItem,
-            matching: .images
-        ) {
-            ZStack(alignment: .bottomTrailing) {
-                Group {
-                    if let data = store.profileImage,
-                       let uiImage = UIImage(data: data) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                    } else {
-                        Image(.profileOnboarding)
-                            .resizable()
-                            .scaledToFit()
-                    }
+        return ZStack(alignment: .bottomTrailing) {
+            Group {
+                if let data = store.profileImage,
+                   let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image(.profileOnboarding)
+                        .resizable()
+                        .scaledToFit()
                 }
-                .frame(width: 86, height: 86)
-                .clipShape(clipShape)
-                .overlay(clipShape.stroke(.gray40, lineWidth: 1))
-                
-                Image(.iconImageEdit)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 27, height: 27)
-                    .offset(x: 3, y: 3)
             }
+            .frame(width: 86, height: 86)
+            .clipShape(clipShape)
+            .overlay(clipShape.stroke(.gray40, lineWidth: 1))
+            
+            Image(.iconImageEdit)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 27, height: 27)
+                .offset(x: 3, y: 3)
+        }
+    }
+    
+    var profileImageSection: some View {
+        PhotosPicker(selection: $selectedItem, matching: .images) {
+            profileImageLabel
         }
         .onChange(of: selectedItem) { _, newItem in
-            Task {
+            Task { @MainActor in
                 if let data = try? await newItem?.loadTransferable(type: Data.self) {
                     store.send(.profileImageSelected(data))
                 }

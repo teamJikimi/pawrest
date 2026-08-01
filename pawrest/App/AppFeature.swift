@@ -43,7 +43,7 @@ enum AppAction {
     case onboardingIntroduce(OnboardingIntroduceAction)
     case tabBar(TabBarFeature.Action)
 }
-
+  
 struct AppReducer: Reducer {
     var body: some Reducer<AppState, AppAction> {
         Scope(state: \.splash, action: \.splash) {

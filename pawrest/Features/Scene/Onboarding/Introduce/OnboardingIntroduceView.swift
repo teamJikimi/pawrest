@@ -82,15 +82,18 @@ private extension OnboardingIntroduceView {
     }
     
     func highlightedTitle(_ parts: [TitlePart]) -> some View {
-        parts.reduce(Text("")) { result, part in
-            result + Text(part.text)
-                .foregroundColor(part.isHighlighted ? .pawPrimary : .gray90)
+        var attributed = AttributedString()
+        for part in parts {
+            var segment = AttributedString(part.text)
+            segment.foregroundColor = part.isHighlighted ? Color.pawPrimary : Color.gray90
+            attributed.append(segment)
         }
-        .font(.system(size: 22, weight: .bold))
-        .tracking(-0.4)
-        .lineSpacing(3)
-        .multilineTextAlignment(.center)
-        .fixedSize(horizontal: false, vertical: true)
+        return Text(attributed)
+            .font(.system(size: 22, weight: .bold))
+            .tracking(-0.4)
+            .lineSpacing(3)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
     }
     
     @ViewBuilder
