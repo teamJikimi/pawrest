@@ -14,7 +14,7 @@ import ComposableArchitecture
 struct OnboardingPetProfileState: Equatable {
     var navigationBar = NavigationBarState(
         title: "",
-        leftButton: .back,
+        leftButton: .none,
         rightButton: .none
     )
     
