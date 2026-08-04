@@ -235,11 +235,3 @@ private extension MyView {
         )
     }
 }
-
-#Preview {
-    NavigationStack {
-        MyView(store: Store(initialState: MyFeature.State()) {
-            MyFeature()
-        })
-    }
-}
