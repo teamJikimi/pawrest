@@ -21,6 +21,9 @@ struct MyFeature: Reducer {
         var isDailyRecordOn: Bool = true
         var isCommunityReactionOn: Bool = true
         
+        var showLogoutAlert: Bool = false
+        var showDeleteAccountAlert: Bool = false
+        
         var navigationBar: NavigationBarState = NavigationBarState(
             title: "마이",
             leftButton: .none,
@@ -73,7 +76,11 @@ struct MyFeature: Reducer {
         case blockedListTapped
         case privacyPolicyTapped
         case deleteAccountTapped
+        case deleteAccountAlertDismissed
+        case deleteAccountConfirmed
         case logoutTapped
+        case logoutAlertDismissed
+        case logoutConfirmed
         case navigationBar(NavigationBarAction)
         case path(StackActionOf<Path>)
     }
@@ -118,8 +125,22 @@ struct MyFeature: Reducer {
             state.path.append(.privacyPolicy(PrivacyPolicyFeature.State()))
             return .none
         case .deleteAccountTapped:
+            state.showDeleteAccountAlert = true
+            return .none
+        case .deleteAccountAlertDismissed:
+            state.showDeleteAccountAlert = false
+            return .none
+        case .deleteAccountConfirmed:
+            state.showDeleteAccountAlert = false
             return .none
         case .logoutTapped:
+            state.showLogoutAlert = true
+            return .none
+        case .logoutAlertDismissed:
+            state.showLogoutAlert = false
+            return .none
+        case .logoutConfirmed:
+            state.showLogoutAlert = false
             return .none
         case .navigationBar:
             return .none
