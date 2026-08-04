@@ -93,8 +93,6 @@ struct OnboardingUserProfileReducer: Reducer {
                 return .none
 
             case .nicknameChanged(let raw):
-                
-                // 특수문자/공백 필터링
                 let filtered = raw.filter { char in
                     let s = String(char)
                     return s.range(of: "^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]$", options: .regularExpression) != nil
@@ -102,7 +100,6 @@ struct OnboardingUserProfileReducer: Reducer {
                 let clamped = String(filtered.prefix(12))
                 state.nickname = clamped
                 
-                // 텍스트 수정 시 상태 리셋
                 if state.nicknameStatus == .available || state.nicknameStatus == .duplicated {
                     state.nicknameStatus = .idle
                 }
@@ -116,11 +113,8 @@ struct OnboardingUserProfileReducer: Reducer {
                 }
                 state.nicknameStatus = .checking
                 
-                let nickname = state.nickname
                 return .run { send in
-                    // 시뮬레이션 딜레이
                     try await Task.sleep(for: .milliseconds(500))
-                    // 항상 사용 가능 -> SwiftData 조회로 교체 예정
                     await send(.duplicateCheckResult(isAvailable: true))
                 }
                 
