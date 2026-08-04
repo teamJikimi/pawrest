@@ -10,6 +10,8 @@ import ComposableArchitecture
 
 struct TabBarView: View {
     let store: StoreOf<TabBarFeature>
+    var onLogoutCompleted: () -> Void = {}
+    
     @State private var communityStore = Store(initialState: CommunityState()) { CommunityReducer() }
     @State private var homeStore = Store(initialState: HomeFeature.State()) {
         HomeFeature()
@@ -18,12 +20,10 @@ struct TabBarView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             contentView
-            if !homeStore.isSelfAssessmentPresented && !communityStore.isDetailPresented {
-                CustomTabBar(
-                    selectedTab: store.selectedTab,
-                    onTabSelected: { store.send(.tabSelected($0)) }
-                )
-            }
+            CustomTabBar(
+                selectedTab: store.selectedTab,
+                onTabSelected: { store.send(.tabSelected($0)) }
+            )
         }
         .ignoresSafeArea(.keyboard)
     }
@@ -72,9 +72,10 @@ struct TabBarView: View {
 
         case .my:
             NavigationStack {
-                MyView(store: Store(initialState: MyFeature.State()) {
-                    MyFeature()
-                })
+                MyView(
+                    store: Store(initialState: MyFeature.State()) { MyFeature() },
+                    onLogoutCompleted: onLogoutCompleted
+                )
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })

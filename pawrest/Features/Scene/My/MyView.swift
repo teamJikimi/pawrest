@@ -7,17 +7,21 @@
 
 import SwiftUI
 import SwiftData
+import FirebaseAuth
 import ComposableArchitecture
 
 struct MyView: View {
     @Bindable var store: StoreOf<MyFeature>
     @Query private var userProfiles: [UserProfile]
     @Query private var petProfiles: [PetProfile]
+    @Environment(\.modelContext) private var modelContext
     
+    var onLogoutCompleted: () -> Void = {}
+
     var body: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             ScrollView {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     petProfileSection
                     notificationSection
                     accountSection
@@ -27,7 +31,6 @@ struct MyView: View {
                     Color.clear.frame(height: 60)
                 }
             }
-            .environment(\.font, nil)
             .background(.gray0)
             .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
             .onAppear {
@@ -41,6 +44,44 @@ struct MyView: View {
                         petImage: pet.profileImage
                     ))
                 }
+            }
+            .alert("로그아웃", isPresented: Binding(
+                get: { store.showLogoutAlert },
+                set: { if !$0 { store.send(.logoutAlertDismissed) } }
+            )) {
+                Button("취소", role: .cancel) {
+                    store.send(.logoutAlertDismissed)
+                }
+                Button("로그아웃", role: .destructive) {
+                    store.send(.logoutConfirmed)
+                    onLogoutCompleted()
+                }
+            } message: {
+                Text("로그아웃 하시겠습니까?")
+            }
+            .alert("회원탈퇴", isPresented: Binding(
+                get: { store.showDeleteAccountAlert },
+                set: { if !$0 { store.send(.deleteAccountAlertDismissed) } }
+            )) {
+                Button("취소", role: .cancel) {
+                    store.send(.deleteAccountAlertDismissed)
+                }
+                Button("탈퇴하기", role: .destructive) {
+                    store.send(.deleteAccountConfirmed)
+                    try? modelContext.delete(model: UserProfile.self)
+                    try? modelContext.delete(model: PetProfile.self)
+                    try? modelContext.delete(model: EmotionRecordModel.self)
+                    try? modelContext.delete(model: AssessmentRecord.self)
+                    try? modelContext.delete(model: MemoryModel.self)
+                    try? modelContext.delete(model: LetterModel.self)
+                    try? modelContext.delete(model: NotificationRecord.self)
+                    Task {
+                        try? await Auth.auth().currentUser?.delete()
+                    }
+                    onLogoutCompleted()
+                }
+            } message: {
+                Text("탈퇴하면 모든 데이터가 삭제되며\n복구할 수 없습니다. 탈퇴하시겠습니까?")
             }
         } destination: { (pathStore: StoreOf<MyFeature.Path>) in
             switch pathStore.state {
@@ -61,7 +102,7 @@ struct MyView: View {
 private extension MyView {
     
     var petProfileSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             userHeader
             petProfileCard
         }
@@ -80,15 +121,11 @@ private extension MyView {
                         .scaledToFill()
                 }
             }
-            .frame(width: 40, height: 40)
+            .frame(width: 32, height: 32)
             .clipShape(Circle())
-            .overlay(
-                Circle()
-                    .stroke(.gray20, lineWidth: 1)
-            )
             
             Text(store.user.userName)
-                .typography(.body1Accent)
+                .typography(.body2Accent)
                 .foregroundStyle(.gray80)
             
             Spacer()
@@ -97,7 +134,7 @@ private extension MyView {
                 store.send(.profileEditTapped)
             } label: {
                 Text("프로필 수정")
-                    .typography(.caption)
+                    .typography(.date)
                     .foregroundStyle(.pawPrimary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -107,6 +144,7 @@ private extension MyView {
                     )
             }
         }
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
@@ -131,7 +169,7 @@ private extension MyView {
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(store.user.petName)
-                    .typography(.pageTitle)
+                    .typography(.body1Accent)
                     .foregroundStyle(.gray80)
                 
                 HStack(spacing: 4) {
@@ -140,18 +178,18 @@ private extension MyView {
                         .frame(width: 10, height: 10)
                     
                     Text("\(store.user.petBirthDate) - \(store.user.petDeathDate)")
-                        .typography(.body2R1)
+                        .typography(.date)
                         .foregroundStyle(.gray50)
                 }
             }
             .padding(.top, 40 + 12)
-            .padding(.leading, 16 + 88 + 12)
+            .padding(.leading, 16 + 86 + 12)
             .padding(.bottom, 34)
             
             petThumbnail
-                .offset(x: 16, y: 5)
-                .padding(.top, 16)
+                .offset(x: 16, y: 40 - 30)
         }
+        .padding(.vertical, 8)
     }
     
     var petThumbnail: some View {
@@ -166,17 +204,16 @@ private extension MyView {
                     .scaledToFill()
             }
         }
-        .frame(width: 88, height: 88)
+        .frame(width: 86, height: 86)
         .clipShape(Circle())
-        .background(
+        .overlay(
             Circle()
-                .fill(Color.white)
-                .frame(width: 98, height: 98)
+                .stroke(Color.white, lineWidth: 5)
         )
         .overlay(
             Circle()
                 .stroke(.primaryLight, lineWidth: 1)
-                .frame(width: 98, height: 98)
+                .padding(-5)
         )
     }
     
@@ -196,5 +233,13 @@ private extension MyView {
             onDeleteAccount: { store.send(.deleteAccountTapped) },
             onLogout: { store.send(.logoutTapped) }
         )
+    }
+}
+
+#Preview {
+    NavigationStack {
+        MyView(store: Store(initialState: MyFeature.State()) {
+            MyFeature()
+        })
     }
 }
