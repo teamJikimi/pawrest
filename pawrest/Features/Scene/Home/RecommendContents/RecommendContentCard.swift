@@ -3,14 +3,6 @@
 //  pawrest
 //
 //  Created by 곽예리 on 6/14/26.
-//
-
-//
-//  RecommendedContentCard.swift
-//  pawrest
-//
-//  Created by 소은 on 6/14/26.
-//
 
 import SwiftUI
 import ComposableArchitecture
