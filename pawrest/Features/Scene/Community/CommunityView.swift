@@ -16,11 +16,17 @@ struct CommunityView: View {
         VStack(spacing: 0) {
             searchAndSortSection
             
-            if store.displayedPosts.isEmpty {
+            if store.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if store.displayedPosts.isEmpty {
                 emptyStateView
             } else {
                 postsScrollView
             }
+        }
+        .task {
+            store.send(.onAppear)
         }
         .customNavigationBar(
             store: store.scope(

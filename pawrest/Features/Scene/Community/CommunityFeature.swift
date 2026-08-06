@@ -33,8 +33,11 @@ struct CommunityState: Equatable {
     var isWritePostPresented: Bool = false
     var isDetailPresented: Bool = false
     
-    var posts: [Post]
+    var posts: [Post] = []
     var currentUserID: UUID
+
+    var isLoading: Bool = false
+    var errorMessage: String?
     
     var displayedPosts: [Post] {
         let filtered: [Post]
@@ -56,7 +59,7 @@ struct CommunityState: Equatable {
 
     init(
         currentUserID: UUID = CommunityDummy.currentUserID,
-        posts: [Post] = CommunityDummy.posts
+        posts: [Post] = []
     ) {
         self.currentUserID = currentUserID
         self.posts = posts
@@ -67,6 +70,9 @@ struct CommunityState: Equatable {
 
 @CasePathable
 enum CommunityAction: Equatable {
+    case onAppear
+    case postsResponse(TaskResult<[Post]>)
+    
     case navigationBar(NavigationBarAction)
     
     case textChanged(String)
@@ -90,6 +96,10 @@ enum CommunityAction: Equatable {
 // MARK: - Reducer
 
 struct CommunityReducer: Reducer {
+    
+    @Dependency(\.communityRepository)
+    var communityRepository
+    
     var body: some Reducer<CommunityState, CommunityAction> {
         Scope(state: \.navigationBar, action: \.navigationBar) {
             NavigationBarReducer()
@@ -97,6 +107,26 @@ struct CommunityReducer: Reducer {
         
         Reduce { state, action in
             switch action {
+                
+            case .onAppear:
+                state.isLoading = true
+                state.errorMessage = nil
+                return .run { send in
+                    await send(.postsResponse(TaskResult {
+                        try await communityRepository.fetchPosts()} )
+                    )
+                }
+                
+            case .postsResponse(.success(let posts)):
+                state.isLoading = false
+                state.posts = posts
+                return .none
+
+            case .postsResponse(.failure(let error)):
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+                return .none
+                
             case .navigationBar(.writePostTapped):
                 state.isWritePostPresented = true
                 return .none
