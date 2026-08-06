@@ -307,12 +307,3 @@ private extension ReportView {
         .cornerRadius(10, corners: .allCorners)
     }
 }
-
-#Preview {
-    ReportView(
-        store: Store(
-            initialState: ReportFeature.State(),
-            reducer: { ReportFeature() }
-        )
-    )
-}
