@@ -15,7 +15,7 @@ struct CommunityDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     var onPostStateUpdated: ((Post) -> Void)? = nil
-    var onPostDeleted: ((UUID) -> Void)? = nil
+    var onPostDeleted: ((String) -> Void)? = nil
     
     var body: some View {
         contentView
