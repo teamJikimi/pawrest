@@ -49,7 +49,7 @@ struct CommunityDetailView: View {
                     isInputFocused = false
                 }
             }
-            .navigationDestination(
+            .sheet(
                 isPresented: Binding(
                     get: { store.isEditPresented },
                     set: { isPresented in
@@ -59,7 +59,9 @@ struct CommunityDetailView: View {
                     }
                 )
             ) {
-                editView
+                NavigationStack {
+                    editView
+                }
             }
     }
 }

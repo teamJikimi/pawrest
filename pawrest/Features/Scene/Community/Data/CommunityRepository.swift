@@ -19,6 +19,8 @@ struct CommunityRepository {
     ) async throws -> Post
     
     var deletePost: @Sendable (_ postID: String) async throws -> Void
+    
+    var updatePost: @Sendable (_ post: Post) async throws -> Post
 }
 
 // MARK: - DependencyKey
@@ -44,6 +46,14 @@ extension CommunityRepository: DependencyKey {
             },
             deletePost: { postID in
                 try await service.deletePost(postID: postID)
+            },
+            updatePost: { post in
+                try await service.updatePost(
+                    postID: post.id,
+                    title: post.title,
+                    content: post.content
+                )
+                return post
             }
         )
     }()
