@@ -18,7 +18,8 @@ struct TabBarView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             contentView
-            if !homeStore.isSelfAssessmentPresented && !communityStore.isDetailPresented {
+            if !homeStore.isSelfAssessmentPresented && !communityStore.isDetailPresented &&
+                !homeStore.isReportPresented && homeStore.selectedRecommendedContentID == nil {
                 CustomTabBar(
                     selectedTab: store.selectedTab,
                     onTabSelected: { store.send(.tabSelected($0)) }
