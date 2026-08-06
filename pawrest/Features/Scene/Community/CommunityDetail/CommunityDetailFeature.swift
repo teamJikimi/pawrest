@@ -23,6 +23,8 @@ struct CommunityDetailState: Equatable {
     var shouldDismiss: Bool = false
     
     var isDeleted: Bool = false
+    var errorMessage: String?
+    
     var isEditPresented: Bool = false
     
     var inputPlaceholder: String {
@@ -62,11 +64,16 @@ enum CommunityDetailAction: Equatable {
     
     case editDismissed
     case postEdited(title: String, content: String, imageURLs: [String])
+    
+    case postDeletionResponse(TaskResult<String>)
 }
 
 // MARK: - Reducer
 
 struct CommunityDetailReducer: Reducer {
+    
+    @Dependency(\.communityRepository) var communityRepository
+    
     var body: some Reducer<CommunityDetailState, CommunityDetailAction> {
         Scope(state: \.navigationBar, action: \.navigationBar) {
             NavigationBarReducer()
@@ -86,9 +93,18 @@ struct CommunityDetailReducer: Reducer {
                 return .none
                 
             case .navigationBar(.deleteTapped):
-                state.isDeleted = true
-                state.shouldDismiss = true
-                return .none
+                let postID = state.post.id
+
+                return .run { send in
+                    await send(
+                        .postDeletionResponse(
+                            TaskResult {
+                                try await communityRepository.deletePost(postID)
+                                return postID
+                            }
+                        )
+                    )
+                }
                 
             case .navigationBar(.reportBoardSettings):
                 return .none
@@ -187,6 +203,15 @@ struct CommunityDetailReducer: Reducer {
                 state.post.content = content
                 state.post.imageURLs = imageURLs
                 state.isEditPresented = false
+                return .none
+                
+            case .postDeletionResponse(.success):
+                state.isDeleted = true
+                state.shouldDismiss = true
+                return .none
+
+            case .postDeletionResponse(.failure(let error)):
+                state.errorMessage = error.localizedDescription
                 return .none
             }
         }

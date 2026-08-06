@@ -17,6 +17,8 @@ struct CommunityRepository {
         _ title: String,
         _ content: String
     ) async throws -> Post
+    
+    var deletePost: @Sendable (_ postID: String) async throws -> Void
 }
 
 // MARK: - DependencyKey
@@ -38,8 +40,10 @@ extension CommunityRepository: DependencyKey {
                     title: title,
                     content: content
                 )
-
                 return postDTO.toDomain()
+            },
+            deletePost: { postID in
+                try await service.deletePost(postID: postID)
             }
         )
     }()

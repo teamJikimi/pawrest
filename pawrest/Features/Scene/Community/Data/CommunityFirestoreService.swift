@@ -65,4 +65,11 @@ final class CommunityFirestoreService {
             commentCount: 0
         )
     }
+    
+    func deletePost(postID: String) async throws {
+        try await firestore
+            .collection("posts")
+            .document(postID)
+            .delete()
+    }
 }
