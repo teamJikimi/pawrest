@@ -34,7 +34,7 @@ struct CommunityState: Equatable {
     var isDetailPresented: Bool = false
     
     var posts: [Post] = []
-    var currentUserID: String
+    var currentUserID: String?
 
     var isLoading: Bool = false
     var errorMessage: String?
@@ -58,7 +58,7 @@ struct CommunityState: Equatable {
     }
 
     init(
-        currentUserID: String = CommunityDummy.currentUserID,
+        currentUserID: String? = nil,
         posts: [Post] = []
     ) {
         self.currentUserID = currentUserID
@@ -97,8 +97,8 @@ enum CommunityAction: Equatable {
 
 struct CommunityReducer: Reducer {
     
-    @Dependency(\.communityRepository)
-    var communityRepository
+    @Dependency(\.communityRepository) var communityRepository
+    @Dependency(\.authSessionClient) var authSessionClient
     
     var body: some Reducer<CommunityState, CommunityAction> {
         Scope(state: \.navigationBar, action: \.navigationBar) {
@@ -109,11 +109,23 @@ struct CommunityReducer: Reducer {
             switch action {
                 
             case .onAppear:
+                guard let currentUserID = authSessionClient.currentUserID() else {
+                    state.posts = []
+                    state.errorMessage = "로그인이 필요합니다."
+                    return .none
+                }
+
+                state.currentUserID = currentUserID
                 state.isLoading = true
                 state.errorMessage = nil
+
                 return .run { send in
-                    await send(.postsResponse(TaskResult {
-                        try await communityRepository.fetchPosts()} )
+                    await send(
+                        .postsResponse(
+                            TaskResult {
+                                try await communityRepository.fetchPosts()
+                            }
+                        )
                     )
                 }
                 
@@ -178,8 +190,17 @@ struct CommunityReducer: Reducer {
                 return .none
                 
             case .newPostCreated(let title, let content, let imageURLs):
+                guard let currentUserID = state.currentUserID else {
+                    state.errorMessage = "로그인이 필요합니다."
+                    return .none
+                }
+
                 let newPost = Post(
-                    author: Author(id: state.currentUserID, name: "나", profileImageURL: nil),
+                    author: Author(
+                        id: currentUserID,
+                        name: "나",
+                        profileImageURL: nil
+                    ),
                     title: title,
                     content: content,
                     createdAt: Date(),
