@@ -28,7 +28,9 @@ struct CommunityDetailState: Equatable {
     var isEditPresented: Bool = false
     
     var inputPlaceholder: String {
-        replyingToCommentID == nil ? "댓글을 입력하세요." : "대댓글을 입력하세요."
+        replyingToCommentID == nil
+            ? "댓글을 입력하세요."
+            : "대댓글을 입력하세요."
     }
     
     var isOwnPost: Bool {
@@ -55,7 +57,10 @@ enum CommunityDetailAction: Equatable {
     case navigationBar(NavigationBarAction)
     
     case likeTapped
-    case commentAction(commentID: UUID, action: CommunityCommentRow.Action)
+    case commentAction(
+        commentID: UUID,
+        action: CommunityCommentRow.Action
+    )
     
     case textChanged(String)
     case sendTapped
@@ -63,7 +68,20 @@ enum CommunityDetailAction: Equatable {
     case outsideTapped
     
     case editDismissed
-    case postEdited(title: String, content: String, imageURLs: [String])
+    case postEdited(
+        title: String,
+        content: String,
+        imageURLs: [String]
+    )
+    
+    case commentCreationResponse(
+        parentCommentID: UUID?,
+        TaskResult<Comment>
+    )
+    
+    case commentDeletionResponse(
+        TaskResult<UUID>
+    )
     
     case postDeletionResponse(TaskResult<String>)
     case postUpdateResponse(TaskResult<Post>)
@@ -73,10 +91,17 @@ enum CommunityDetailAction: Equatable {
 
 struct CommunityDetailReducer: Reducer {
     
-    @Dependency(\.communityRepository) var communityRepository
+    @Dependency(\.communityRepository)
+    var communityRepository
     
-    var body: some Reducer<CommunityDetailState, CommunityDetailAction> {
-        Scope(state: \.navigationBar, action: \.navigationBar) {
+    var body: some Reducer<
+        CommunityDetailState,
+        CommunityDetailAction
+    > {
+        Scope(
+            state: \.navigationBar,
+            action: \.navigationBar
+        ) {
             NavigationBarReducer()
         }
         
@@ -95,12 +120,14 @@ struct CommunityDetailReducer: Reducer {
                 
             case .navigationBar(.deleteTapped):
                 let postID = state.post.id
-
+                
                 return .run { send in
                     await send(
                         .postDeletionResponse(
                             TaskResult {
-                                try await communityRepository.deletePost(postID)
+                                try await communityRepository
+                                    .deletePost(postID)
+                                
                                 return postID
                             }
                         )
@@ -139,17 +166,23 @@ struct CommunityDetailReducer: Reducer {
                 return .none
                 
             case .commentAction(let id, .deleteTapped):
-                if let idx = state.post.comments.firstIndex(where: { $0.id == id }) {
-                    state.post.comments.remove(at: idx)
-                    return .none
+                let postID = state.post.id
+                
+                return .run { send in
+                    await send(
+                        .commentDeletionResponse(
+                            TaskResult {
+                                try await communityRepository
+                                    .deleteComment(
+                                        postID,
+                                        id
+                                    )
+                                
+                                return id
+                            }
+                        )
+                    )
                 }
-                for parentIdx in state.post.comments.indices {
-                    if let replyIdx = state.post.comments[parentIdx].replies.firstIndex(where: { $0.id == id }) {
-                        state.post.comments[parentIdx].replies.remove(at: replyIdx)
-                        return .none
-                    }
-                }
-                return .none
                 
             case .commentAction(_, .reportBoardSettings):
                 return .none
@@ -171,79 +204,204 @@ struct CommunityDetailReducer: Reducer {
                 
             case .sendTapped:
                 let trimmed = state.text
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !trimmed.isEmpty else { return .none }
+                    .trimmingCharacters(
+                        in: .whitespacesAndNewlines
+                    )
                 
-                let newComment = Comment(
-                    content: trimmed,
-                    author: Author(id: state.currentUserID, name: "나", profileImageURL: nil),
-                    createdAt: Date()
-                )
-                
-                if let parentID = state.replyingToCommentID,
-                   let parentIdx = state.post.comments.firstIndex(where: { $0.id == parentID }) {
-                    state.post.comments[parentIdx].replies.append(newComment)
-                } else {
-                    state.post.comments.append(newComment)
+                guard !trimmed.isEmpty else {
+                    return .none
                 }
+                
+                let postID = state.post.id
+                let currentUserID = state.currentUserID
+                let parentCommentID = state.replyingToCommentID
                 
                 state.text = ""
                 state.replyingToCommentID = nil
-                return .none
                 
-            case .outsideTapped:
-                state.replyingToCommentID = nil
-                return .none
-                
-            case .editDismissed:
-                state.isEditPresented = false
-                return .none
-
-            case .postEdited(let title, let content, _):
-                let trimmedTitle = title.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                )
-                let trimmedContent = content.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                )
-
-                guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else {
-                    state.errorMessage = "제목과 내용을 입력해주세요."
-                    return .none
-                }
-
-                var updatedPost = state.post
-                updatedPost.title = trimmedTitle
-                updatedPost.content = trimmedContent
-
                 return .run { send in
                     await send(
-                        .postUpdateResponse(
+                        .commentCreationResponse(
+                            parentCommentID: parentCommentID,
                             TaskResult {
-                                try await communityRepository.updatePost(updatedPost)
+                                try await communityRepository
+                                    .createComment(
+                                        postID,
+                                        currentUserID,
+                                        "나",
+                                        trimmed,
+                                        parentCommentID
+                                    )
                             }
                         )
                     )
                 }
                 
+            case .outsideTapped:
+                state.replyingToCommentID = nil
+                return .none
+                
+            // MARK: Edit
+                
+            case .editDismissed:
+                state.isEditPresented = false
+                return .none
+                
+            case .postEdited(
+                let title,
+                let content,
+                _
+            ):
+                let trimmedTitle = title
+                    .trimmingCharacters(
+                        in: .whitespacesAndNewlines
+                    )
+                
+                let trimmedContent = content
+                    .trimmingCharacters(
+                        in: .whitespacesAndNewlines
+                    )
+                
+                guard
+                    !trimmedTitle.isEmpty,
+                    !trimmedContent.isEmpty
+                else {
+                    state.errorMessage =
+                        "제목과 내용을 입력해주세요."
+                    return .none
+                }
+                
+                var updatedPost = state.post
+                updatedPost.title = trimmedTitle
+                updatedPost.content = trimmedContent
+                
+                return .run { send in
+                    await send(
+                        .postUpdateResponse(
+                            TaskResult {
+                                try await communityRepository
+                                    .updatePost(updatedPost)
+                            }
+                        )
+                    )
+                }
+                
+            // MARK: Comment Creation Response
+                
+            case let .commentCreationResponse(
+                parentCommentID,
+                .success(comment)
+            ):
+                if let parentCommentID,
+                   let parentIndex =
+                    state.post.comments.firstIndex(
+                        where: {
+                            $0.id == parentCommentID
+                        }
+                    ) {
+                    
+                    state.post
+                        .comments[parentIndex]
+                        .replies
+                        .append(comment)
+                    
+                } else {
+                    state.post.comments.append(comment)
+                }
+                
+                return .none
+                
+            case .commentCreationResponse(
+                _,
+                .failure(let error)
+            ):
+                state.errorMessage =
+                    error.localizedDescription
+                return .none
+                
+            // MARK: Comment Deletion Response
+                
+            case .commentDeletionResponse(
+                .success(let commentID)
+            ):
+                // 일반 댓글 삭제
+                if let index =
+                    state.post.comments.firstIndex(
+                        where: {
+                            $0.id == commentID
+                        }
+                    ) {
+                    
+                    state.post.comments.remove(
+                        at: index
+                    )
+                    
+                    return .none
+                }
+                
+                // 대댓글 삭제
+                for parentIndex
+                    in state.post.comments.indices {
+                    
+                    if let replyIndex =
+                        state.post
+                            .comments[parentIndex]
+                            .replies
+                            .firstIndex(
+                                where: {
+                                    $0.id == commentID
+                                }
+                            ) {
+                        
+                        state.post
+                            .comments[parentIndex]
+                            .replies
+                            .remove(
+                                at: replyIndex
+                            )
+                        
+                        break
+                    }
+                }
+                
+                return .none
+                
+            case .commentDeletionResponse(
+                .failure(let error)
+            ):
+                state.errorMessage =
+                    error.localizedDescription
+                return .none
+                
+            // MARK: Post Deletion Response
+                
             case .postDeletionResponse(.success):
                 state.isDeleted = true
                 state.shouldDismiss = true
                 return .none
-
-            case .postDeletionResponse(.failure(let error)):
-                state.errorMessage = error.localizedDescription
+                
+            case .postDeletionResponse(
+                .failure(let error)
+            ):
+                state.errorMessage =
+                    error.localizedDescription
                 return .none
                 
-            case .postUpdateResponse(.success(let updatedPost)):
+            // MARK: Post Update Response
+                
+            case .postUpdateResponse(
+                .success(let updatedPost)
+            ):
                 state.post = updatedPost
                 state.isEditPresented = false
                 return .none
-
-            case .postUpdateResponse(.failure(let error)):
-                state.errorMessage = error.localizedDescription
-                return .none
                 
+            case .postUpdateResponse(
+                .failure(let error)
+            ):
+                state.errorMessage =
+                    error.localizedDescription
+                return .none
             }
         }
     }

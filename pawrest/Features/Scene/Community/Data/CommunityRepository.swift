@@ -35,6 +35,29 @@ struct CommunityRepository {
         _ isLiked: Bool
     ) async throws -> Void
     
+    var fetchComments: @Sendable (
+        _ postID: String
+    ) async throws -> [Comment]
+
+    var createComment: @Sendable (
+        _ postID: String,
+        _ authorID: String,
+        _ authorName: String,
+        _ content: String,
+        _ parentCommentID: UUID?
+    ) async throws -> Comment
+
+    var deleteComment: @Sendable (
+        _ postID: String,
+        _ commentID: UUID
+    ) async throws -> Void
+
+    var updateComment: @Sendable (
+        _ postID: String,
+        _ commentID: UUID,
+        _ content: String
+    ) async throws -> Void
+    
 }
 
 // MARK: - DependencyKey
@@ -58,6 +81,29 @@ extension CommunityRepository: DependencyKey {
                                 postID: post.id,
                                 userID: userID
                             )
+
+                            let commentDTOs = try await service.fetchComments(
+                                postID: post.id
+                            )
+
+                            let topLevelDTOs = commentDTOs.filter {
+                                $0.parentCommentID == nil
+                            }
+
+                            post.comments = topLevelDTOs.map { parentDTO in
+                                let replies = commentDTOs
+                                    .filter {
+                                        $0.parentCommentID == parentDTO.id
+                                    }
+                                    .map {
+                                        $0.toDomain()
+                                    }
+
+                                return parentDTO.toDomain(
+                                    replies: replies
+                                )
+                            }
+
                             return post
                         }
                     }
@@ -104,7 +150,66 @@ extension CommunityRepository: DependencyKey {
                     userID: userID,
                     isLiked: isLiked
                 )
+            },
+
+            fetchComments: { postID in
+                let dtos = try await service.fetchComments(
+                    postID: postID
+                )
+
+                let topLevelDTOs = dtos.filter {
+                    $0.parentCommentID == nil
+                }
+
+                return topLevelDTOs.map { parentDTO in
+                    let replies = dtos
+                        .filter {
+                            $0.parentCommentID == parentDTO.id
+                        }
+                        .map {
+                            $0.toDomain()
+                        }
+
+                    return parentDTO.toDomain(
+                        replies: replies
+                    )
+                }
+            },
+
+            createComment: {
+                postID,
+                authorID,
+                authorName,
+                content,
+                parentCommentID in
+
+                let dto = try await service.createComment(
+                    postID: postID,
+                    authorID: authorID,
+                    authorName: authorName,
+                    content: content,
+                    parentCommentID: parentCommentID
+                )
+
+                return dto.toDomain()
+            },
+
+            deleteComment: { postID, commentID in
+                try await service.deleteComment(
+                    postID: postID,
+                    commentID: commentID
+                )
+            },
+
+            updateComment: { postID, commentID, content in
+                try await service.updateComment(
+                    postID: postID,
+                    commentID: commentID,
+                    content: content
+                )
             }
+            
+            
         )
     }()
 }
