@@ -61,6 +61,7 @@ struct CommunityDetailView: View {
             ) {
                 editView
             }
+            .hideTabBar()
     }
 }
 
