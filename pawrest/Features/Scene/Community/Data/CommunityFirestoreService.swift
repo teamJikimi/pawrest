@@ -86,4 +86,87 @@ final class CommunityFirestoreService {
                 "content": content
             ])
     }
+    
+    func fetchLikedPostIDs(userID: String) async throws -> Set<String> {
+        let snapshot = try await firestore
+            .collectionGroup("likes")
+            .whereField(FieldPath.documentID(), isEqualTo: userID)
+            .getDocuments()
+
+        return Set(
+            snapshot.documents.compactMap {
+                $0.reference.parent.parent?.documentID
+            }
+        )
+    }
+    
+    func isPostLiked(
+        postID: String,
+        userID: String
+    ) async throws -> Bool {
+        let document = try await firestore
+            .collection("posts")
+            .document(postID)
+            .collection("likes")
+            .document(userID)
+            .getDocument()
+
+        return document.exists
+    }
+    
+    func toggleLike(
+        postID: String,
+        userID: String,
+        isLiked: Bool
+    ) async throws {
+
+        let postRef = firestore
+            .collection("posts")
+            .document(postID)
+
+        let likeRef = postRef
+            .collection("likes")
+            .document(userID)
+
+        try await firestore.runTransaction { transaction, errorPointer in
+
+            do {
+                let postSnapshot = try transaction.getDocument(postRef)
+
+                let currentLikeCount =
+                    postSnapshot.data()?["likeCount"] as? Int ?? 0
+
+                if isLiked {
+                    transaction.deleteDocument(likeRef)
+
+                    transaction.updateData(
+                        [
+                            "likeCount": max(0, currentLikeCount - 1)
+                        ],
+                        forDocument: postRef
+                    )
+                } else {
+                    transaction.setData(
+                        [
+                            "createdAt": Timestamp(date: Date())
+                        ],
+                        forDocument: likeRef
+                    )
+
+                    transaction.updateData(
+                        [
+                            "likeCount": currentLikeCount + 1
+                        ],
+                        forDocument: postRef
+                    )
+                }
+
+                return nil
+
+            } catch {
+                errorPointer?.pointee = error as NSError
+                return nil
+            }
+        }
+    }
 }

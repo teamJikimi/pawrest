@@ -9,7 +9,9 @@ import ComposableArchitecture
 import Foundation
 
 struct CommunityRepository {
-    var fetchPosts: @Sendable () async throws -> [Post]
+    var fetchPosts: @Sendable (
+        _ userID: String
+    ) async throws -> [Post]
 
     var createPost: @Sendable (
         _ authorID: String,
@@ -21,6 +23,18 @@ struct CommunityRepository {
     var deletePost: @Sendable (_ postID: String) async throws -> Void
     
     var updatePost: @Sendable (_ post: Post) async throws -> Post
+    
+    var isPostLiked: @Sendable (
+        _ postID: String,
+        _ userID: String
+    ) async throws -> Bool
+
+    var toggleLike: @Sendable (
+        _ postID: String,
+        _ userID: String,
+        _ isLiked: Bool
+    ) async throws -> Void
+    
 }
 
 // MARK: - DependencyKey
@@ -31,9 +45,31 @@ extension CommunityRepository: DependencyKey {
         let service = CommunityFirestoreService()
 
         return CommunityRepository(
-            fetchPosts: {
+            fetchPosts: { userID in
                 let postDTOs = try await service.fetchPosts()
-                return postDTOs.map { $0.toDomain() }
+                return try await withThrowingTaskGroup(
+                    of: Post.self
+                ) { group in
+                    for dto in postDTOs {
+                        group.addTask {
+                            var post = dto.toDomain()
+
+                            post.isLiked = try await service.isPostLiked(
+                                postID: post.id,
+                                userID: userID
+                            )
+                            return post
+                        }
+                    }
+                    var posts: [Post] = []
+
+                    for try await post in group {
+                        posts.append(post)
+                    }
+                    return posts.sorted {
+                        $0.createdAt > $1.createdAt
+                    }
+                }
             },
             createPost: { authorID, authorName, title, content in
                 let postDTO = try await service.createPost(
@@ -54,6 +90,20 @@ extension CommunityRepository: DependencyKey {
                     content: post.content
                 )
                 return post
+            },
+            isPostLiked: { postID, userID in
+                try await service.isPostLiked(
+                    postID: postID,
+                    userID: userID
+                )
+            },
+
+            toggleLike: { postID, userID, isLiked in
+                try await service.toggleLike(
+                    postID: postID,
+                    userID: userID,
+                    isLiked: isLiked
+                )
             }
         )
     }()
