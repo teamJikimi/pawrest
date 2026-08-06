@@ -117,5 +117,14 @@ struct HomeView: View {
                     }
             }
         }
+        .navigationDestination(isPresented: Binding(
+            get: { store.selectedRecommendedContentID != nil },
+            set: { if !$0 { store.send(.recommendedContentDetailDismissed) } }
+        )) {
+            if let id = store.selectedRecommendedContentID,
+               let item = store.recommendedContent.items.first(where: { $0.id == id }) {
+                RecommendContentDetailView(detail: item.detail)
+            }
+        }
     }
 }
