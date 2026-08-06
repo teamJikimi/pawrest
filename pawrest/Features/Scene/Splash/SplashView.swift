@@ -27,10 +27,3 @@ struct SplashView: View {
     }
 }
 
-#Preview {
-    SplashView(
-        store: Store(initialState: SplashState()){
-            SplashReducer()
-        }
-    )
-}
