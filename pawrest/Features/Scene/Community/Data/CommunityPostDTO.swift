@@ -69,9 +69,9 @@ extension CommunityPostDTO {
 
     func toDomain() -> Post {
         Post(
-            id: UUID.deterministic(from: id),
+            id: id,
             author: Author(
-                id: UUID.deterministic(from: authorID),
+                id: authorID,
                 name: authorName,
                 profileImageURL: authorProfileImageURL
             ),
@@ -83,27 +83,5 @@ extension CommunityPostDTO {
             isLiked: false,
             comments: []
         )
-    }
-}
-
-// MARK: - UUID Helper
-
-private extension UUID {
-
-    static func deterministic(from string: String) -> UUID {
-        var hash = Array(repeating: UInt8(0), count: 16)
-
-        for (index, byte) in string.utf8.enumerated() {
-            hash[index % 16] = hash[index % 16] &+ byte
-        }
-
-        let uuid = uuid_t(
-            hash[0], hash[1], hash[2], hash[3],
-            hash[4], hash[5], hash[6], hash[7],
-            hash[8], hash[9], hash[10], hash[11],
-            hash[12], hash[13], hash[14], hash[15]
-        )
-
-        return UUID(uuid: uuid)
     }
 }

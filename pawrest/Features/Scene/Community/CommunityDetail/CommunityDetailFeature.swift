@@ -16,7 +16,7 @@ struct CommunityDetailState: Equatable {
     var text: String = ""
     var navigationBar: NavigationBarState
     
-    let currentUserID: UUID
+    let currentUserID: String
     
     var replyingToCommentID: UUID? = nil
     
@@ -33,13 +33,15 @@ struct CommunityDetailState: Equatable {
         post.author.id == currentUserID
     }
     
-    init(post: Post, currentUserID: UUID) {
+    init(post: Post, currentUserID: String) {
         self.post = post
         self.currentUserID = currentUserID
         self.navigationBar = NavigationBarState(
             title: "커뮤니티",
             leftButton: .back,
-            rightButton: post.author.id == currentUserID ? .editMenu : .reportMenu
+            rightButton: post.author.id == currentUserID
+                ? .editMenu
+                : .reportMenu
         )
     }
 }

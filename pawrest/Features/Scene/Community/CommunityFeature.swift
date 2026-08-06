@@ -34,7 +34,7 @@ struct CommunityState: Equatable {
     var isDetailPresented: Bool = false
     
     var posts: [Post] = []
-    var currentUserID: UUID
+    var currentUserID: String
 
     var isLoading: Bool = false
     var errorMessage: String?
@@ -58,7 +58,7 @@ struct CommunityState: Equatable {
     }
 
     init(
-        currentUserID: UUID = CommunityDummy.currentUserID,
+        currentUserID: String = CommunityDummy.currentUserID,
         posts: [Post] = []
     ) {
         self.currentUserID = currentUserID
@@ -80,7 +80,7 @@ enum CommunityAction: Equatable {
     case sortModeSelected(SortMode)
     case outsideTapped
     
-    case likeTapped(postID: UUID)
+    case likeTapped(postID: String)
     
     case myPostDismissed
     case writePostDismissed
@@ -90,7 +90,7 @@ enum CommunityAction: Equatable {
     case newPostCreated(title: String, content: String, imageURLs: [String])
     case myPostsUpdated(posts: [Post])
     case postStateUpdated(Post)
-    case postDeleted(UUID)
+    case postDeleted(String)
 }
 
 // MARK: - Reducer
