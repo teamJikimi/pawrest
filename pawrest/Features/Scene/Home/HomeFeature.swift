@@ -17,37 +17,40 @@ struct HomeFeature: Reducer {
         var isReportPresented: Bool = false
         var isSelfAssessmentPresented: Bool = false
         var selfAssessmentType: SelfAssessmentType? = nil
-        
+
         var selectedSelfAssessmentType: SelfAssessmentType? = nil
-        
+
+        var selectedRecommendedContentID: RecommendedContentItem.ID? = nil
+
         var navigationBar = NavigationBarState(
             title: "",
             leftButton: .logo,
             rightButton: .alarm
         )
     }
-    
+
     @CasePathable
     enum Action {
         case onAppear
         case alarmDismissed
         case reportDismissed
         case selfAssessmentTapped(SelfAssessmentType)
-        
+
         case selfAssessmentStartTapped
         case selfAssessmentOverlayDismissed
-        
+
         case selfAssessmentDismissed
+        case recommendedContentDetailDismissed
         case emotionCheckIn(EmotionCheckInFeature.Action)
         case recommendedContent(RecommendedContentFeature.Action)
         case recentRecord(RecentRecordFeature.Action)
         case navigationBar(NavigationBarAction)
     }
-    
+
     private let emotionCheckInReducer = EmotionCheckInFeature()
     private let recommendedContentReducer = RecommendedContentFeature()
     private let recentRecordReducer = RecentRecordFeature()
-    
+
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .onAppear:
@@ -58,11 +61,11 @@ struct HomeFeature: Reducer {
         case .reportDismissed:
             state.isReportPresented = false
             return .none
-            
+
         case .selfAssessmentTapped(let type):
             state.selectedSelfAssessmentType = type
             return .none
-            
+
         case .selfAssessmentStartTapped:
             guard let selectedType = state.selectedSelfAssessmentType else {
                 return .none
@@ -71,15 +74,20 @@ struct HomeFeature: Reducer {
             state.selectedSelfAssessmentType = nil
             state.isSelfAssessmentPresented = true
             return .none
-            
+
         case .selfAssessmentOverlayDismissed:
             state.selectedSelfAssessmentType = nil
             return .none
-            
+
         case .selfAssessmentDismissed:
             state.isSelfAssessmentPresented = false
             state.selfAssessmentType = nil
             return .none
+
+        case .recommendedContentDetailDismissed:
+            state.selectedRecommendedContentID = nil
+            return .none
+
         case .navigationBar(.alarmTapped):
             state.isAlarmPresented = true
             return .none
@@ -90,6 +98,9 @@ struct HomeFeature: Reducer {
                 .reduce(into: &state.emotionCheckIn, action: emotionAction)
                 .map(Action.emotionCheckIn)
         case .recommendedContent(let contentAction):
+            if case .itemTapped(let id) = contentAction {
+                state.selectedRecommendedContentID = id
+            }
             return recommendedContentReducer
                 .reduce(into: &state.recommendedContent, action: contentAction)
                 .map(Action.recommendedContent)

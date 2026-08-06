@@ -11,6 +11,7 @@ import ComposableArchitecture
 @ObservableState
 struct LoginState: Equatable {
     var isLoading = false
+    var isSignedIn = false
     var errorMessage: String?
 }
 
@@ -46,7 +47,7 @@ struct LoginReducer: Reducer {
 
             case .signInResponse(.success):
                 state.isLoading = false
-                // TODO: 프로필 설정 화면으로 이동
+                state.isSignedIn = true
                 return .none
 
             case .signInResponse(.failure):

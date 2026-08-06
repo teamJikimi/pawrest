@@ -42,8 +42,10 @@ enum AppAction {
     case onboardingPetProfile(OnboardingPetProfileAction)
     case onboardingIntroduce(OnboardingIntroduceAction)
     case tabBar(TabBarFeature.Action)
+    case logoutCompleted
+    case loginSucceeded(hasProfile: Bool)
 }
-  
+
 struct AppReducer: Reducer {
     var body: some Reducer<AppState, AppAction> {
         Scope(state: \.splash, action: \.splash) {
@@ -75,8 +77,8 @@ struct AppReducer: Reducer {
                 state.destination = .tabBar
                 return .none
 
-            case .login(.signInResponse(.success)):
-                state.destination = .onboardingUserProfile
+            case .loginSucceeded(let hasProfile):
+                state.destination = hasProfile ? .tabBar : .onboardingUserProfile
                 return .none
 
             case .onboardingUserProfile(.nextTapped):
@@ -105,6 +107,22 @@ struct AppReducer: Reducer {
 
             case .onboardingIntroduce(.saveCompleted):
                 state.destination = .tabBar
+                return .none
+
+            case .logoutCompleted:
+                state.login = LoginState()
+                state.tabBar = TabBarFeature.State()
+                state.onboardingUserProfile = OnboardingUserProfileState()
+                state.onboardingPetProfile = OnboardingPetProfileState(nickname: "", userProfileImage: nil)
+                state.onboardingIntroduce = OnboardingIntroduceState(
+                    nickname: "",
+                    petName: "",
+                    userProfileImage: nil,
+                    petProfileImage: nil,
+                    petBirthday: nil,
+                    petDeathDay: nil
+                )
+                state.destination = .login
                 return .none
 
             case .splash, .login, .onboardingUserProfile, .onboardingPetProfile, .onboardingIntroduce, .tabBar:
