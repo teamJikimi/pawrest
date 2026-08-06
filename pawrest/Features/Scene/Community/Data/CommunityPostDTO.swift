@@ -25,6 +25,30 @@ struct CommunityPostDTO {
 
     let likeCount: Int
     let commentCount: Int
+    
+    init(
+        id: String,
+        authorID: String,
+        authorName: String,
+        authorProfileImageURL: String?,
+        title: String,
+        content: String,
+        createdAt: Date,
+        imageURLs: [String],
+        likeCount: Int,
+        commentCount: Int
+    ) {
+        self.id = id
+        self.authorID = authorID
+        self.authorName = authorName
+        self.authorProfileImageURL = authorProfileImageURL
+        self.title = title
+        self.content = content
+        self.createdAt = createdAt
+        self.imageURLs = imageURLs
+        self.likeCount = likeCount
+        self.commentCount = commentCount
+    }
 }
 
 // MARK: - Firestore Mapping

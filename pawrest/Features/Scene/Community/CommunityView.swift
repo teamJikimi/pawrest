@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 
 struct CommunityView: View {
     @Bindable var store: StoreOf<CommunityReducer>
     @FocusState private var isSearchFocused: Bool
+    @Query private var userProfiles: [UserProfile]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,6 +28,12 @@ struct CommunityView: View {
             }
         }
         .task {
+            let nickname = userProfiles
+                .sorted { $0.createdAt > $1.createdAt }
+                .first?
+                .nickname
+
+            store.send(.userProfileLoaded(nickname))
             store.send(.onAppear)
         }
         .customNavigationBar(
