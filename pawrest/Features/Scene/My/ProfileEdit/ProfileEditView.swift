@@ -20,6 +20,7 @@ struct ProfileEditView: View {
     @State private var selectedPetItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -31,7 +32,7 @@ struct ProfileEditView: View {
                 )
             )
             .padding(.horizontal, 20)
-            .padding(.top, 20)
+            .padding(.top, 12)
 
             switch store.selectedTab {
             case .user:
@@ -84,6 +85,13 @@ struct ProfileEditView: View {
             }
         }
         .hideTabBar()
+        .toast(
+            isPresented: Binding(
+                get: { store.showSavedToast },
+                set: { if !$0 { store.send(.toastDismissed) } }
+            ),
+            message: "프로필이 저장되었어요"
+        )
     }
 }
 
@@ -93,28 +101,74 @@ private extension ProfileEditView {
 
     // MARK: 유저 프로필 탭
     var userContent: some View {
-        VStack(spacing: 24) {
+        VStack(alignment: .leading, spacing: 0) {
             userProfileImageSection
-                .padding(.top, 32)
+                .padding(.top, 40)
+                .frame(maxWidth: .infinity)
 
-            editTextField(
-                label: "닉네임",
-                text: Binding(
-                    get: { store.nickname },
-                    set: { store.send(.nicknameChanged($0)) }
-                )
-            )
-            .padding(.horizontal, 20)
+            nicknameField
+                .padding(.top, 40)
+
+            if let helperText = store.nicknameStatus.helper.text {
+                Text(helperText)
+                    .typography(.body4R)
+                    .foregroundColor(store.nicknameStatus.helper.color)
+                    .padding(.top, 10)
+                    .padding(.leading, 5)
+            }
         }
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: 닉네임 필드
+    var nicknameField: some View {
+        HStack(spacing: 0) {
+            Text("닉네임")
+                .typography(.body1M)
+                .foregroundStyle(.gray80)
+                .frame(width: 44, alignment: .leading)
+
+            Rectangle()
+                .fill(Color.gray20)
+                .frame(width: 1, height: 18)
+                .padding(.leading, 10)
+                .padding(.trailing, 10)
+
+            TextField("", text: Binding(
+                get: { store.nickname },
+                set: { store.send(.nicknameChanged($0)) }
+            ))
+            .typography(.body1R)
+            .foregroundStyle(.gray80)
+            .focused($isFocused)
+
+            Button {
+                store.send(.duplicateCheckTapped)
+            } label: {
+                Text("중복체크")
+                    .typography(.body3R)
+                    .foregroundStyle(.gray0)
+                    .padding(.horizontal, 10)
+                    .frame(height: 24)
+                    .background(store.isDuplicateCheckEnabled ? .pawPrimary : .gray40)
+                    .cornerRadius(11, corners: .allCorners)
+            }
+            .disabled(!store.isDuplicateCheckEnabled)
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 45)
+        .background(Color.white)
+        .cornerRadius(10, corners: .allCorners)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
     }
 
     // MARK: 펫 프로필 탭
     var petContent: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 40) {
             petProfileImageSection
-                .padding(.top, 32)
+                .padding(.top, 40)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 8) {
                 editTextField(
                     label: "이름",
                     text: Binding(
@@ -139,7 +193,7 @@ private extension ProfileEditView {
         }
     }
 
-    // MARK: 유저 이미지 라벨
+    // MARK: 유저 이미지
     var userProfileImageLabel: some View {
         let clipShape = ProfileClipShape(profileSize: 86, cutoutSize: 24, offset: CGPoint(x: 2, y: 2))
         return ZStack(alignment: .bottomTrailing) {
@@ -179,7 +233,7 @@ private extension ProfileEditView {
         }
     }
 
-    // MARK: 펫 이미지 라벨
+    // MARK: 펫 이미지
     var petProfileImageLabel: some View {
         let clipShape = ProfileClipShape(profileSize: 86, cutoutSize: 24, offset: CGPoint(x: 2, y: 2))
         return ZStack(alignment: .bottomTrailing) {
@@ -221,41 +275,58 @@ private extension ProfileEditView {
 
     // MARK: 텍스트 필드
     func editTextField(label: String, text: Binding<String>) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
             Text(label)
-                .typography(.body2M)
-                .foregroundStyle(.gray60)
-                .frame(width: 44, alignment: .leading)
-            TextField("", text: text)
-                .typography(.body2R1)
+                .typography(.body1M)
                 .foregroundStyle(.gray80)
+                .frame(width: 44, alignment: .leading)
+
+            Rectangle()
+                .fill(Color.gray20)
+                .frame(width: 1, height: 18)
+                .padding(.leading, 10)
+                .padding(.trailing, 10)
+
+            TextField("", text: text)
+                .typography(.body1R)
+                .foregroundStyle(.gray80)
+                .focused($isFocused)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .frame(height: 45)
         .background(Color.white)
-        .cornerRadius(12, corners: .allCorners)
+        .cornerRadius(10, corners: .allCorners)
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
     }
 
     // MARK: 날짜 필드
     func editDateField(label: String, text: String, onTap: @escaping () -> Void) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
             Text(label)
-                .typography(.body2M)
-                .foregroundStyle(.gray60)
+                .typography(.body1M)
+                .foregroundStyle(.gray80)
                 .frame(width: 44, alignment: .leading)
+
+            Rectangle()
+                .fill(Color.gray20)
+                .frame(width: 1, height: 18)
+                .padding(.leading, 10)
+                .padding(.trailing, 10)
+
             Text(text.isEmpty ? "날짜를 선택하세요" : text)
-                .typography(.body2R1)
+                .typography(.body1R)
                 .foregroundStyle(text.isEmpty ? .gray40 : .gray80)
+
             Spacer()
-            Image(.imageGrayCalendar)
+
+            Image(.iconCalender)
                 .resizable()
-                .frame(width: 16, height: 16)
+                .frame(width: 24, height: 24)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .frame(height: 45)
         .background(Color.white)
-        .cornerRadius(12, corners: .allCorners)
+        .cornerRadius(10, corners: .allCorners)
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
         .onTapGesture { onTap() }
     }
@@ -263,6 +334,7 @@ private extension ProfileEditView {
     // MARK: 저장 버튼
     var saveButton: some View {
         Button {
+            isFocused = false
             store.send(.saveTapped)
             if let user = userProfiles.first {
                 user.nickname = store.nickname
@@ -281,9 +353,10 @@ private extension ProfileEditView {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(.pawPrimary)
+                .background(store.isChanged ? .pawPrimary : .gray40)
                 .cornerRadius(14, corners: .allCorners)
         }
+        .disabled(!store.isChanged)
     }
 
     // MARK: 날짜 피커 시트
