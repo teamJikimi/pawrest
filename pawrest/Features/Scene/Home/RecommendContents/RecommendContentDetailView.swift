@@ -156,7 +156,7 @@ private extension RecommendContentDetailView {
             }
             
             if !item.subBullets.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     ForEach(item.subBullets, id: \.self) { bullet in
                         HStack(alignment: .top, spacing: 6) {
                             Text("•")
