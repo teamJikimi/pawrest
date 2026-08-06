@@ -141,20 +141,21 @@ struct MemorialView: View {
                     Image(.imagePetNameSignboard)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 80, height: 99)
-                    Text(store.petName)
+                        .frame(width: 100, height: 120)
+                    Text(formattedPetName(store.petName))
                         .font(.custom("Ownglyph_PDH-Rg", size: 22))
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
-                        .padding(.horizontal, 25)
-                        .padding(.vertical, 9)
+                        .minimumScaleFactor(0.5)
+                        .frame(width: 70)
                         .offset(y: -18)
                 }
-                .padding(.leading, 120)
+                .frame(width: 100, height: 120)
+                .padding(.leading, 111)
                 Spacer()
             }
-            .padding(.bottom, 55)
+            .padding(.bottom, 80)
 
             VStack(spacing: 10) {
                 if isFull {
@@ -208,4 +209,10 @@ struct MemorialView: View {
             .position(x: 287, y: 352)
         }
     }
+}
+
+private func formattedPetName(_ name: String) -> String {
+    guard name.count > 6 else { return name }
+    let index = name.index(name.startIndex, offsetBy: 6)
+    return String(name[..<index]) + "\n" + String(name[index...])
 }
