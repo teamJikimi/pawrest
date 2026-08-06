@@ -86,12 +86,3 @@ extension LoginView {
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    LoginView(
-        store: Store(initialState: LoginState()) {
-            LoginReducer()
-        }
-    )
-}
