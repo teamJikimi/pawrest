@@ -17,6 +17,7 @@ struct MemorialView: View {
     @Query private var petProfiles: [PetProfile]
 
     @State private var selectedLetter: LetterModel? = nil
+    @State private var petName: String = ""
 
     private let tabBarContentHeight: CGFloat = 62
     private let deliveryInterval: TimeInterval = 24 * 60 * 60
@@ -51,6 +52,7 @@ struct MemorialView: View {
                 ZStack(alignment: .top) {
                     bottomArea(isFull: isFull, now: now)
                     headerView(now: now)
+                    signboard
                     airplanes(geo: geo, now: now)
                 }
                 .background(
@@ -64,11 +66,19 @@ struct MemorialView: View {
         }
         .onAppear {
             if let name = petProfiles.first?.name {
+                petName = name
                 store.send(.setPetName(name))
             }
         }
         .onChange(of: petProfiles.first?.name) { _, name in
             if let name {
+                petName = name
+                store.send(.setPetName(name))
+            }
+        }
+        .onChange(of: letters) { _, _ in
+            if let name = petProfiles.first?.name {
+                petName = name
                 store.send(.setPetName(name))
             }
         }
@@ -95,10 +105,40 @@ struct MemorialView: View {
             modelContext.insert(model)
             try? modelContext.save()
             store.send(.letterSaved)
+            if let name = petProfiles.first?.name {
+                petName = name
+                store.send(.setPetName(name))
+            }
         }
     }
 
     // MARK: - Subviews
+
+    private var signboard: some View {
+        VStack {
+            Spacer()
+            HStack {
+                ZStack {
+                    Image(.imagePetNameSignboard)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 100, height: 120)
+                    Text(formattedPetName(petName))
+                        .font(.custom("Ownglyph_PDH-Rg", size: 22))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.5)
+                        .frame(width: 70)
+                        .offset(y: -18)
+                }
+                .frame(width: 100, height: 120)
+                .padding(.leading, 111)
+                Spacer()
+            }
+            .padding(.bottom, 20 + tabBarContentHeight + 79 + 52)
+        }
+    }
 
     private func headerView(now: Date) -> some View {
         VStack(alignment: .leading, spacing: -12) {
@@ -136,26 +176,6 @@ struct MemorialView: View {
     private func bottomArea(isFull: Bool, now: Date) -> some View {
         VStack(spacing: 0) {
             Spacer()
-            HStack(spacing: 0) {
-                ZStack {
-                    Image(.imagePetNameSignboard)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 100, height: 120)
-                    Text(formattedPetName(store.petName))
-                        .font(.custom("Ownglyph_PDH-Rg", size: 22))
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.5)
-                        .frame(width: 70)
-                        .offset(y: -18)
-                }
-                .frame(width: 100, height: 120)
-                .padding(.leading, 111)
-                Spacer()
-            }
-            .padding(.bottom, 80)
 
             VStack(spacing: 10) {
                 if isFull {
@@ -206,7 +226,7 @@ struct MemorialView: View {
                     .rotationEffect(.degrees(-35))
             }
             .buttonStyle(.plain)
-            .position(x: 287, y: 352)
+            .position(x: 310, y: 280)
         }
     }
 }
