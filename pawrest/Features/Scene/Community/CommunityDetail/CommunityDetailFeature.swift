@@ -66,6 +66,7 @@ enum CommunityDetailAction: Equatable {
     case postEdited(title: String, content: String, imageURLs: [String])
     
     case postDeletionResponse(TaskResult<String>)
+    case postUpdateResponse(TaskResult<Post>)
 }
 
 // MARK: - Reducer
@@ -198,12 +199,32 @@ struct CommunityDetailReducer: Reducer {
                 state.isEditPresented = false
                 return .none
 
-            case .postEdited(let title, let content, let imageURLs):
-                state.post.title = title
-                state.post.content = content
-                state.post.imageURLs = imageURLs
-                state.isEditPresented = false
-                return .none
+            case .postEdited(let title, let content, _):
+                let trimmedTitle = title.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+                let trimmedContent = content.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+
+                guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else {
+                    state.errorMessage = "제목과 내용을 입력해주세요."
+                    return .none
+                }
+
+                var updatedPost = state.post
+                updatedPost.title = trimmedTitle
+                updatedPost.content = trimmedContent
+
+                return .run { send in
+                    await send(
+                        .postUpdateResponse(
+                            TaskResult {
+                                try await communityRepository.updatePost(updatedPost)
+                            }
+                        )
+                    )
+                }
                 
             case .postDeletionResponse(.success):
                 state.isDeleted = true
@@ -213,6 +234,16 @@ struct CommunityDetailReducer: Reducer {
             case .postDeletionResponse(.failure(let error)):
                 state.errorMessage = error.localizedDescription
                 return .none
+                
+            case .postUpdateResponse(.success(let updatedPost)):
+                state.post = updatedPost
+                state.isEditPresented = false
+                return .none
+
+            case .postUpdateResponse(.failure(let error)):
+                state.errorMessage = error.localizedDescription
+                return .none
+                
             }
         }
     }

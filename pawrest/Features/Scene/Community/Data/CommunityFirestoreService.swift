@@ -72,4 +72,18 @@ final class CommunityFirestoreService {
             .document(postID)
             .delete()
     }
+    
+    func updatePost(
+        postID: String,
+        title: String,
+        content: String
+    ) async throws {
+        try await firestore
+            .collection("posts")
+            .document(postID)
+            .updateData([
+                "title": title,
+                "content": content
+            ])
+    }
 }
