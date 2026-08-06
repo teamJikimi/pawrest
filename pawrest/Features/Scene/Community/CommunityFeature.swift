@@ -90,12 +90,23 @@ enum CommunityAction: Equatable {
 
     case likeTapped(postID: String)
 
+    case likeResponse(
+        postID: String,
+        previousIsLiked: Bool,
+        success: Bool
+    )
+
     case myPostDismissed
     case writePostDismissed
     case detailPresented
     case detailDismissed
 
-    case newPostCreated(title: String, content: String, imageURLs: [String])
+    case newPostCreated(
+        title: String,
+        content: String,
+        imageURLs: [String]
+    )
+
     case myPostsUpdated(posts: [Post])
     case postStateUpdated(Post)
     case postDeleted(String)
@@ -108,12 +119,18 @@ struct CommunityReducer: Reducer {
     @Dependency(\.authSessionClient) var authSessionClient
 
     var body: some Reducer<CommunityState, CommunityAction> {
-        Scope(state: \.navigationBar, action: \.navigationBar) {
+        Scope(
+            state: \.navigationBar,
+            action: \.navigationBar
+        ) {
             NavigationBarReducer()
         }
 
         Reduce { state, action in
             switch action {
+
+            // MARK: User Profile
+
             case .userProfileLoaded(let nickname):
                 let trimmedNickname = nickname?
                     .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -123,6 +140,8 @@ struct CommunityReducer: Reducer {
                     : nil
 
                 return .none
+
+            // MARK: Load Posts
 
             case .onAppear:
                 guard let currentUserID = authSessionClient.currentUserID() else {
@@ -139,7 +158,9 @@ struct CommunityReducer: Reducer {
                     await send(
                         .postsResponse(
                             TaskResult {
-                                try await communityRepository.fetchPosts()
+                                try await communityRepository.fetchPosts(
+                                    currentUserID
+                                )
                             }
                         )
                     )
@@ -155,6 +176,8 @@ struct CommunityReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
 
+            // MARK: Navigation
+
             case .navigationBar(.writePostTapped):
                 state.isWritePostPresented = true
                 return .none
@@ -165,6 +188,8 @@ struct CommunityReducer: Reducer {
 
             case .navigationBar:
                 return .none
+
+            // MARK: Search / Sort
 
             case .textChanged(let newText):
                 state.text = newText
@@ -182,16 +207,75 @@ struct CommunityReducer: Reducer {
                 state.isSortMenuOpen = false
                 return .none
 
+            // MARK: Like
+
             case .likeTapped(let postID):
-                guard let idx = state.posts.firstIndex(
+                guard
+                    let userID = state.currentUserID,
+                    let index = state.posts.firstIndex(
+                        where: { $0.id == postID }
+                    )
+                else {
+                    return .none
+                }
+
+                let previousIsLiked = state.posts[index].isLiked
+
+                // Optimistic UI
+                state.posts[index].isLiked.toggle()
+                state.posts[index].likeCount +=
+                    state.posts[index].isLiked ? 1 : -1
+
+                return .run { send in
+                    do {
+                        try await communityRepository.toggleLike(
+                            postID,
+                            userID,
+                            previousIsLiked
+                        )
+
+                        await send(
+                            .likeResponse(
+                                postID: postID,
+                                previousIsLiked: previousIsLiked,
+                                success: true
+                            )
+                        )
+                    } catch {
+                        await send(
+                            .likeResponse(
+                                postID: postID,
+                                previousIsLiked: previousIsLiked,
+                                success: false
+                            )
+                        )
+                    }
+                }
+
+            case let .likeResponse(
+                postID,
+                previousIsLiked,
+                success
+            ):
+                // 성공했으면 optimistic UI 상태 그대로 유지
+                guard !success else {
+                    return .none
+                }
+
+                // 실패했으면 원래 상태로 rollback
+                guard let index = state.posts.firstIndex(
                     where: { $0.id == postID }
                 ) else {
                     return .none
                 }
 
-                state.posts[idx].isLiked.toggle()
-                state.posts[idx].likeCount += state.posts[idx].isLiked ? 1 : -1
+                state.posts[index].isLiked = previousIsLiked
+                state.posts[index].likeCount +=
+                    previousIsLiked ? 1 : -1
+
                 return .none
+
+            // MARK: Presentation
 
             case .myPostDismissed:
                 state.isMyPostPresented = false
@@ -209,7 +293,13 @@ struct CommunityReducer: Reducer {
                 state.isDetailPresented = false
                 return .none
 
-            case .newPostCreated(let title, let content, _):
+            // MARK: Create Post
+
+            case .newPostCreated(
+                let title,
+                let content,
+                _
+            ):
                 guard let currentUserID = state.currentUserID else {
                     state.errorMessage = "로그인이 필요합니다."
                     return .none
@@ -223,11 +313,15 @@ struct CommunityReducer: Reducer {
                 let trimmedTitle = title.trimmingCharacters(
                     in: .whitespacesAndNewlines
                 )
+
                 let trimmedContent = content.trimmingCharacters(
                     in: .whitespacesAndNewlines
                 )
 
-                guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else {
+                guard
+                    !trimmedTitle.isEmpty,
+                    !trimmedContent.isEmpty
+                else {
                     state.errorMessage = "제목과 내용을 입력해주세요."
                     return .none
                 }
@@ -235,7 +329,15 @@ struct CommunityReducer: Reducer {
                 return .run { send in
                     await send(
                         .postCreationResponse(
-                            TaskResult { try await communityRepository.createPost( currentUserID, authorName, trimmedTitle, trimmedContent ) } )
+                            TaskResult {
+                                try await communityRepository.createPost(
+                                    currentUserID,
+                                    authorName,
+                                    trimmedTitle,
+                                    trimmedContent
+                                )
+                            }
+                        )
                     )
                 }
 
@@ -248,21 +350,26 @@ struct CommunityReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
 
+            // MARK: Post State
+
             case .myPostsUpdated(let posts):
                 state.posts = posts
                 return .none
 
             case .postStateUpdated(let post):
-                if let idx = state.posts.firstIndex(
+                if let index = state.posts.firstIndex(
                     where: { $0.id == post.id }
                 ) {
-                    state.posts[idx] = post
+                    state.posts[index] = post
                 }
 
                 return .none
 
             case .postDeleted(let postID):
-                state.posts.removeAll { $0.id == postID }
+                state.posts.removeAll {
+                    $0.id == postID
+                }
+
                 return .none
             }
         }
