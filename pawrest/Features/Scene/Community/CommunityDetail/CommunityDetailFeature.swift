@@ -84,6 +84,7 @@ enum CommunityDetailAction: Equatable {
         TaskResult<UUID>
     )
     
+    case likeResponse(previousIsLiked: Bool, success: Bool)
     case postDeletionResponse(TaskResult<String>)
     case postUpdateResponse(TaskResult<Post>)
 }
@@ -153,8 +154,37 @@ struct CommunityDetailReducer: Reducer {
             // MARK: Post
                 
             case .likeTapped:
+                let postID = state.post.id
+                let userID = state.currentUserID
+                let previousIsLiked = state.post.isLiked
+                
                 state.post.isLiked.toggle()
                 state.post.likeCount += state.post.isLiked ? 1 : -1
+                
+                return .run { send in
+                    do {
+                        try await communityRepository.toggleLike(
+                            postID,
+                            userID,
+                            previousIsLiked
+                        )
+                        await send(.likeResponse(
+                            previousIsLiked: previousIsLiked,
+                            success: true
+                        ))
+                    } catch {
+                        await send(.likeResponse(
+                            previousIsLiked: previousIsLiked,
+                            success: false
+                        ))
+                    }
+                }
+                
+            case .likeResponse(let previousIsLiked, let success):
+                guard !success else { return .none }
+                
+                state.post.isLiked = previousIsLiked
+                state.post.likeCount += previousIsLiked ? 1 : -1
                 return .none
                 
             // MARK: Comment actions
