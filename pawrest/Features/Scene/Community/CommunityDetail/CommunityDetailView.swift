@@ -15,7 +15,7 @@ struct CommunityDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     var onPostStateUpdated: ((Post) -> Void)? = nil
-    var onPostDeleted: ((UUID) -> Void)? = nil
+    var onPostDeleted: ((String) -> Void)? = nil
     
     var body: some View {
         contentView
@@ -49,7 +49,7 @@ struct CommunityDetailView: View {
                     isInputFocused = false
                 }
             }
-            .navigationDestination(
+            .sheet(
                 isPresented: Binding(
                     get: { store.isEditPresented },
                     set: { isPresented in
@@ -59,7 +59,9 @@ struct CommunityDetailView: View {
                     }
                 )
             ) {
-                editView
+                NavigationStack {
+                    editView
+                }
             }
             .hideTabBar()
     }
