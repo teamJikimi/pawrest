@@ -26,6 +26,7 @@ struct CommunityMyPostState: Equatable {
     var selectedTab: MyPostTab = .myPosts
     var posts: [Post]
     let currentUserID: String
+    let authorName: String
     
     var shouldDismiss: Bool = false
     
@@ -49,10 +50,12 @@ struct CommunityMyPostState: Equatable {
     
     init(
         currentUserID: String,
-        posts: [Post]
+        posts: [Post],
+        authorName: String
     ) {
         self.currentUserID = currentUserID
         self.posts = posts
+        self.authorName = authorName
     }
 }
 

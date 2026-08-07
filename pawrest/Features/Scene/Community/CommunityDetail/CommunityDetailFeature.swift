@@ -17,6 +17,7 @@ struct CommunityDetailState: Equatable {
     var navigationBar: NavigationBarState
     
     let currentUserID: String
+    let authorName: String
     
     var replyingToCommentID: UUID? = nil
     
@@ -37,9 +38,10 @@ struct CommunityDetailState: Equatable {
         post.author.id == currentUserID
     }
     
-    init(post: Post, currentUserID: String) {
+    init(post: Post, currentUserID: String, authorName: String) {
         self.post = post
         self.currentUserID = currentUserID
+        self.authorName = authorName
         self.navigationBar = NavigationBarState(
             title: "커뮤니티",
             leftButton: .back,
@@ -249,6 +251,7 @@ struct CommunityDetailReducer: Reducer {
                 
                 state.text = ""
                 state.replyingToCommentID = nil
+                let authorName = state.authorName
                 
                 return .run { send in
                     await send(
@@ -259,7 +262,7 @@ struct CommunityDetailReducer: Reducer {
                                     .createComment(
                                         postID,
                                         currentUserID,
-                                        "나",
+                                        authorName,
                                         trimmed,
                                         parentCommentID
                                     )
