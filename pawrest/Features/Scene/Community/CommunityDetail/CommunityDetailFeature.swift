@@ -124,14 +124,14 @@ struct CommunityDetailReducer: Reducer {
                 
             case .navigationBar(.deleteTapped):
                 let postID = state.post.id
+                let imageURLs = state.post.imageURLs
                 
                 return .run { send in
                     await send(
                         .postDeletionResponse(
                             TaskResult {
                                 try await communityRepository
-                                    .deletePost(postID)
-                                
+                                    .deletePost(postID, imageURLs)
                                 return postID
                             }
                         )

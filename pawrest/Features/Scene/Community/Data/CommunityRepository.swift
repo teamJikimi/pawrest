@@ -27,7 +27,10 @@ struct CommunityRepository {
         _ imageDatas: [Data]
     ) async throws -> [String]
     
-    var deletePost: @Sendable (_ postID: String) async throws -> Void
+    var deletePost: @Sendable (
+        _ postID: String,
+        _ imageURLs: [String]
+    ) async throws -> Void
     
     var updatePost: @Sendable (
         _ post: Post,
@@ -67,6 +70,7 @@ struct CommunityRepository {
         _ commentID: UUID,
         _ content: String
     ) async throws -> Void
+    
     
 }
 
@@ -161,8 +165,9 @@ extension CommunityRepository: DependencyKey {
                 return urls
             },
             
-            deletePost: { postID in
+            deletePost: { postID, imageURLs in
                 try await service.deletePost(postID: postID)
+                try? await service.deletePostImages(imageURLs: imageURLs)
             },
             
             updatePost: { post, newImageDatas in
