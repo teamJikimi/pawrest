@@ -48,8 +48,8 @@ struct CommunityMyPostState: Equatable {
     }
     
     init(
-        currentUserID: String = CommunityDummy.currentUserID,
-        posts: [Post] = CommunityDummy.posts
+        currentUserID: String,
+        posts: [Post]
     ) {
         self.currentUserID = currentUserID
         self.posts = posts
@@ -64,7 +64,8 @@ enum CommunityMyPostAction: Equatable {
     case tabChanged(MyPostTab)
     
     case likeTapped(postID: String)
-
+    case likeResponse(postID: String, previousIsLiked: Bool, success: Bool)
+    
     case postUpdatedFromDetail(post: Post)
     case postDeleted(String)
 }
@@ -72,6 +73,9 @@ enum CommunityMyPostAction: Equatable {
 // MARK: - Reducer
 
 struct CommunityMyPostReducer: Reducer {
+    
+    @Dependency(\.communityRepository) var communityRepository
+    
     var body: some Reducer<CommunityMyPostState, CommunityMyPostAction> {
         Scope(state: \.navigationBar, action: \.navigationBar) {
             NavigationBarReducer()
@@ -93,8 +97,42 @@ struct CommunityMyPostReducer: Reducer {
             case .likeTapped(let postID):
                 guard let idx = state.posts.firstIndex(where: { $0.id == postID })
                 else { return .none }
+                
+                let previousIsLiked = state.posts[idx].isLiked
+                let userID = state.currentUserID
+                
                 state.posts[idx].isLiked.toggle()
                 state.posts[idx].likeCount += state.posts[idx].isLiked ? 1 : -1
+                
+                return .run { send in
+                    do {
+                        try await communityRepository.toggleLike(
+                            postID,
+                            userID,
+                            previousIsLiked
+                        )
+                        await send(.likeResponse(
+                            postID: postID,
+                            previousIsLiked: previousIsLiked,
+                            success: true
+                        ))
+                    } catch {
+                        await send(.likeResponse(
+                            postID: postID,
+                            previousIsLiked: previousIsLiked,
+                            success: false
+                        ))
+                    }
+                }
+
+            case .likeResponse(let postID, let previousIsLiked, let success):
+                guard !success else { return .none }
+                
+                guard let idx = state.posts.firstIndex(where: { $0.id == postID })
+                else { return .none }
+                
+                state.posts[idx].isLiked = previousIsLiked
+                state.posts[idx].likeCount += previousIsLiked ? 1 : -1
                 return .none
                 
             case .postUpdatedFromDetail(let post):
