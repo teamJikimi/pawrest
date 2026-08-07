@@ -46,6 +46,7 @@ struct RecommendContentDetailView: View {
             .padding(.bottom, 32)
         }
         .customNavigationBar(store: navigationBarStore)
+        .hideTabBar()
     }
 }
 

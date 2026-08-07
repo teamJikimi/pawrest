@@ -88,6 +88,7 @@ struct ReportView: View {
         }
         .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
         .onAppear { store.send(.onAppear) }
+        .hideTabBar()
     }
 }
 

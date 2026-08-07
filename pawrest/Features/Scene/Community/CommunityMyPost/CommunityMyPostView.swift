@@ -36,6 +36,7 @@ struct CommunityMyPostView: View {
                 dismiss()
             }
         }
+        .hideTabBar()
     }
 }
 
