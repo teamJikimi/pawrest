@@ -42,7 +42,6 @@ enum AppAction {
     case onboardingPetProfile(OnboardingPetProfileAction)
     case onboardingIntroduce(OnboardingIntroduceAction)
     case tabBar(TabBarFeature.Action)
-    case logoutCompleted
     case loginSucceeded(hasProfile: Bool)
 }
 
@@ -78,7 +77,11 @@ struct AppReducer: Reducer {
                 return .none
 
             case .loginSucceeded(let hasProfile):
-                state.destination = hasProfile ? .tabBar : .onboardingUserProfile
+                if hasProfile {
+                    state.destination = .tabBar
+                } else {
+                    state.destination = .onboardingUserProfile
+                }
                 return .none
 
             case .onboardingUserProfile(.nextTapped):
@@ -109,18 +112,21 @@ struct AppReducer: Reducer {
                 state.destination = .tabBar
                 return .none
 
-            case .logoutCompleted:
-                state.login = LoginState()
+            case .tabBar(.delegate(.logoutCompleted)):
                 state.tabBar = TabBarFeature.State()
+                state.login = LoginState()
+                state.destination = .login
+                return .none
+
+            case .tabBar(.delegate(.deleteAccountCompleted)):
+                state.tabBar = TabBarFeature.State()
+                state.login = LoginState()
                 state.onboardingUserProfile = OnboardingUserProfileState()
                 state.onboardingPetProfile = OnboardingPetProfileState(nickname: "", userProfileImage: nil)
                 state.onboardingIntroduce = OnboardingIntroduceState(
-                    nickname: "",
-                    petName: "",
-                    userProfileImage: nil,
-                    petProfileImage: nil,
-                    petBirthday: nil,
-                    petDeathDay: nil
+                    nickname: "", petName: "",
+                    userProfileImage: nil, petProfileImage: nil,
+                    petBirthday: nil, petDeathDay: nil
                 )
                 state.destination = .login
                 return .none

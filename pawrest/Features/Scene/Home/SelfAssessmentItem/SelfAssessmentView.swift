@@ -10,18 +10,18 @@ import SwiftData
 import ComposableArchitecture
 
 struct SelfAssessmentView: View {
-    
+
     //MARK: - Properties
-    
+
     @Bindable var store: StoreOf<SelfAssessmentReducer>
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    
+
     @Query(sort: \AssessmentRecord.date, order: .reverse)
     private var assessmentRecords: [AssessmentRecord]
-    
+
     //MARK: - Body
-    
+
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -33,7 +33,6 @@ struct SelfAssessmentView: View {
                 .padding(.horizontal, 20)
             }
             .background(.gray10)
-
             .onChange(of: store.scrollTargetIndex) { _, targetIndex in
                 if let targetIndex {
                     withAnimation {
@@ -81,12 +80,8 @@ struct SelfAssessmentView: View {
                 set: { if !$0 { store.send(.exitAlertCancelled) } }
             )
         ) {
-            Button("취소", role: .cancel) {
-                store.send(.exitAlertCancelled)
-            }
-            Button("확인", role: .destructive) {
-                store.send(.exitAlertConfirmed)
-            }
+            Button("취소", role: .cancel) { store.send(.exitAlertCancelled) }
+            Button("확인", role: .destructive) { store.send(.exitAlertConfirmed) }
         } message: {
             Text("지금 나가면 응답 내용이 저장되지 않아요.")
         }
@@ -96,73 +91,78 @@ struct SelfAssessmentView: View {
                 set: { if !$0 { store.send(.resultDismissed) } }
             )
         ) {
-            let currentScore = store.totalScore ?? 0
-            let previousRecord = assessmentRecords
-                .filter { $0.typeRawValue == store.type.rawValue }
-                .dropFirst()
-                .first
-
-            let historyState: AssessmentHistoryState = {
-                guard let prev = previousRecord else { return .noRecord }
-                let diff = currentScore - prev.totalScore
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy.MM.dd"
-                let prevDate = formatter.string(from: prev.date)
-                let currDate = formatter.string(from: Date())
-                if diff == 0 {
-                    return .noChange(
-                        previousScore: prev.totalScore,
-                        previousDate: prevDate,
-                        currentScore: currentScore,
-                        currentDate: currDate
-                    )
-                } else if diff > 0 {
-                    return .worsened(
-                        previousScore: prev.totalScore,
-                        previousDate: prevDate,
-                        currentScore: currentScore,
-                        currentDate: currDate,
-                        difference: diff
-                    )
-                } else {
-                    return .improved(
-                        previousScore: prev.totalScore,
-                        previousDate: prevDate,
-                        currentScore: currentScore,
-                        currentDate: currDate,
-                        difference: abs(diff)
-                    )
-                }
-            }()
-
-            SelfAssessmentResultView(
-                store: Store(
-                    initialState: SelfAssessmentResultState(
-                        assessmentType: store.type.toResultType,
-                        score: currentScore,
-                        historyState: historyState
-                    ),
-                    reducer: { SelfAssessmentResultFeature() }
-                ),
-                onDismissAll: {
-                    store.send(.dismissAll)
-                }
-            )
+            resultDestination
         }
+        .hideTabBar()
     }
 }
 
 // MARK: - Subviews
 
 private extension SelfAssessmentView {
-    
+
+    var resultDestination: some View {
+        let currentScore = store.totalScore ?? 0
+        let previousRecord = assessmentRecords
+            .filter { $0.typeRawValue == store.type.rawValue }
+            .dropFirst()
+            .first
+
+        let historyState: AssessmentHistoryState = {
+            guard let prev = previousRecord else { return .noRecord }
+            let diff = currentScore - prev.totalScore
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy.MM.dd"
+            let prevDate = formatter.string(from: prev.date)
+            let currDate = formatter.string(from: Date())
+            if diff == 0 {
+                return .noChange(
+                    previousScore: prev.totalScore,
+                    previousDate: prevDate,
+                    currentScore: currentScore,
+                    currentDate: currDate
+                )
+            } else if diff > 0 {
+                return .worsened(
+                    previousScore: prev.totalScore,
+                    previousDate: prevDate,
+                    currentScore: currentScore,
+                    currentDate: currDate,
+                    difference: diff
+                )
+            } else {
+                return .improved(
+                    previousScore: prev.totalScore,
+                    previousDate: prevDate,
+                    currentScore: currentScore,
+                    currentDate: currDate,
+                    difference: abs(diff)
+                )
+            }
+        }()
+
+        return SelfAssessmentResultView(
+            store: Store(
+                initialState: SelfAssessmentResultState(
+                    assessmentType: store.type.toResultType,
+                    score: currentScore,
+                    historyState: historyState
+                ),
+                reducer: { SelfAssessmentResultFeature() }
+            ),
+            onDismissAll: {
+                store.send(.dismissAll)
+            }
+        )
+    }
+
     var headerSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(store.type.title)
                 .typography(.title1)
                 .foregroundColor(.black)
                 .padding(.top, 16)
-            
+
             HStack(spacing: 6) {
                 headerTag(
                     "\(store.type.questionCount)문항",
@@ -174,7 +174,7 @@ private extension SelfAssessmentView {
                 )
             }
             .padding(.top, 10)
-            
+
             Text(store.type.instruction)
                 .typography(.body2R2)
                 .foregroundColor(.gray70)
@@ -185,7 +185,7 @@ private extension SelfAssessmentView {
                 .padding(.top, 10)
         }
     }
-    
+
     var cardsSection: some View {
         VStack(spacing: 8) {
             ForEach(Array(store.questions.enumerated()), id: \.element.id) { index, question in
@@ -203,7 +203,7 @@ private extension SelfAssessmentView {
         }
         .padding(.top, 16)
     }
-    
+
     var submitButton: some View {
         Button {
             store.send(.submitTapped)
@@ -219,7 +219,7 @@ private extension SelfAssessmentView {
         .padding(.top, 28)
         .padding(.bottom, 36)
     }
-    
+
     func headerTag(_ text: String, background: Color) -> some View {
         Text(text)
             .typography(.body2R1)

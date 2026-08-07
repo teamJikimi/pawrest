@@ -8,19 +8,19 @@
 import ComposableArchitecture
 
 struct TabBarFeature: Reducer {
-    
+
     @ObservableState
-    public struct State: Equatable {
+    struct State: Equatable {
         var selectedTab: Tab = .home
-        var isTabBarHidden: Bool = false
-        
+        var my: MyFeature.State = .init()
+
         enum Tab: Int, CaseIterable {
             case home = 0
             case memorial = 1
             case memory = 2
             case community = 3
             case my = 4
-            
+
             var title: String {
                 switch self {
                 case .home: return "홈"
@@ -30,7 +30,7 @@ struct TabBarFeature: Reducer {
                 case .my: return "마이"
                 }
             }
-            
+
             var iconName: String {
                 switch self {
                 case .home: return "home"
@@ -40,26 +40,41 @@ struct TabBarFeature: Reducer {
                 case .my: return "my"
                 }
             }
-            
+
             var iconNameFill: String {
                 return iconName + "_fill"
             }
         }
     }
-    
+
+    @CasePathable
     enum Action {
         case tabSelected(State.Tab)
-        case setTabBarHidden(Bool)
+        case my(MyFeature.Action)
+        case delegate(Delegate)
+
+        enum Delegate: Equatable {
+            case logoutCompleted
+            case deleteAccountCompleted
+        }
     }
-    
-    func reduce(into state: inout State, action: Action) -> Effect<Action> {
-        switch action {
-        case .tabSelected(let tab):
-            state.selectedTab = tab
-            return .none
-        case .setTabBarHidden(let hidden):
-            state.isTabBarHidden = hidden
-            return .none
+
+    var body: some Reducer<State, Action> {
+        Scope(state: \.my, action: \.my) {
+            MyFeature()
+        }
+        Reduce { state, action in
+            switch action {
+            case .tabSelected(let tab):
+                state.selectedTab = tab
+                return .none
+            case .my(.logoutConfirmed):
+                return .send(.delegate(.logoutCompleted))
+            case .my(.deleteAccountConfirmed):
+                return .send(.delegate(.deleteAccountCompleted))
+            case .my, .delegate:
+                return .none
+            }
         }
     }
 }

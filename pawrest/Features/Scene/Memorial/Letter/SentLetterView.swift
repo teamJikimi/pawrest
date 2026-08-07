@@ -107,22 +107,12 @@ struct SentLetterView: View {
             .padding(.trailing, 20)
 
             if isEditing {
-                Button {
-                    guard isSaveEnabled else { return }
+                ActiveButton(title: "저장", isEnabled: isSaveEnabled) {
                     letter.content = editContent
                     letter.sentAt = Date()
                     try? modelContext.save()
                     isEditing = false
-                } label: {
-                    Text("저장")
-                        .typography(.button)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(isSaveEnabled ? Color.pawPrimary : Color.gray40)
-                        .cornerRadius(12, corners: .allCorners)
                 }
-                .disabled(!isSaveEnabled)
                 .padding(.horizontal, 20)
             }
         }
