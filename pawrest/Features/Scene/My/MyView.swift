@@ -122,7 +122,7 @@ private extension MyView {
                         .resizable()
                         .scaledToFill()
                 } else {
-                    Image(.profileSmall)
+                    Image(.profileUser)
                         .resizable()
                         .scaledToFill()
                 }
