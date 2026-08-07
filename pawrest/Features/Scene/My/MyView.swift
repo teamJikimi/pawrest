@@ -62,6 +62,32 @@ struct MyView: View {
                 store.send(.subPageDismissed)
             }
         }
+        .alert("로그아웃", isPresented: Binding(
+            get: { store.showLogoutAlert },
+            set: { if !$0 { store.send(.logoutAlertDismissed) } }
+        )) {
+            Button("취소", role: .cancel) {
+                store.send(.logoutAlertDismissed)
+            }
+            Button("로그아웃", role: .destructive) {
+                store.send(.logoutConfirmed)
+            }
+        } message: {
+            Text("정말 로그아웃 하시겠어요?")
+        }
+        .alert("회원탈퇴", isPresented: Binding(
+            get: { store.showDeleteAccountAlert },
+            set: { if !$0 { store.send(.deleteAccountAlertDismissed) } }
+        )) {
+            Button("취소", role: .cancel) {
+                store.send(.deleteAccountAlertDismissed)
+            }
+            Button("탈퇴", role: .destructive) {
+                store.send(.deleteAccountConfirmed)
+            }
+        } message: {
+            Text("정말 탈퇴 하시겠어요?\n탈퇴 시 모든 데이터가 삭제됩니다.")
+        }
     }
 }
 
