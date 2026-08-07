@@ -59,18 +59,9 @@ struct LetterView: View {
     }
 
     private var sendButton: some View {
-        Button {
+        ActiveButton(title: "편지 보내기", isEnabled: store.isSendEnabled) {
             store.send(.sendButtonTapped)
-        } label: {
-            Text("편지 보내기")
-                .typography(.button)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(store.isSendEnabled ? Color.pawPrimary : Color.gray40)
-                .cornerRadius(12, corners: .allCorners)
         }
-        .disabled(!store.isSendEnabled)
         .padding(.horizontal, 20)
         .padding(.vertical, 20)
     }

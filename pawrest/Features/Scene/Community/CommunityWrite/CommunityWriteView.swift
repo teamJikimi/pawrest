@@ -54,6 +54,7 @@ struct CommunityWriteView: View {
         .onChange(of: store.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss { dismiss() }
         }
+        .hideTabBar()
     }
 }
 

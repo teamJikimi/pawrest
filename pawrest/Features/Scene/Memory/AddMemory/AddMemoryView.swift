@@ -47,6 +47,7 @@ struct AddMemoryView: View {
             )
         )
         .onChange(of: store.state) { oldValue, newValue in }
+        .hideTabBar()
     }
 }
 

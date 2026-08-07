@@ -9,24 +9,25 @@ import SwiftUI
 import ComposableArchitecture
 
 struct TabBarView: View {
-    let store: StoreOf<TabBarFeature>
-    var onLogoutCompleted: () -> Void = {}
-    
+    @Bindable var store: StoreOf<TabBarFeature>
     @State private var communityStore = Store(initialState: CommunityState()) { CommunityReducer() }
     @State private var homeStore = Store(initialState: HomeFeature.State()) {
         HomeFeature()
     }
+    @State private var isTabBarHidden = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
             contentView
-            if !homeStore.isSelfAssessmentPresented && !communityStore.isDetailPresented &&
-                !homeStore.isReportPresented && homeStore.selectedRecommendedContentID == nil {
-                CustomTabBar(
-                    selectedTab: store.selectedTab,
-                    onTabSelected: { store.send(.tabSelected($0)) }
-                )
-            }
+                .onPreferenceChange(HideTabBarKey.self) { hide in
+                    isTabBarHidden = hide
+                }
+            CustomTabBar(
+                selectedTab: store.selectedTab,
+                onTabSelected: { store.send(.tabSelected($0)) }
+            )
+            .opacity(isTabBarHidden ? 0 : 1)
+            .allowsHitTesting(!isTabBarHidden)
         }
         .ignoresSafeArea(.keyboard)
     }
@@ -74,17 +75,12 @@ struct TabBarView: View {
             }
 
         case .my:
-            NavigationStack {
-                MyView(
-                    store: Store(initialState: MyFeature.State()) { MyFeature() },
-                    onLogoutCompleted: onLogoutCompleted
-                )
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
-                    .opacity(0)
-                    .allowsHitTesting(false)
-            }
+            MyView(store: store.scope(state: \.my, action: \.my))
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
+                        .opacity(0)
+                        .allowsHitTesting(false)
+                }
         }
     }
 }

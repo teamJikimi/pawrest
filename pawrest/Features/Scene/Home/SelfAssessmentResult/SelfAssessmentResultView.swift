@@ -32,6 +32,7 @@ struct SelfAssessmentResultView: View {
             print("shouldDismissAll changed: \(should)")
             if should { onDismissAll?() }
         }
+        .hideTabBar()
     }
 }
 

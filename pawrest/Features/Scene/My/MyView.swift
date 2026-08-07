@@ -67,7 +67,6 @@ struct MyView: View {
                     store.send(.deleteAccountAlertDismissed)
                 }
                 Button("탈퇴하기", role: .destructive) {
-                    store.send(.deleteAccountConfirmed)
                     try? modelContext.delete(model: UserProfile.self)
                     try? modelContext.delete(model: PetProfile.self)
                     try? modelContext.delete(model: EmotionRecordModel.self)
@@ -75,9 +74,7 @@ struct MyView: View {
                     try? modelContext.delete(model: MemoryModel.self)
                     try? modelContext.delete(model: LetterModel.self)
                     try? modelContext.delete(model: NotificationRecord.self)
-                    Task {
-                        try? await Auth.auth().currentUser?.delete()
-                    }
+                    store.send(.deleteAccountConfirmed)
                     onLogoutCompleted()
                 }
             } message: {
@@ -85,6 +82,10 @@ struct MyView: View {
             }
         } destination: { (pathStore: StoreOf<MyFeature.Path>) in
             switch pathStore.state {
+            case .profileEdit(let state):
+                ProfileEditView(store: Store(initialState: state) {
+                    ProfileEditFeature()
+                })
             case .blockedList(let state):
                 BlockedListView(store: Store(initialState: state) {
                     BlockedListFeature()
@@ -93,6 +94,11 @@ struct MyView: View {
                 PrivacyPolicyView(store: Store(initialState: state) {
                     PrivacyPolicyFeature()
                 })
+            }
+        }
+        .onChange(of: store.path.count) { _, count in
+            if count == 0 {
+                store.send(.subPageDismissed)
             }
         }
     }
@@ -116,7 +122,7 @@ private extension MyView {
                         .resizable()
                         .scaledToFill()
                 } else {
-                    Image(.profileSmall)
+                    Image(.profileUser)
                         .resizable()
                         .scaledToFill()
                 }
