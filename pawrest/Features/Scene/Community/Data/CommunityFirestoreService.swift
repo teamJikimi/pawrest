@@ -103,7 +103,7 @@ final class CommunityFirestoreService {
             .document(postID)
             .updateData([
                 "title": title,
-                "content": content
+                "content": content,
             ])
     }
     
