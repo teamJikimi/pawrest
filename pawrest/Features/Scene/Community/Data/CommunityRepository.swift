@@ -14,15 +14,25 @@ struct CommunityRepository {
     ) async throws -> [Post]
 
     var createPost: @Sendable (
+        _ postID: String,
         _ authorID: String,
         _ authorName: String,
         _ title: String,
-        _ content: String
+        _ content: String,
+        _ imageURLs: [String]
     ) async throws -> Post
+    
+    var uploadImages: @Sendable (
+        _ postID: String,
+        _ imageDatas: [Data]
+    ) async throws -> [String]
     
     var deletePost: @Sendable (_ postID: String) async throws -> Void
     
-    var updatePost: @Sendable (_ post: Post) async throws -> Post
+    var updatePost: @Sendable (
+        _ post: Post,
+        _ newImageDatas: [Data]
+    ) async throws -> Post
     
     var isPostLiked: @Sendable (
         _ postID: String,
@@ -117,26 +127,79 @@ extension CommunityRepository: DependencyKey {
                     }
                 }
             },
-            createPost: { authorID, authorName, title, content in
+            createPost: { postID, authorID, authorName, title, content, imageURLs in
                 let postDTO = try await service.createPost(
+                    postID: postID,
                     authorID: authorID,
                     authorName: authorName,
                     title: title,
-                    content: content
+                    content: content,
+                    imageURLs: imageURLs
                 )
                 return postDTO.toDomain()
             },
+            
+            uploadImages: { postID, imageDatas in
+                let storageService = FirebaseStorageService()
+                var urls: [String] = []
+                
+                for imageData in imageDatas {
+                    let entity = ImageUploadEntity(
+                        data: imageData,
+                        fileExtension: "jpg"
+                    )
+                    let url = try await storageService.upload(
+                        image: entity,
+                        to: .community(
+                            postID: postID,
+                            imageID: UUID().uuidString
+                        )
+                    )
+                    urls.append(url)
+                }
+                
+                return urls
+            },
+            
             deletePost: { postID in
                 try await service.deletePost(postID: postID)
             },
-            updatePost: { post in
+            
+            updatePost: { post, newImageDatas in
+                let storageService = FirebaseStorageService()
+                var imageURLs = post.imageURLs
+                
+                if !newImageDatas.isEmpty {
+                    var newURLs: [String] = []
+                    for imageData in newImageDatas {
+                        let entity = ImageUploadEntity(
+                            data: imageData,
+                            fileExtension: "jpg"
+                        )
+                        let url = try await storageService.upload(
+                            image: entity,
+                            to: .community(
+                                postID: post.id,
+                                imageID: UUID().uuidString
+                            )
+                        )
+                        newURLs.append(url)
+                    }
+                    imageURLs = newURLs
+                }
+                
                 try await service.updatePost(
                     postID: post.id,
                     title: post.title,
-                    content: post.content
+                    content: post.content,
+                    imageURLs: imageURLs
                 )
-                return post
+                
+                var updated = post
+                updated.imageURLs = imageURLs
+                return updated
             },
+            
             isPostLiked: { postID, userID in
                 try await service.isPostLiked(
                     postID: postID,

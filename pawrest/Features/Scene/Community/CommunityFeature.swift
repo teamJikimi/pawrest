@@ -104,7 +104,7 @@ enum CommunityAction: Equatable {
     case newPostCreated(
         title: String,
         content: String,
-        imageURLs: [String]
+        imageDatas: [Data]
     )
 
     case myPostsUpdated(posts: [Post])
@@ -295,46 +295,45 @@ struct CommunityReducer: Reducer {
 
             // MARK: Create Post
 
-            case .newPostCreated(
-                let title,
-                let content,
-                _
-            ):
+            case .newPostCreated(let title, let content, let imageDatas):
                 guard let currentUserID = state.currentUserID else {
                     state.errorMessage = "로그인이 필요합니다."
                     return .none
                 }
-
+                
                 guard let authorName = state.authorName else {
                     state.errorMessage = "프로필 닉네임을 찾을 수 없습니다."
                     return .none
                 }
-
-                let trimmedTitle = title.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                )
-
-                let trimmedContent = content.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                )
-
-                guard
-                    !trimmedTitle.isEmpty,
-                    !trimmedContent.isEmpty
-                else {
+                
+                let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else {
                     state.errorMessage = "제목과 내용을 입력해주세요."
                     return .none
                 }
-
+                
+                state.isLoading = true
+                
                 return .run { send in
                     await send(
                         .postCreationResponse(
                             TaskResult {
-                                try await communityRepository.createPost(
+                                let postID = UUID().uuidString
+                                
+                                let imageURLs = try await communityRepository.uploadImages(
+                                    postID,
+                                    imageDatas
+                                )
+                                
+                                return try await communityRepository.createPost(
+                                    postID,
                                     currentUserID,
                                     authorName,
                                     trimmedTitle,
-                                    trimmedContent
+                                    trimmedContent,
+                                    imageURLs
                                 )
                             }
                         )

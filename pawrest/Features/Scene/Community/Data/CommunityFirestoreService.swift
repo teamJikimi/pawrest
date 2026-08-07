@@ -30,14 +30,17 @@ final class CommunityFirestoreService {
     }
 
     func createPost(
+        postID: String,
         authorID: String,
         authorName: String,
         title: String,
-        content: String
-    ) async throws -> CommunityPostDTO {
+        content: String,
+        imageURLs: [String]
+    )
+    async throws -> CommunityPostDTO {
         let document = firestore
             .collection("posts")
-            .document()
+            .document(postID)
 
         let createdAt = Date()
 
@@ -47,7 +50,7 @@ final class CommunityFirestoreService {
             "title": title,
             "content": content,
             "createdAt": Timestamp(date: createdAt),
-            "imageURLs": [],
+            "imageURLs": imageURLs,
             "likeCount": 0,
             "commentCount": 0
         ])
@@ -60,10 +63,26 @@ final class CommunityFirestoreService {
             title: title,
             content: content,
             createdAt: createdAt,
-            imageURLs: [],
+            imageURLs: imageURLs,
             likeCount: 0,
             commentCount: 0
         )
+    }
+    
+    func updatePost(
+        postID: String,
+        title: String,
+        content: String,
+        imageURLs: [String]
+    ) async throws {
+        try await firestore
+            .collection("posts")
+            .document(postID)
+            .updateData([
+                "title": title,
+                "content": content,
+                "imageURLs": imageURLs
+            ])
     }
     
     func deletePost(postID: String) async throws {
