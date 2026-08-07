@@ -20,9 +20,8 @@ struct AppView: View {
         case .login:
             LoginView(store: store.scope(state: \.login, action: \.login))
                 .onChange(of: store.login.isSignedIn) { _, isSignedIn in
-                    if isSignedIn {
-                        store.send(.loginSucceeded(hasProfile: !userProfiles.isEmpty))
-                    }
+                    guard isSignedIn else { return }
+                    store.send(.loginSucceeded(hasProfile: !userProfiles.isEmpty))
                 }
         case .onboardingUserProfile:
             OnboardingUserProfileView(store: store.scope(state: \.onboardingUserProfile, action: \.onboardingUserProfile))
@@ -31,10 +30,7 @@ struct AppView: View {
         case .onboardingIntroduce:
             OnboardingIntroduceView(store: store.scope(state: \.onboardingIntroduce, action: \.onboardingIntroduce))
         case .tabBar:
-            TabBarView(
-                store: store.scope(state: \.tabBar, action: \.tabBar),
-                onLogoutCompleted: { store.send(.logoutCompleted) }
-            )
+            TabBarView(store: store.scope(state: \.tabBar, action: \.tabBar))
         }
     }
 }

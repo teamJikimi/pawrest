@@ -47,6 +47,7 @@ struct MemoryDetailView: View {
             Button("취소", role: .cancel) { }
             Button("확인") { deleteMemory() }
         }
+        .hideTabBar()
     }
 }
 

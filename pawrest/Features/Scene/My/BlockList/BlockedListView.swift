@@ -24,6 +24,7 @@ struct BlockedListView: View {
         }
         .background(.gray0)
         .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
+        .hideTabBar()
     }
 }
 

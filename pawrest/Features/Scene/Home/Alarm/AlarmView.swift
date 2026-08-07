@@ -54,6 +54,7 @@ struct AlarmView: View {
                 NavigationBarReducer()
             }
         )
+        .hideTabBar()
     }
 }
 
