@@ -23,7 +23,6 @@ struct ToastModifier: ViewModifier {
                     .background(.gray70.opacity(0.85))
                     .cornerRadius(12, corners: .allCorners)
                     .padding(.bottom, 80)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
                     .onAppear {
                         Task {
                             try? await Task.sleep(for: .seconds(2))
