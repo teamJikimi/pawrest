@@ -53,7 +53,8 @@ struct CommunityView: View {
                     store: Store(
                         initialState: CommunityMyPostState(
                             currentUserID: currentUserID,
-                            posts: store.posts
+                            posts: store.posts,
+                            authorName: store.authorName ?? ""
                         ),
                         reducer: { CommunityMyPostReducer() }
                     ),
@@ -152,7 +153,8 @@ private extension CommunityView {
                     store: Store(
                         initialState: CommunityDetailState(
                             post: post,
-                            currentUserID: currentUserID
+                            currentUserID: currentUserID,
+                            authorName: store.authorName ?? ""
                         ),
                         reducer: { CommunityDetailReducer() }
                     ),
