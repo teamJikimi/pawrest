@@ -7,15 +7,15 @@
 
 import Foundation
 
-//MARK: - Author
+// MARK: - Author
 
 struct Author: Equatable, Identifiable {
-    let id: UUID
+    let id: String
     let name: String
     let profileImageURL: String?
-    
+
     init(
-        id: UUID = UUID(),
+        id: String = UUID().uuidString,
         name: String,
         profileImageURL: String?
     ) {
@@ -51,26 +51,28 @@ struct Comment: Equatable, Identifiable {
     }
 }
 
-//MARK: - Post
+// MARK: - Post
 
 struct Post: Equatable, Identifiable {
-    let id: UUID
+    let id: String
     let author: Author
+
     var title: String
     var content: String
+
     let createdAt: Date
     var imageURLs: [String]
-    
+
     var likeCount: Int
     var isLiked: Bool
     var comments: [Comment]
-    
+
     var commentCount: Int {
         comments.reduce(0) { $0 + 1 + $1.replies.count }
     }
-    
+
     init(
-        id: UUID = UUID(),
+        id: String = UUID().uuidString,
         author: Author,
         title: String,
         content: String,
@@ -95,11 +97,11 @@ struct Post: Equatable, Identifiable {
 // MARK: - Dummy
 
 enum CommunityDummy {
-    static let currentUserID = UUID()
-    
-    private static let dummyUser1ID = UUID()
-    private static let dummyUser2ID = UUID()
-    private static let dummyUser3ID = UUID()
+    static let currentUserID = "dummy-current-user"
+
+    private static let dummyUser1ID = "dummy-user-1"
+    private static let dummyUser2ID = "dummy-user-2"
+    private static let dummyUser3ID = "dummy-user-3"
     
     static var posts: [Post] {
         [

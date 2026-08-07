@@ -25,7 +25,7 @@ struct CommunityMyPostState: Equatable {
     
     var selectedTab: MyPostTab = .myPosts
     var posts: [Post]
-    let currentUserID: UUID
+    let currentUserID: String
     
     var shouldDismiss: Bool = false
     
@@ -47,9 +47,8 @@ struct CommunityMyPostState: Equatable {
         return filtered.sorted { $0.createdAt > $1.createdAt }
     }
     
-    //커뮤니티 Model 더미 연결용
     init(
-        currentUserID: UUID = CommunityDummy.currentUserID,
+        currentUserID: String = CommunityDummy.currentUserID,
         posts: [Post] = CommunityDummy.posts
     ) {
         self.currentUserID = currentUserID
@@ -63,10 +62,11 @@ struct CommunityMyPostState: Equatable {
 enum CommunityMyPostAction: Equatable {
     case navigationBar(NavigationBarAction)
     case tabChanged(MyPostTab)
-    case likeTapped(postID: UUID)
     
+    case likeTapped(postID: String)
+
     case postUpdatedFromDetail(post: Post)
-    case postDeleted(UUID)
+    case postDeleted(String)
 }
 
 // MARK: - Reducer

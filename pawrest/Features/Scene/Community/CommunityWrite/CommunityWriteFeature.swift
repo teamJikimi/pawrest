@@ -26,7 +26,7 @@ struct CommunityWriteState: Equatable {
     
     var shouldDismiss: Bool = false
     
-    var editingPostID: UUID? = nil
+    var editingPostID: String? = nil
     var existingImageURLs: [String] = []
     
     var isEditMode: Bool { editingPostID != nil }

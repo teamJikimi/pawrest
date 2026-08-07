@@ -6,21 +6,35 @@
 //
 
 import SwiftUI
+import SwiftData
 import ComposableArchitecture
 
 struct CommunityView: View {
     @Bindable var store: StoreOf<CommunityReducer>
     @FocusState private var isSearchFocused: Bool
-    
+    @Query private var userProfiles: [UserProfile]
+
     var body: some View {
         VStack(spacing: 0) {
             searchAndSortSection
-            
-            if store.displayedPosts.isEmpty {
+
+            if store.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if store.displayedPosts.isEmpty {
                 emptyStateView
             } else {
                 postsScrollView
             }
+        }
+        .task {
+            let nickname = userProfiles
+                .sorted { $0.createdAt > $1.createdAt }
+                .first?
+                .nickname
+
+            store.send(.userProfileLoaded(nickname))
+            store.send(.onAppear)
         }
         .customNavigationBar(
             store: store.scope(
@@ -34,18 +48,20 @@ struct CommunityView: View {
                 set: { if !$0 { store.send(.myPostDismissed) } }
             )
         ) {
-            CommunityMyPostView(
-                store: Store(
-                    initialState: CommunityMyPostState(
-                        currentUserID: store.currentUserID,
-                        posts: store.posts
+            if let currentUserID = store.currentUserID {
+                CommunityMyPostView(
+                    store: Store(
+                        initialState: CommunityMyPostState(
+                            currentUserID: currentUserID,
+                            posts: store.posts
+                        ),
+                        reducer: { CommunityMyPostReducer() }
                     ),
-                    reducer: { CommunityMyPostReducer() }
-                ),
-                onPostsUpdated: { updatedPosts in
-                    store.send(.myPostsUpdated(posts: updatedPosts))
-                }
-            )
+                    onPostsUpdated: { updatedPosts in
+                        store.send(.myPostsUpdated(posts: updatedPosts))
+                    }
+                )
+            }
         }
         .navigationDestination(
             isPresented: Binding(
@@ -60,13 +76,25 @@ struct CommunityView: View {
                 ),
                 onSave: { title, content, images in
                     let imageURLs = images.compactMap { image -> String? in
-                        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+                        guard let data = image.jpegData(compressionQuality: 0.8) else {
+                            return nil
+                        }
+
                         let filename = "\(UUID().uuidString).jpg"
-                        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+                        let url = FileManager.default.temporaryDirectory
+                            .appendingPathComponent(filename)
+
                         try? data.write(to: url)
                         return url.absoluteString
                     }
-                    store.send(.newPostCreated(title: title, content: content, imageURLs: imageURLs))
+
+                    store.send(
+                        .newPostCreated(
+                            title: title,
+                            content: content,
+                            imageURLs: imageURLs
+                        )
+                    )
                 }
             )
         }
@@ -74,7 +102,7 @@ struct CommunityView: View {
 }
 
 private extension CommunityView {
-    
+
     var searchAndSortSection: some View {
         HStack(spacing: 6) {
             CommunitySearchBar(
@@ -84,7 +112,7 @@ private extension CommunityView {
                 ),
                 isFocused: $isSearchFocused
             )
-            
+
             CommunitySortDropdown(
                 selection: Binding(
                     get: { store.sortMode },
@@ -100,7 +128,7 @@ private extension CommunityView {
         .padding(.vertical, 12)
         .zIndex(1)
     }
-    
+
     var postsScrollView: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
@@ -117,56 +145,78 @@ private extension CommunityView {
         .simultaneousGesture(
             TapGesture()
                 .onEnded { _ in
-                    if isSearchFocused { isSearchFocused = false }
-                    if store.isSortMenuOpen { store.send(.outsideTapped) }
+                    if isSearchFocused {
+                        isSearchFocused = false
+                    }
+
+                    if store.isSortMenuOpen {
+                        store.send(.outsideTapped)
+                    }
                 }
         )
     }
-    
+
+    @ViewBuilder
     func postCardLink(for post: Post) -> some View {
-        NavigationLink {
-            CommunityDetailView(
-                store: Store(
-                    initialState: CommunityDetailState(
-                        post: post,
-                        currentUserID: store.currentUserID
+        if let currentUserID = store.currentUserID {
+            NavigationLink {
+                CommunityDetailView(
+                    store: Store(
+                        initialState: CommunityDetailState(
+                            post: post,
+                            currentUserID: currentUserID
+                        ),
+                        reducer: { CommunityDetailReducer() }
                     ),
-                    reducer: { CommunityDetailReducer() }
-                ),
-                onPostStateUpdated: { updatedPost in
-                    store.send(.postStateUpdated(updatedPost))
-                },
-                onPostDeleted: { postID in
-                    store.send(.postDeleted(postID))
+                    onPostStateUpdated: { updatedPost in
+                        store.send(.postStateUpdated(updatedPost))
+                    },
+                    onPostDeleted: { postID in
+                        store.send(.postDeleted(postID))
+                    }
+                )
+                .onAppear {
+                    store.send(.detailPresented)
                 }
-            )
-            .onAppear { store.send(.detailPresented) }
-            .onDisappear { store.send(.detailDismissed) }
-        } label: {
-            CommunityCard(
-                post: post,
-                onLikeTapped: { store.send(.likeTapped(postID: post.id)) }
-            )
+                .onDisappear {
+                    store.send(.detailDismissed)
+                }
+            } label: {
+                CommunityCard(
+                    post: post,
+                    onLikeTapped: {
+                        store.send(.likeTapped(postID: post.id))
+                    }
+                )
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
     }
-    
+
     var emptyStateView: some View {
         GeometryReader { geo in
             VStack(spacing: 8) {
                 Image(.iconSearch)
-                
+
                 Text("검색 결과가 없습니다")
                     .typography(.body3R)
                     .foregroundColor(.gray60)
             }
             .frame(maxWidth: .infinity)
-            .position(x: geo.size.width / 2, y: geo.size.height * 234.0 / 604.0)
+            .position(
+                x: geo.size.width / 2,
+                y: geo.size.height * 234.0 / 604.0
+            )
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            if isSearchFocused { isSearchFocused = false }
-            if store.isSortMenuOpen { store.send(.outsideTapped) }
+            if isSearchFocused {
+                isSearchFocused = false
+            }
+
+            if store.isSortMenuOpen {
+                store.send(.outsideTapped)
+            }
         }
     }
 }
