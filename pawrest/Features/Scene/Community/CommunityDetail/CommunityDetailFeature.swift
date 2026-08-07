@@ -68,10 +68,11 @@ enum CommunityDetailAction: Equatable {
     case outsideTapped
     
     case editDismissed
+    
     case postEdited(
         title: String,
         content: String,
-        imageURLs: [String]
+        imageDatas: [Data]
     )
     
     case commentCreationResponse(
@@ -247,27 +248,14 @@ struct CommunityDetailReducer: Reducer {
                 state.isEditPresented = false
                 return .none
                 
-            case .postEdited(
-                let title,
-                let content,
-                _
-            ):
+            case .postEdited(let title, let content, let imageDatas):
                 let trimmedTitle = title
-                    .trimmingCharacters(
-                        in: .whitespacesAndNewlines
-                    )
-                
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
                 let trimmedContent = content
-                    .trimmingCharacters(
-                        in: .whitespacesAndNewlines
-                    )
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
                 
-                guard
-                    !trimmedTitle.isEmpty,
-                    !trimmedContent.isEmpty
-                else {
-                    state.errorMessage =
-                        "제목과 내용을 입력해주세요."
+                guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else {
+                    state.errorMessage = "제목과 내용을 입력해주세요."
                     return .none
                 }
                 
@@ -280,7 +268,7 @@ struct CommunityDetailReducer: Reducer {
                         .postUpdateResponse(
                             TaskResult {
                                 try await communityRepository
-                                    .updatePost(updatedPost)
+                                    .updatePost(updatedPost, imageDatas)
                             }
                         )
                     )

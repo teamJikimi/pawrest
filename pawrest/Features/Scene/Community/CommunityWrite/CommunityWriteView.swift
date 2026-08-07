@@ -142,15 +142,3 @@ private extension CommunityWriteView {
         }
     }
 }
-
-#Preview {
-    NavigationStack {
-        CommunityWriteView(
-            store: Store(
-                initialState: CommunityWriteState()
-            ) {
-                CommunityWriteReducer()
-            }
-        )
-    }
-}

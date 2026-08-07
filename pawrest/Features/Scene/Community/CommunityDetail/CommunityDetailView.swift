@@ -240,13 +240,13 @@ private extension CommunityDetailView {
     }
     
     func editSave(title: String, content: String, images: [UIImage]) {
-        let imageURLs = images.compactMap { image -> String? in
-            guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
-            let filename = "\(UUID().uuidString).jpg"
-            let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-            try? data.write(to: url)
-            return url.absoluteString
+        let imageDatas = images.compactMap {
+            $0.jpegData(compressionQuality: 0.8)
         }
-        store.send(.postEdited(title: title, content: content, imageURLs: imageURLs))
+        store.send(.postEdited(
+            title: title,
+            content: content,
+            imageDatas: imageDatas
+        ))
     }
 }
