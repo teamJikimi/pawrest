@@ -17,6 +17,7 @@ struct CommunityDetailState: Equatable {
     var navigationBar: NavigationBarState
     
     let currentUserID: String
+    let authorName: String
     
     var replyingToCommentID: UUID? = nil
     
@@ -37,9 +38,10 @@ struct CommunityDetailState: Equatable {
         post.author.id == currentUserID
     }
     
-    init(post: Post, currentUserID: String) {
+    init(post: Post, currentUserID: String, authorName: String) {
         self.post = post
         self.currentUserID = currentUserID
+        self.authorName = authorName
         self.navigationBar = NavigationBarState(
             title: "커뮤니티",
             leftButton: .back,
@@ -68,10 +70,11 @@ enum CommunityDetailAction: Equatable {
     case outsideTapped
     
     case editDismissed
+    
     case postEdited(
         title: String,
         content: String,
-        imageURLs: [String]
+        imageDatas: [Data]
     )
     
     case commentCreationResponse(
@@ -83,6 +86,7 @@ enum CommunityDetailAction: Equatable {
         TaskResult<UUID>
     )
     
+    case likeResponse(previousIsLiked: Bool, success: Bool)
     case postDeletionResponse(TaskResult<String>)
     case postUpdateResponse(TaskResult<Post>)
 }
@@ -120,14 +124,14 @@ struct CommunityDetailReducer: Reducer {
                 
             case .navigationBar(.deleteTapped):
                 let postID = state.post.id
+                let imageURLs = state.post.imageURLs
                 
                 return .run { send in
                     await send(
                         .postDeletionResponse(
                             TaskResult {
                                 try await communityRepository
-                                    .deletePost(postID)
-                                
+                                    .deletePost(postID, imageURLs)
                                 return postID
                             }
                         )
@@ -152,8 +156,37 @@ struct CommunityDetailReducer: Reducer {
             // MARK: Post
                 
             case .likeTapped:
+                let postID = state.post.id
+                let userID = state.currentUserID
+                let previousIsLiked = state.post.isLiked
+                
                 state.post.isLiked.toggle()
                 state.post.likeCount += state.post.isLiked ? 1 : -1
+                
+                return .run { send in
+                    do {
+                        try await communityRepository.toggleLike(
+                            postID,
+                            userID,
+                            previousIsLiked
+                        )
+                        await send(.likeResponse(
+                            previousIsLiked: previousIsLiked,
+                            success: true
+                        ))
+                    } catch {
+                        await send(.likeResponse(
+                            previousIsLiked: previousIsLiked,
+                            success: false
+                        ))
+                    }
+                }
+                
+            case .likeResponse(let previousIsLiked, let success):
+                guard !success else { return .none }
+                
+                state.post.isLiked = previousIsLiked
+                state.post.likeCount += previousIsLiked ? 1 : -1
                 return .none
                 
             // MARK: Comment actions
@@ -218,6 +251,7 @@ struct CommunityDetailReducer: Reducer {
                 
                 state.text = ""
                 state.replyingToCommentID = nil
+                let authorName = state.authorName
                 
                 return .run { send in
                     await send(
@@ -228,7 +262,7 @@ struct CommunityDetailReducer: Reducer {
                                     .createComment(
                                         postID,
                                         currentUserID,
-                                        "나",
+                                        authorName,
                                         trimmed,
                                         parentCommentID
                                     )
@@ -247,27 +281,14 @@ struct CommunityDetailReducer: Reducer {
                 state.isEditPresented = false
                 return .none
                 
-            case .postEdited(
-                let title,
-                let content,
-                _
-            ):
+            case .postEdited(let title, let content, let imageDatas):
                 let trimmedTitle = title
-                    .trimmingCharacters(
-                        in: .whitespacesAndNewlines
-                    )
-                
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
                 let trimmedContent = content
-                    .trimmingCharacters(
-                        in: .whitespacesAndNewlines
-                    )
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
                 
-                guard
-                    !trimmedTitle.isEmpty,
-                    !trimmedContent.isEmpty
-                else {
-                    state.errorMessage =
-                        "제목과 내용을 입력해주세요."
+                guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else {
+                    state.errorMessage = "제목과 내용을 입력해주세요."
                     return .none
                 }
                 
@@ -280,7 +301,7 @@ struct CommunityDetailReducer: Reducer {
                         .postUpdateResponse(
                             TaskResult {
                                 try await communityRepository
-                                    .updatePost(updatedPost)
+                                    .updatePost(updatedPost, imageDatas)
                             }
                         )
                     )

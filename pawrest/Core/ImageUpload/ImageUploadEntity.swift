@@ -23,6 +23,7 @@ public struct ImageUploadEntity: Identifiable, Sendable {
 public enum StoragePath {
     case journal(userId: String, imageId: String)
     case profile(userId: String)
+    case community(postID: String, imageID: String)
     
     public var path: String {
         switch self {
@@ -30,6 +31,8 @@ public enum StoragePath {
             return "users/\(userId)/journals/\(imageId)"
         case .profile(let userId):
             return "users/\(userId)/profile.jpg"
+        case .community(let postID, let imageID):
+                    return "community/\(postID)/\(imageID)"
         }
     }
 }

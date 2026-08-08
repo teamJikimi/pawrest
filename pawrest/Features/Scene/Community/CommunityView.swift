@@ -53,7 +53,8 @@ struct CommunityView: View {
                     store: Store(
                         initialState: CommunityMyPostState(
                             currentUserID: currentUserID,
-                            posts: store.posts
+                            posts: store.posts,
+                            authorName: store.authorName ?? ""
                         ),
                         reducer: { CommunityMyPostReducer() }
                     ),
@@ -75,26 +76,14 @@ struct CommunityView: View {
                     reducer: { CommunityWriteReducer() }
                 ),
                 onSave: { title, content, images in
-                    let imageURLs = images.compactMap { image -> String? in
-                        guard let data = image.jpegData(compressionQuality: 0.8) else {
-                            return nil
-                        }
-
-                        let filename = "\(UUID().uuidString).jpg"
-                        let url = FileManager.default.temporaryDirectory
-                            .appendingPathComponent(filename)
-
-                        try? data.write(to: url)
-                        return url.absoluteString
+                    let imageDatas = images.compactMap {
+                        $0.jpegData(compressionQuality: 0.8)
                     }
-
-                    store.send(
-                        .newPostCreated(
-                            title: title,
-                            content: content,
-                            imageURLs: imageURLs
-                        )
-                    )
+                    store.send(.newPostCreated(
+                        title: title,
+                        content: content,
+                        imageDatas: imageDatas
+                    ))
                 }
             )
         }
@@ -164,7 +153,8 @@ private extension CommunityView {
                     store: Store(
                         initialState: CommunityDetailState(
                             post: post,
-                            currentUserID: currentUserID
+                            currentUserID: currentUserID,
+                            authorName: store.authorName ?? ""
                         ),
                         reducer: { CommunityDetailReducer() }
                     ),
