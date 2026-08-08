@@ -59,22 +59,50 @@ struct EditMenuButton: View {
                 .foregroundStyle(iconColor)
         }
         .frame(width: size.buttonSize, height: size.buttonSize)
+        // ✅ .overlay 삭제, 기존 .background를 아래로 교체
         .background(alignment: .topTrailing) {
             if isShowingMenu {
-                VStack(spacing: 0) {
-                    if showsEdit {
+                ZStack(alignment: .topTrailing) {
+                    // dismiss layer (뒤)
+                    Color.clear
+                        .frame(width: UIScreen.main.bounds.width * 2,
+                               height: UIScreen.main.bounds.height * 2)
+                        .contentShape(Rectangle())
+                        .onTapGesture { closeMenu() }
+                    
+                    // menu (앞)
+                    VStack(spacing: 0) {
+                        if showsEdit {
+                            Button(action: {
+                                onEdit()
+                                closeMenu()
+                            }) {
+                                HStack(spacing: 8) {
+                                    Text("수정하기")
+                                        .typography(.body2R1)
+                                        .foregroundColor(.gray80)
+                                    Spacer()
+                                    Image(.iconEdit)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: size.iconSize, height: size.iconSize)
+                                        .foregroundColor(.gray80)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                            }
+                        }
+                        
                         Button(action: {
-                            onEdit()
+                            onDelete()
                             closeMenu()
                         }) {
                             HStack(spacing: 8) {
-                                Text("수정하기")
+                                Text("삭제하기")
                                     .typography(.body2R1)
                                     .foregroundColor(.gray80)
-                                
                                 Spacer()
-                                
-                                Image(.iconEdit)
+                                Image(.iconDelete)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: size.iconSize, height: size.iconSize)
@@ -84,37 +112,15 @@ struct EditMenuButton: View {
                             .padding(.vertical, 6)
                         }
                     }
-                    
-                    Button(action: {
-                        onDelete()
-                        closeMenu()
-                    }) {
-                        HStack(spacing: 8) {
-                            Text("삭제하기")
-                                .typography(.body2R1)
-                                .foregroundColor(.gray80)
-                            
-                            Spacer()
-                            
-                            Image(.iconDelete)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: size.iconSize, height: size.iconSize)
-                                .foregroundColor(.gray80)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                    }
+                    .frame(width: 160, height: showsEdit ? 80 : 44)
+                    .background(Color.white)
+                    .cornerRadius(10, corners: .allCorners)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(.gray20, lineWidth: 1)
+                    )
+                    .offset(x: 0, y: opensUpward ? -(showsEdit ? 86 : 52) : size.buttonSize + 6)
                 }
-                .frame(width: 160, height: showsEdit ? 80 : 44)
-                .background(Color.white)
-                .cornerRadius(10, corners: .allCorners)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(.gray20, lineWidth: 1)
-                )
-                .offset(x: 0, y: opensUpward ? -(showsEdit ? 86 : 52) : size.buttonSize + 6)
-                .zIndex(1000)
             }
         }
         .zIndex(isShowingMenu ? 1000 : 0)
