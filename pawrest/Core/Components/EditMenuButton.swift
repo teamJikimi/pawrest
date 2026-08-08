@@ -59,18 +59,18 @@ struct EditMenuButton: View {
                 .foregroundStyle(iconColor)
         }
         .frame(width: size.buttonSize, height: size.buttonSize)
-        // ✅ .overlay 삭제, 기존 .background를 아래로 교체
+        
         .background(alignment: .topTrailing) {
             if isShowingMenu {
                 ZStack(alignment: .topTrailing) {
-                    // dismiss layer (뒤)
+                    
                     Color.clear
                         .frame(width: UIScreen.main.bounds.width * 2,
                                height: UIScreen.main.bounds.height * 2)
                         .contentShape(Rectangle())
                         .onTapGesture { closeMenu() }
                     
-                    // menu (앞)
+                    
                     VStack(spacing: 0) {
                         if showsEdit {
                             Button(action: {
