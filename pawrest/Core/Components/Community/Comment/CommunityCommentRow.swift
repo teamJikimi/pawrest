@@ -41,35 +41,36 @@ struct CommunityCommentRow: View {
         }
         .zIndex(isMenuOpen ? 1000 : 0)
     }
-
 }
 
 //MARK: - Layouts
 
 private extension CommunityCommentRow {
     
-    var topLevelLayout : some View {
-        VStack(alignment: .leading, spacing: 0){
-            authorHeader
+    
+    var topLevelLayout: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: 0) {
+                authorHeader
+                Spacer(minLength: 0)
+                actionButtons
+            }
             commentContent
-            
-            actionButtons
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.top, 8)
         }
     }
+    
     
     var replyLayout: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(.iconReply)
-    
-            VStack(alignment: .leading, spacing: 0){
-                authorHeader
+            
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .center, spacing: 0) {
+                    authorHeader
+                    Spacer(minLength: 0)
+                    replyMoreButton
+                }
                 commentContent
-                
-                replyMoreButton
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.top, 8)
             }
             .padding(16)
             .background {
@@ -106,25 +107,26 @@ private extension CommunityCommentRow {
 
 private extension CommunityCommentRow {
 
+    
     var actionButtons: some View {
-        HStack(spacing: 0){
+        HStack(spacing: 0) {
             Button { onAction(.replyTapped) } label: {
                 Image(.iconReplyFill)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 16, height: 16)
+                    .frame(width: 22, height: 22)
             }
             .buttonStyle(.plain)
             
             Rectangle()
-                .fill(.gray20)
-                .frame(width: 1, height: 6)
-                .padding(.leading, 6)
-                .padding(.trailing, 4)
+                .fill(.gray40)
+                .frame(width: 1, height: 10)
+                .padding(.leading, 8)
+                .padding(.trailing, 6)
             
             moreMenuButton
         }
-        .padding(.horizontal, 6)
+        .padding(.horizontal, 7)
         .padding(.vertical, 4)
         .background {
             RoundedCorner(radius: 8, corners: .allCorners)
@@ -134,16 +136,15 @@ private extension CommunityCommentRow {
     
     var replyMoreButton: some View {
         moreMenuButton
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
     }
     
     @ViewBuilder
     var moreMenuButton: some View {
         if isMyComment {
-            EditMenuButton (
+            EditMenuButton(
                 icon: .iconReplyMore,
                 size: .comment,
+                iconColor: .gray40,
                 showsEdit: false,
                 opensUpward: opensMenuUpward,
                 onEdit: { onAction(.editTapped) },
@@ -151,14 +152,15 @@ private extension CommunityCommentRow {
                 onMenuVisibilityChanged: { isMenuOpen = $0 }
             )
         } else {
-            ReportMenuButton (
+            ReportMenuButton(
                 icon: .iconReplyMore,
-                size :.comment,
+                size: .comment,
+                iconColor: .gray40,
                 opensUpward: opensMenuUpward,
-                onBoardSettings: { onAction(.reportBoardSettings)},
-                onReportAbuse: { onAction(.reportAbuse)},
-                onReportSpam: { onAction(.reportSpam)},
-                onBlock: { onAction(.blockTapped)},
+                onBoardSettings: { onAction(.reportBoardSettings) },
+                onReportAbuse: { onAction(.reportAbuse) },
+                onReportSpam: { onAction(.reportSpam) },
+                onBlock: { onAction(.blockTapped) },
                 onMenuVisibilityChanged: { isMenuOpen = $0 }
             )
         }
