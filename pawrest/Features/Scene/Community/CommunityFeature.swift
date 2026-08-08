@@ -341,11 +341,13 @@ struct CommunityReducer: Reducer {
                 }
 
             case .postCreationResponse(.success(let post)):
+                state.isLoading = false
                 state.posts.insert(post, at: 0)
                 state.isWritePostPresented = false
                 return .none
 
             case .postCreationResponse(.failure(let error)):
+                state.isLoading = false
                 state.errorMessage = error.localizedDescription
                 return .none
 

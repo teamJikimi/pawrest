@@ -93,20 +93,6 @@ final class CommunityFirestoreService {
             .delete()
     }
     
-    func updatePost(
-        postID: String,
-        title: String,
-        content: String
-    ) async throws {
-        try await firestore
-            .collection("posts")
-            .document(postID)
-            .updateData([
-                "title": title,
-                "content": content,
-            ])
-    }
-    
     func fetchLikedPostIDs(userID: String) async throws -> Set<String> {
         let snapshot = try await firestore
             .collectionGroup("likes")
