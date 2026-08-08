@@ -74,7 +74,8 @@ private extension CommunityMyPostView {
                 store: Store(
                     initialState: CommunityDetailState(
                         post: post,
-                        currentUserID: store.currentUserID
+                        currentUserID: store.currentUserID,
+                        authorName: store.authorName
                     ),
                     reducer: { CommunityDetailReducer() }
                 ),
