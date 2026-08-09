@@ -15,14 +15,14 @@ struct NavigationBarState: Equatable {
     var title: String
     var leftButton: NavLeftItem
     var rightButton: NavRightItem
-    var backgroundColor: Color = .white
+    var backgroundColor: Color = .gray0
     var titleColor: Color = .black
     
     init(
         title: String,
         leftButton: NavLeftItem = .back,
         rightButton: NavRightItem = .none,
-        backgroundColor: Color = .white,
+        backgroundColor: Color = .gray0,
         titleColor: Color = .black
     ) {
         self.title = title
