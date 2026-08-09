@@ -57,6 +57,7 @@ struct pawrestApp: App {
             AppView(store: Store(initialState: initialAppState) {
                 AppReducer()
             })
+            .preferredColorScheme(.light) 
         }
         .modelContainer(sharedModelContainer)
     }
