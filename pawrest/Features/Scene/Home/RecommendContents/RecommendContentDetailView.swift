@@ -239,7 +239,7 @@ private extension RecommendContentDetailView {
             let segment = index % 2 == 1
             ? Text(part).foregroundStyle(.pawPrimary)
             : Text(part)
-            result = result + segment
+            result = Text("\(result)\(segment)")
         }
         return result
     }
