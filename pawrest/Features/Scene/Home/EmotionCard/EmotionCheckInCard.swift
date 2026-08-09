@@ -67,7 +67,7 @@ private extension EmotionCheckInCard {
                 
                 if store.memoText.isEmpty {
                     Text("현재 상태에 대해 간단히 메모해보세요.")
-                        .typography(.body2R2)
+                        .typography(.body3R)
                         .foregroundStyle(.gray50)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
