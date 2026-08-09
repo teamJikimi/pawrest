@@ -131,7 +131,7 @@ private extension MyView {
             .clipShape(Circle())
             
             Text(store.user.userName)
-                .typography(.body2Accent)
+                .typography(.body3Accent)
                 .foregroundStyle(.gray80)
             
             Spacer()
