@@ -10,6 +10,7 @@ import SwiftUI
 struct AccountSettingsView: View {
     var onBlockedList: () -> Void
     var onPrivacyPolicy: () -> Void
+    var onTermsOfService: () -> Void
     var onDeleteAccount: () -> Void
     var onLogout: () -> Void
     
@@ -24,7 +25,12 @@ struct AccountSettingsView: View {
                 Divider().padding(.horizontal, 16)
                 SettingsRow(title: "개인정보 처리방침", type: .chevron, action: onPrivacyPolicy)
                 Divider().padding(.horizontal, 16)
-                SettingsRow(title: "앱 버전", type: .value("v.1.0.2"))
+                SettingsRow(title: "이용약관", type: .chevron, action: onTermsOfService)
+                Divider().padding(.horizontal, 16)
+                SettingsRow(
+                    title: "앱 버전",
+                    type: .value("v.\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")")
+                )
                 Divider().padding(.horizontal, 16)
                 SettingsRow(title: "계정 탈퇴", type: .destructive, action: onDeleteAccount)
                 Divider().padding(.horizontal, 16)
@@ -34,7 +40,7 @@ struct AccountSettingsView: View {
             .cornerRadius(20, corners: .allCorners)
         }
         .padding(.horizontal, 16)
-        .padding(.top,20)
+        .padding(.top, 20)
         .padding(.bottom, 20)
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)

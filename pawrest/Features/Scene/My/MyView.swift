@@ -94,6 +94,10 @@ struct MyView: View {
                 PrivacyPolicyView(store: Store(initialState: state) {
                     PrivacyPolicyFeature()
                 })
+            case .termsOfService(let state):
+                TermsOfServiceView(store: Store(initialState: state) {
+                    TermsOfServiceFeature()
+                })
             }
         }
         .onChange(of: store.path.count) { _, count in
@@ -236,6 +240,7 @@ private extension MyView {
         AccountSettingsView(
             onBlockedList: { store.send(.blockedListTapped) },
             onPrivacyPolicy: { store.send(.privacyPolicyTapped) },
+            onTermsOfService: { store.send(.termsOfServiceTapped) },
             onDeleteAccount: { store.send(.deleteAccountTapped) },
             onLogout: { store.send(.logoutTapped) }
         )
