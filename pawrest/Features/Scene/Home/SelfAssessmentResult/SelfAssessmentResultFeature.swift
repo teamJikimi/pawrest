@@ -160,6 +160,19 @@ enum AssessmentScoreLevel: Equatable {
     }
 
     var badgeBackground: Color { scoreColor.opacity(0.15) }
+    
+    var backgroundIcon: ImageResource {
+        switch self {
+        case .pbqLow, .cesDNormal, .pdsMild:
+            return .iconBackgroundLow
+        case .pbqAverage, .pdsModerate:
+            return .iconBackgroundModerate
+        case .cesDHighRisk, .pdsModerateToSevere:
+            return .iconBackgroundHigh
+        case .pbqHigh, .cesDDepression, .pdsSevere:
+            return .iconBackgroundSevere
+        }
+    }
 
     var cardGradient: EllipticalGradient {
         switch self {

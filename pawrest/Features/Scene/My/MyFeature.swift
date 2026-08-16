@@ -42,6 +42,7 @@ struct MyFeature: Reducer {
             case profileEdit(ProfileEditFeature.State)
             case blockedList(BlockedListFeature.State)
             case privacyPolicy(PrivacyPolicyFeature.State)
+            case termsOfService(TermsOfServiceFeature.State)
         }
 
         @CasePathable
@@ -49,6 +50,7 @@ struct MyFeature: Reducer {
             case profileEdit(ProfileEditFeature.Action)
             case blockedList(BlockedListFeature.Action)
             case privacyPolicy(PrivacyPolicyFeature.Action)
+            case termsOfService(TermsOfServiceFeature.Action)
         }
 
         var body: some Reducer<State, Action> {
@@ -56,6 +58,7 @@ struct MyFeature: Reducer {
                 .ifCaseLet(\.profileEdit, action: \.profileEdit) { ProfileEditFeature() }
                 .ifCaseLet(\.blockedList, action: \.blockedList) { BlockedListFeature() }
                 .ifCaseLet(\.privacyPolicy, action: \.privacyPolicy) { PrivacyPolicyFeature() }
+                .ifCaseLet(\.termsOfService, action: \.termsOfService) { TermsOfServiceFeature() }
         }
     }
 
@@ -70,6 +73,7 @@ struct MyFeature: Reducer {
         case communityReactionToggled(Bool)
         case blockedListTapped
         case privacyPolicyTapped
+        case termsOfServiceTapped
         case logoutTapped
         case logoutAlertDismissed
         case logoutConfirmed
@@ -130,6 +134,11 @@ struct MyFeature: Reducer {
 
             case .privacyPolicyTapped:
                 state.path.append(.privacyPolicy(PrivacyPolicyFeature.State()))
+                state.isShowingSubPage = true
+                return .none
+
+            case .termsOfServiceTapped:
+                state.path.append(.termsOfService(TermsOfServiceFeature.State()))
                 state.isShowingSubPage = true
                 return .none
 
