@@ -124,7 +124,7 @@ private extension ProfileEditView {
     var nicknameField: some View {
         HStack(spacing: 0) {
             Text("닉네임")
-                .typography(.body1M)
+                .typography(.body3M)
                 .foregroundStyle(.gray80)
                 .frame(width: 44, alignment: .leading)
 
@@ -138,7 +138,7 @@ private extension ProfileEditView {
                 get: { store.nickname },
                 set: { store.send(.nicknameChanged($0)) }
             ))
-            .typography(.body1R)
+            .typography(.body3R)
             .foregroundStyle(.gray80)
             .focused($isFocused)
 
@@ -277,7 +277,7 @@ private extension ProfileEditView {
     func editTextField(label: String, text: Binding<String>) -> some View {
         HStack(spacing: 0) {
             Text(label)
-                .typography(.body1M)
+                .typography(.body3M)
                 .foregroundStyle(.gray80)
                 .frame(width: 44, alignment: .leading)
 
@@ -288,7 +288,7 @@ private extension ProfileEditView {
                 .padding(.trailing, 10)
 
             TextField("", text: text)
-                .typography(.body1R)
+                .typography(.body3R)
                 .foregroundStyle(.gray80)
                 .focused($isFocused)
         }
@@ -303,7 +303,7 @@ private extension ProfileEditView {
     func editDateField(label: String, text: String, onTap: @escaping () -> Void) -> some View {
         HStack(spacing: 0) {
             Text(label)
-                .typography(.body1M)
+                .typography(.body3M)
                 .foregroundStyle(.gray80)
                 .frame(width: 44, alignment: .leading)
 
@@ -314,7 +314,7 @@ private extension ProfileEditView {
                 .padding(.trailing, 10)
 
             Text(text.isEmpty ? "날짜를 선택하세요" : text)
-                .typography(.body1R)
+                .typography(.body3R)
                 .foregroundStyle(text.isEmpty ? .gray40 : .gray80)
 
             Spacer()
