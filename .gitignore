@@ -29,3 +29,4 @@ fastlane/screenshots
 *.log
 *.tmp
 
+pawrest/Config/Secrets.swift

@@ -26,7 +26,7 @@ struct ReportView: View {
             let record = dayRecords.first { slot.contains(hour: calendar.component(.hour, from: $0.recordedAt)) }
             return TimeSlotEmotion(timeSlot: slot, level: record?.emotionTypeEnum?.toEmotionLevel)
         }
-        return DailyTimeEmotionData(date: date, slots: slots, insight: nil)
+        return DailyTimeEmotionData(date: date, slots: slots, insight: store.dailyTimeData.insight)
     }
 
     var weekdayChartData: WeekdayEmotionData {
@@ -43,7 +43,7 @@ struct ReportView: View {
             let avg = levels.isEmpty ? nil : EmotionLevel(rawValue: levels.map(\.rawValue).reduce(0, +) / levels.count)
             return WeekdayEmotionData.WeekdayEntry(weekday: weekday, level: avg)
         }
-        return WeekdayEmotionData(entries: entries, insight: nil)
+        return WeekdayEmotionData(entries: entries, insight: store.reportData?.weekdayData.insight)
     }
 
     var weeklyChartData: WeeklyEmotionChartData {
@@ -54,7 +54,7 @@ struct ReportView: View {
             let record = emotionRecords.first { calendar.isDate($0.recordedAt, inSameDayAs: date) }
             return .init(date: date, level: record?.emotionTypeEnum?.toEmotionLevel)
         }
-        return WeeklyEmotionChartData(entries: entries, insight: nil)
+        return WeeklyEmotionChartData(entries: entries, insight: store.reportData?.weeklyChart.insight)
     }
 
     var body: some View {
@@ -87,7 +87,13 @@ struct ReportView: View {
             }
         }
         .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
-        .onAppear { store.send(.onAppear) }
+        .onAppear {
+            print("[ReportView] onAppear called, emotionRecords: \(emotionRecords.count)")
+            let snapshots = emotionRecords.map {
+                EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt)
+            }
+            store.send(.onAppear(snapshots: snapshots))
+        }
         .hideTabBar()
     }
 }
@@ -108,9 +114,11 @@ private extension ReportView {
                 Text(data.summaryTitle.isEmpty ? "이번 주 감정 기록을 남겨보세요" : data.summaryTitle)
                     .typography(.body2M)
                     .foregroundStyle(.gray80)
-                Text(data.summaryBody.isEmpty ? "기록이 쌓이면 변화를 확인할 수 있어요" : data.summaryBody)
-                    .typography(.body3R)
-                    .foregroundStyle(.gray60)
+                if !data.summaryBody.isEmpty {
+                    Text(data.summaryBody)
+                        .typography(.body3R)
+                        .foregroundStyle(.gray60)
+                }
             }
             Spacer()
         }
@@ -170,8 +178,9 @@ private extension ReportView {
             }
             Text(data.aiSummary.isEmpty ? "이번 주 감정 기록이 쌓이면\nAI가 감정을 분석해드려요." : data.aiSummary)
                 .typography(.body3R)
-                .foregroundStyle(data.aiSummary.isEmpty ? .gray60 : .gray60)
+                .foregroundStyle(.gray60)
                 .lineSpacing(4)
+            
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -189,10 +198,9 @@ private extension ReportView {
                 statRow(label: "가장 많이 느낀 감정", value: data.stats.mostFrequentEmotion, color: Color(.gray80))
                 statRow(label: "하늘에 전달된 편지 수", value: "\(data.stats.lettersSent)통", color: Color(.accent))
             }
-            
         }
         .padding(.vertical, 20)
-        .padding(.horizontal,16)
+        .padding(.horizontal, 16)
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
     }
@@ -265,7 +273,6 @@ private extension ReportView {
         .padding(.vertical, 16)
         .background(.gray10)
     }
-
 
     var counselingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
