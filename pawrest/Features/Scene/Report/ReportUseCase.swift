@@ -9,10 +9,12 @@ import Foundation
 import SwiftData
 
 protocol ReportUseCaseProtocol {
-    func buildLocalData() -> ReportData
-    func fetchAIData(emotionSnapshots: [EmotionSnapshot], context: ModelContext) async throws -> (AIReportResult, String?, DailyTimeEmotionData)
+    func buildLocalData(snapshots: [EmotionSnapshot]) -> ReportData
+    func fetchAIData(emotionSnapshots: [EmotionSnapshot], container: ModelContainer) async throws -> (AIReportResult, String?, DailyTimeEmotionData)
     func fetchDailyTimeEmotion(for date: Date, emotionSnapshots: [EmotionSnapshot]) async throws -> DailyTimeEmotionData
 }
+
+// MARK: - EmotionSnapshot
 
 struct EmotionSnapshot: Sendable, Equatable {
     let type: String
@@ -24,139 +26,169 @@ struct EmotionSnapshot: Sendable, Equatable {
     }
 }
 
+// MARK: - ReportUseCase
+
 struct ReportUseCase: ReportUseCaseProtocol {
 
-    // 로컬 데이터만 즉시 반환 (AI 없음)
-    func buildLocalData() -> ReportData {
-        ReportData(
-            weekRange: weekRangeString(),
-            summaryTitle: "이번 주 감정 기록을 남겨보세요",
-            summaryBody: "기록이 쌓이면 변화를 확인할 수 있어요",
-            aiSummary: "",
-            stats: ReportStats(recordedDays: 0, mostFrequentEmotion: "", lettersSent: 0),
+    func buildLocalData(snapshots: [EmotionSnapshot] = []) -> ReportData {
+        let calendar = Calendar.current
+        let today = Date()
+        let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "M월 d일"
+        let rangeText = "\(formatter.string(from: weekStart)) - \(formatter.string(from: today)), \(calendar.component(.year, from: today))"
+
+        let weekSnapshots = snapshots.filter { $0.recordedAt >= weekStart }
+
+        let recordedDays = Set(weekSnapshots.map { calendar.startOfDay(for: $0.recordedAt) }).count
+
+        let mostFrequent = weekSnapshots
+            .compactMap { EmotionType(rawValue: $0.type)?.label }
+            .reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }
+            .max(by: { $0.value < $1.value })?.key ?? "-"
+
+        return ReportData(
+            weekRange: rangeText,
+            summaryTitle: "AI분석에 실패 했어요",
+            summaryBody: "잠시뒤에 다시 시도해주세요",
+            aiSummary: "AI가 이번 주 감정 흐름을 분석 중이에요.\n잠시만 기다려주세요.",
+            stats: ReportStats(
+                recordedDays: recordedDays,
+                mostFrequentEmotion: mostFrequent,
+                lettersSent: 0
+            ),
             statusCards: [],
-            weeklyChart: WeeklyEmotionChartData(entries: [], insight: nil),
-            dailyTimeData: DailyTimeEmotionData(date: Date(), slots: [], insight: nil),
-            weekdayData: WeekdayEmotionData(entries: [], insight: nil)
+            weeklyChart: .empty,
+            dailyTimeData: .empty,
+            weekdayData: .empty
         )
     }
 
-    // AI 호출 (캐시 확인 포함)
-    func fetchAIData(emotionSnapshots: [EmotionSnapshot], context: ModelContext) async throws -> (AIReportResult, String?, DailyTimeEmotionData) {
-        let calendar = Calendar.current
-        let today = Date()
-
-        let weekEnd = weekEndDate(from: today)
+    func fetchAIData(
+        emotionSnapshots: [EmotionSnapshot],
+        container: ModelContainer
+    ) async throws -> (AIReportResult, String?, DailyTimeEmotionData) {
+        let context = ModelContext(container)
         let hash = snapshotHash(emotionSnapshots)
+        let weekEndDate = Calendar.current.startOfDay(for: Date())
+
         let descriptor = FetchDescriptor<WeeklyReportCache>(
-            predicate: #Predicate { $0.weekEndDate == weekEnd && $0.snapshotHash == hash }
+            predicate: #Predicate { $0.weekEndDate == weekEndDate && $0.snapshotHash == hash }
         )
         if let cached = try? context.fetch(descriptor).first {
-            print("[ReportUseCase] 캐시 히트")
-            let todayTimeData = try await fetchDailyTimeEmotion(for: today, emotionSnapshots: emotionSnapshots, cachedInsight: cached.timeInsight)
             let aiResult = AIReportResult(
                 bannerTitle: cached.summaryTitle,
                 bannerSummary: cached.summaryBody,
                 weeklySummary: cached.aiSummary,
                 dailyInsight: cached.weeklyInsight
             )
-            return (aiResult, cached.weekdayInsight, todayTimeData)
+            let todayTime = await buildTimeData(for: Date(), snapshots: emotionSnapshots, timeInsight: cached.timeInsight)
+            return (aiResult, cached.weekdayInsight, todayTime)
         }
 
-        print("[ReportUseCase] 캐시 미스 — AI 호출")
+        let weeklyEntries = makeWeeklyEntries(snapshots: emotionSnapshots)
+        let aiResult = try await AIService.shared.generateReport(
+            snapshots: emotionSnapshots,
+            weeklyEntries: weeklyEntries
+        )
 
-        let weeklyEntries = (0..<7).reversed().map { offset -> (date: String, level: String?) in
-            let date = calendar.date(byAdding: .day, value: -offset, to: today)!
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "ko_KR")
-            formatter.dateFormat = "M/d(E)"
-            let record = emotionSnapshots.first { calendar.isDate($0.recordedAt, inSameDayAs: date) }
-            return (date: formatter.string(from: date), level: record?.emotionLabel)
-        }
+        let weekdayEntries = makeWeekdayEntries(snapshots: emotionSnapshots)
+        let weekdayInsight = try? await AIService.shared.generateWeekdayInsight(entries: weekdayEntries)
 
-        var weekdayBuckets: [Int: [String]] = [:]
-        for snapshot in emotionSnapshots {
-            let weekday = calendar.component(.weekday, from: snapshot.recordedAt) - 1
-            weekdayBuckets[weekday, default: []].append(snapshot.emotionLabel)
-        }
-        let weekdayEntries = (0..<7).map { weekday -> (weekday: String, level: String?) in
-            let labels = ["일","월","화","수","목","금","토"]
-            let levels = weekdayBuckets[weekday] ?? []
-            return (weekday: labels[weekday], level: levels.isEmpty ? nil : levels.last)
-        }
+        let todaySlots = makeTimeSlots(for: Date(), snapshots: emotionSnapshots)
+        let timeEntries = todaySlots.map { (timeSlot: $0.timeSlot.label, level: $0.level?.label) }
+        let timeInsight = try? await AIService.shared.generateTimeInsight(entries: timeEntries)
 
-        let aiResult      = try await AIService.shared.generateReport(snapshots: emotionSnapshots, weeklyEntries: weeklyEntries)
-        let weekdayInsight = try await AIService.shared.generateWeekdayInsight(entries: weekdayEntries)
-        let todayTimeData  = try await fetchDailyTimeEmotion(for: today, emotionSnapshots: emotionSnapshots)
+        let todayTime = DailyTimeEmotionData(date: Date(), slots: todaySlots, insight: timeInsight)
 
         let cache = WeeklyReportCache(
-            weekEndDate: weekEnd,
+            weekEndDate: weekEndDate,
             snapshotHash: hash,
             summaryTitle: aiResult.bannerTitle,
             summaryBody: aiResult.bannerSummary,
             aiSummary: aiResult.weeklySummary,
             weeklyInsight: aiResult.dailyInsight,
             weekdayInsight: weekdayInsight,
-            timeInsight: todayTimeData.insight
+            timeInsight: timeInsight
         )
         context.insert(cache)
         try? context.save()
 
-        return (aiResult, weekdayInsight, todayTimeData)
+        return (aiResult, weekdayInsight, todayTime)
     }
 
     func fetchDailyTimeEmotion(for date: Date, emotionSnapshots: [EmotionSnapshot]) async throws -> DailyTimeEmotionData {
-        return try await fetchDailyTimeEmotion(for: date, emotionSnapshots: emotionSnapshots, cachedInsight: nil)
-    }
-
-    private func fetchDailyTimeEmotion(for date: Date, emotionSnapshots: [EmotionSnapshot], cachedInsight: String?) async throws -> DailyTimeEmotionData {
-        let calendar = Calendar.current
-        let daySnapshots = emotionSnapshots.filter { calendar.isDate($0.recordedAt, inSameDayAs: date) }
-
-        let slots: [TimeSlotEmotion] = TimeSlotEmotion.TimeSlot.allCases.map { slot in
-            let matching = daySnapshots.filter { timeSlot(for: $0.recordedAt) == slot }
-            let level = matching.last.flatMap { EmotionType(rawValue: $0.type) }.flatMap { emotionToLevel($0) }
-            return TimeSlotEmotion(timeSlot: slot, level: level)
-        }
-
-        let insight: String?
-        if let cached = cachedInsight {
-            insight = cached
-        } else {
-            let timeEntries = slots.map { (timeSlot: $0.timeSlot.label, level: $0.level?.label) }
-            insight = try await AIService.shared.generateTimeInsight(entries: timeEntries)
-        }
-
+        let slots = makeTimeSlots(for: date, snapshots: emotionSnapshots)
+        let timeEntries = slots.map { (timeSlot: $0.timeSlot.label, level: $0.level?.label) }
+        let insight = try? await AIService.shared.generateTimeInsight(entries: timeEntries)
         return DailyTimeEmotionData(date: date, slots: slots, insight: insight)
     }
+}
 
-    // MARK: - Private
+// MARK: - Private Helpers
 
-    private func snapshotHash(_ snapshots: [EmotionSnapshot]) -> String {
-        let key = snapshots.map { "\($0.type)\($0.recordedAt.timeIntervalSince1970)" }.joined()
-        return String(key.hashValue)
+private extension ReportUseCase {
+
+    func snapshotHash(_ snapshots: [EmotionSnapshot]) -> String {
+        let joined = snapshots.map { "\($0.type)-\($0.recordedAt.timeIntervalSince1970)" }.joined(separator: "|")
+        return String(joined.hashValue)
     }
 
-    private func weekEndDate(from date: Date) -> Date {
+    func makeWeeklyEntries(snapshots: [EmotionSnapshot]) -> [(date: String, level: String?)] {
         let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date)
-        let daysToSunday = (8 - weekday) % 7
-        let sunday = calendar.date(byAdding: .day, value: daysToSunday, to: date)!
-        return calendar.startOfDay(for: sunday)
+        let today = calendar.startOfDay(for: Date())
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "E"
+        return (0..<7).map { offset -> (date: String, level: String?) in
+            let date = calendar.date(byAdding: .day, value: offset - 6, to: today)!
+            let dayLabel = String(formatter.string(from: date).prefix(1))
+            let level = snapshots
+                .filter { calendar.isDate($0.recordedAt, inSameDayAs: date) }
+                .compactMap { EmotionType(rawValue: $0.type)?.label }
+                .last
+            return (date: dayLabel, level: level)
+        }
     }
 
-    private func timeSlot(for date: Date) -> TimeSlotEmotion.TimeSlot {
+    func makeWeekdayEntries(snapshots: [EmotionSnapshot]) -> [(weekday: String, level: String?)] {
+        let calendar = Calendar.current
+        let weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"]
+        return (1...7).map { weekday -> (weekday: String, level: String?) in
+            let level = snapshots
+                .filter { calendar.component(.weekday, from: $0.recordedAt) == weekday }
+                .compactMap { EmotionType(rawValue: $0.type)?.label }
+                .last
+            return (weekday: weekdayLabels[weekday - 1], level: level)
+        }
+    }
+
+    func makeTimeSlots(for date: Date, snapshots: [EmotionSnapshot]) -> [TimeSlotEmotion] {
+        let calendar = Calendar.current
+        let daySnapshots = snapshots.filter { calendar.isDate($0.recordedAt, inSameDayAs: date) }
+        return TimeSlotEmotion.TimeSlot.allCases.map { slot in
+            let level = daySnapshots
+                .filter { timeSlot(for: $0.recordedAt) == slot }
+                .compactMap { EmotionType(rawValue: $0.type).flatMap { emotionToLevel($0) } }
+                .last
+            return TimeSlotEmotion(timeSlot: slot, level: level)
+        }
+    }
+
+    func timeSlot(for date: Date) -> TimeSlotEmotion.TimeSlot {
         let hour = Calendar.current.component(.hour, from: date)
         switch hour {
         case 5..<9:   return .morning
         case 9..<12:  return .forenoon
-        case 12..<18: return .afternoon
-        case 18..<22: return .evening
+        case 12..<17: return .afternoon
+        case 17..<21: return .evening
         default:      return .night
         }
     }
 
-    private func emotionToLevel(_ type: EmotionType) -> EmotionLevel? {
+    func emotionToLevel(_ type: EmotionType) -> EmotionLevel {
         switch type {
         case .comfortable: return .relaxed
         case .stable:      return .stable
@@ -166,18 +198,8 @@ struct ReportUseCase: ReportUseCaseProtocol {
         }
     }
 
-    private func weekRangeString() -> String {
-        let calendar = Calendar.current
-        let now = Date()
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M월 d일"
-        let weekday = calendar.component(.weekday, from: now)
-        let daysFromMonday = (weekday + 5) % 7
-        guard let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: now),
-              let sunday = calendar.date(byAdding: .day, value: 6, to: monday) else { return "" }
-        let yearFormatter = DateFormatter()
-        yearFormatter.dateFormat = ", yyyy"
-        return "\(formatter.string(from: monday)) - \(formatter.string(from: sunday))\(yearFormatter.string(from: sunday))"
+    func buildTimeData(for date: Date, snapshots: [EmotionSnapshot], timeInsight: String?) async -> DailyTimeEmotionData {
+        let slots = makeTimeSlots(for: date, snapshots: snapshots)
+        return DailyTimeEmotionData(date: date, slots: slots, insight: timeInsight)
     }
 }

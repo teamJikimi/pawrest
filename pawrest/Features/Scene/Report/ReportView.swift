@@ -19,6 +19,15 @@ struct ReportView: View {
     @Query(sort: \EmotionRecordModel.recordedAt, order: .reverse)
     private var emotionRecords: [EmotionRecordModel]
 
+    @Query(sort: \LetterModel.sentAt)
+    private var letters: [LetterModel]
+
+    private let deliveryInterval: TimeInterval = 24 * 60 * 60
+
+    var deliveredLetterCount: Int {
+        letters.filter { $0.sentAt.addingTimeInterval(deliveryInterval) <= Date() }.count
+    }
+
     var currentDailyTimeData: DailyTimeEmotionData {
         let calendar = Calendar.current
         let date = store.dailyTimeData.date
@@ -99,6 +108,7 @@ struct ReportView: View {
 }
 
 private extension ReportView {
+
     func dateHeader(_ data: ReportData) -> some View {
         Text(data.weekRange)
             .typography(.body2R1)
@@ -134,12 +144,13 @@ private extension ReportView {
                 colors: [.white, .primaryLight],
                 startPoint: .leading,
                 endPoint: .trailing
-            ))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(.gray10, lineWidth: 1)
             )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(.gray10, lineWidth: 1)
+        )
     }
 
     func chartSection(_ data: ReportData) -> some View {
@@ -181,7 +192,30 @@ private extension ReportView {
                     .typography(.body1M)
                     .foregroundStyle(.gray80)
             }
-            if store.isAILoading {
+            if store.isAILoadFailed {
+                VStack(spacing: 12) {
+                    VStack(spacing: 4) {
+                        Text("AI 요약을 불러오지 못했어요")
+                            .typography(.body2R2)
+                            .foregroundStyle(.gray60)
+                        Text("잠시 후 다시 시도해 주세요")
+                            .typography(.body3R)
+                            .foregroundStyle(.gray40)
+                    }
+                    Button {
+                        let snapshots = emotionRecords.map {
+                            EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt)
+                        }
+                        store.send(.onAppear(snapshots: snapshots, context: modelContext))
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(.gray60)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            } else if store.isAILoading {
                 VStack(alignment: .leading, spacing: 8) {
                     aiLoadingText(width: .infinity)
                     aiLoadingText(width: .infinity)
@@ -216,7 +250,7 @@ private extension ReportView {
             VStack(spacing: 6) {
                 statRow(label: "감정 기록 일수", value: "\(data.stats.recordedDays)일", color: Color(.pawPrimary))
                 statRow(label: "가장 많이 느낀 감정", value: data.stats.mostFrequentEmotion, color: Color(.gray80))
-                statRow(label: "하늘에 전달된 편지 수", value: "\(data.stats.lettersSent)통", color: Color(.accent))
+                statRow(label: "하늘에 전달된 편지 수", value: "\(deliveredLetterCount)통", color: Color(.accent))
             }
         }
         .padding(.vertical, 20)

@@ -10,5 +10,5 @@
 
 
 enum Secrets {
-    static let geminiAPIKey = "AQ.Ab8RN6LOJbitd63zuCGuKsDUhpL9iRmpUEZvY1wiWCae7z5vXw"
+    static let geminiAPIKey = "AQ.Ab8RN6JnECGq6ppyqht1R4rny4iA3JVOIFhnPuSY4eiwGgVCCA"
 }
