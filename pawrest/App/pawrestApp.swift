@@ -41,6 +41,7 @@ struct pawrestApp: App {
             UserProfile.self,
             PetProfile.self,
             NotificationRecord.self,
+            WeeklyReportCache.self 
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])
