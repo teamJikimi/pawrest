@@ -8,15 +8,12 @@
 import SwiftUI
 import SwiftData
 import FirebaseCore
-import FirebaseAppCheck
 import ComposableArchitecture
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions:
                      [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        let providerFactory = AppCheckDebugProviderFactory()
-        AppCheck.setAppCheckProviderFactory(providerFactory)
         FirebaseApp.configure()
         Task {
             _ = await NotificationService.shared.requestAuthorization()
@@ -41,7 +38,6 @@ struct pawrestApp: App {
             UserProfile.self,
             PetProfile.self,
             NotificationRecord.self,
-            WeeklyReportCache.self 
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         return try! ModelContainer(for: schema, configurations: [config])

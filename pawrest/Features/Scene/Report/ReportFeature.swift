@@ -19,7 +19,6 @@ struct ReportFeature {
         var selectedTab: ReportTab = .daily
         var isLoading: Bool = false
         var errorMessage: String? = nil
-        var emotionSnapshots: [EmotionSnapshot] = []
 
         var navigationBar: NavigationBarState = NavigationBarState(title: "리포트")
     }
@@ -27,7 +26,7 @@ struct ReportFeature {
     // MARK: - Action
     @CasePathable
     enum Action: Equatable {
-        case onAppear(snapshots: [EmotionSnapshot])
+        case onAppear
         case reportDataLoaded(ReportData)
         case dailyTimeDataLoaded(DailyTimeEmotionData)
         case tabChanged(ReportTab)
@@ -52,21 +51,18 @@ struct ReportFeature {
 
         Reduce { state, action in
             switch action {
-            case .onAppear(let snapshots):
+            case .onAppear:
                 state.isLoading = true
-                state.emotionSnapshots = snapshots
                 return .run { send in
                     do {
-                        let data = try await useCase.fetchReportData(emotionSnapshots: snapshots)
+                        let data = try await useCase.fetchReportData()
                         await send(.reportDataLoaded(data))
                     } catch {
-                        print("[ReportFeature] loadFailed: \(error.localizedDescription)")
                         await send(.loadFailed(error.localizedDescription))
                     }
                 }
 
             case .reportDataLoaded(let data):
-                print("[ReportFeature] reportDataLoaded, summaryTitle: \(data.summaryTitle)")
                 state.reportData = data
                 state.dailyTimeData = data.dailyTimeData
                 state.isLoading = false
@@ -84,10 +80,9 @@ struct ReportFeature {
                 guard let newDate = Calendar.current.date(
                     byAdding: .day, value: -1, to: state.dailyTimeData.date
                 ) else { return .none }
-                let snapshots = state.emotionSnapshots
                 return .run { send in
                     do {
-                        let data = try await useCase.fetchDailyTimeEmotion(for: newDate, emotionSnapshots: snapshots)
+                        let data = try await useCase.fetchDailyTimeEmotion(for: newDate)
                         await send(.dailyTimeDataLoaded(data))
                     } catch {
                         await send(.loadFailed(error.localizedDescription))
@@ -99,10 +94,9 @@ struct ReportFeature {
                       let newDate = Calendar.current.date(
                         byAdding: .day, value: 1, to: state.dailyTimeData.date
                       ) else { return .none }
-                let snapshots = state.emotionSnapshots
                 return .run { send in
                     do {
-                        let data = try await useCase.fetchDailyTimeEmotion(for: newDate, emotionSnapshots: snapshots)
+                        let data = try await useCase.fetchDailyTimeEmotion(for: newDate)
                         await send(.dailyTimeDataLoaded(data))
                     } catch {
                         await send(.loadFailed(error.localizedDescription))
@@ -126,6 +120,6 @@ enum ReportTab: String, CaseIterable, SegmentItem {
     case daily = "일별"
     case time = "시간대별"
     case weekday = "요일별"
-
+    
     var title: String { rawValue }
 }
