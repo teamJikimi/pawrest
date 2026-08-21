@@ -94,7 +94,9 @@ struct CommunityRepository {
         _ currentUserID: String
     ) async throws -> Set<String>
     
-    
+    var fetchBlockedUsers: @Sendable (
+        _ currentUserID: String
+    ) async throws -> [(id: String, name: String)]
 }
 
 // MARK: - DependencyKey
@@ -329,9 +331,11 @@ extension CommunityRepository: DependencyKey {
                 try await service.fetchBlockedUserIDs(
                     currentUserID: currentUserID
                 )
+            },
+            
+            fetchBlockedUsers: { currentUserID in
+                try await service.fetchBlockedUsers(currentUserID: currentUserID)
             }
-            
-            
         )
     }()
 }
