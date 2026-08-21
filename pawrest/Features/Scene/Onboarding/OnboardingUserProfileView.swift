@@ -10,32 +10,37 @@ import PhotosUI
 import ComposableArchitecture
 
 struct OnboardingUserProfileView: View {
-    
+
     // MARK: - Properties
-    
+
     @Bindable var store: StoreOf<OnboardingUserProfileReducer>
     @State private var selectedItem: PhotosPickerItem? = nil
-    
+
     // MARK: - Body
-    
+
     var body: some View {
         VStack(spacing: 0) {
             headerSection
                 .padding(.top, 35)
-            
+
             Color.clear.frame(height: 45)
-            
+
             profileImageSection
-            
+
             Color.clear.frame(height: 40)
-            
+
             nicknameSection
-            
+
             Spacer()
-            
+
             nextButton
         }
         .padding(.horizontal, 20)
+        .padding(.bottom, 12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            dismissKeyboard()
+        }
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
         )
@@ -45,7 +50,7 @@ struct OnboardingUserProfileView: View {
 // MARK: - Subviews
 
 private extension OnboardingUserProfileView {
-    
+
     var headerSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .bottom, spacing: 0) {
@@ -57,18 +62,18 @@ private extension OnboardingUserProfileView {
                     .typography(.title4)
                     .foregroundColor(.gray90)
             }
-            
+
             Text("프로필을 만들어요.")
                 .typography(.title4)
                 .foregroundColor(.gray90)
                 .padding(.top, 4)
-            
+
             OnboardingPagination(totalSteps: 2, currentStep: 0)
                 .padding(.top, 12)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
     var profileImageLabel: some View {
         let clipShape = ProfileClipShape(
             profileSize: 86,
@@ -91,7 +96,7 @@ private extension OnboardingUserProfileView {
             .frame(width: 86, height: 86)
             .clipShape(clipShape)
             .overlay(clipShape.stroke(.gray40, lineWidth: 1))
-            
+
             Image(.iconImageEdit)
                 .resizable()
                 .scaledToFit()
@@ -99,7 +104,7 @@ private extension OnboardingUserProfileView {
                 .offset(x: 3, y: 3)
         }
     }
-    
+
     var profileImageSection: some View {
         PhotosPicker(selection: $selectedItem, matching: .images) {
             profileImageLabel
@@ -112,7 +117,7 @@ private extension OnboardingUserProfileView {
             }
         }
     }
-    
+
     var nicknameSection: some View {
         OnboardingTextField.withDuplicateCheck(
             placeholder: "닉네임을 입력하세요",
@@ -125,20 +130,29 @@ private extension OnboardingUserProfileView {
             onCheck: { store.send(.duplicateCheckTapped) }
         )
     }
-    
+
     var nextButton: some View {
         Button {
             store.send(.nextTapped)
         } label: {
             Text("다음")
                 .typography(.button)
-                .foregroundColor(.gray0)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 42)
-                .background(store.isNextEnabled ? .pawPrimary : .gray40)
+                .padding(.vertical, 16)
+                .background(store.isNextEnabled ? Color.pawPrimary : Color.gray40)
                 .cornerRadius(14, corners: .allCorners)
         }
         .disabled(!store.isNextEnabled)
+    }
+
+    func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
     }
 }
 

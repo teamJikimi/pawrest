@@ -105,6 +105,7 @@ struct NavigationBarView: View {
         switch store.leftButton {
         case .back:
             Button {
+                store.send(.leftButtonTapped)
                 dismiss()
             } label: {
                 Image(.iconBack)

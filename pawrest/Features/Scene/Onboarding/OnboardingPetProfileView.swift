@@ -10,42 +10,49 @@ import PhotosUI
 import ComposableArchitecture
 
 struct OnboardingPetProfileView: View {
-    
+
     // MARK: - Properties
-    
+
     @Bindable var store: StoreOf<OnboardingPetProfileReducer>
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
-    
-    // MARK: - Body
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            backButton
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, 16)
 
-            headerSection
-                .padding(.top, 19)
-            
-            Color.clear.frame(height: 45)
-            
-            profileImageSection
-            
-            Color.clear.frame(height: 40)
-            
-            nameSection
-            
-            Color.clear.frame(height: 40)
-            
-            dateSection
-            
-            Spacer()
-            
-            nextButton
+    // MARK: - Body
+
+    var body: some View {
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 0) {
+                    headerSection
+                        .padding(.top, 19)
+
+                    Color.clear.frame(height: 45)
+
+                    profileImageSection
+
+                    Color.clear.frame(height: 40)
+
+                    nameSection
+
+                    Color.clear.frame(height: 40)
+
+                    dateSection
+
+                    Spacer(minLength: 40)
+
+                    nextButton
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
+                .frame(minHeight: geo.size.height)
+            }
+            .scrollDismissesKeyboard(.interactively)
         }
-        .padding(.horizontal, 20)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            dismissKeyboard()
+        }
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
         )
@@ -85,32 +92,20 @@ struct OnboardingPetProfileView: View {
 // MARK: - Subviews
 
 private extension OnboardingPetProfileView {
-    
-    var backButton: some View {
-        Button {
-            store.send(.navigationBar(.leftButtonTapped))
-        } label: {
-            Image(.iconBack)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 24, height: 24)
-                .foregroundStyle(.gray90)
-        }
-        .frame(width: 44, height: 44)
-    }
 
     var headerSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("추억할 아이를\n소개해주세요.")
                 .typography(.title4)
                 .foregroundColor(.gray90)
-            
+                .fixedSize(horizontal: false, vertical: true)
+
             OnboardingPagination(totalSteps: 2, currentStep: 1)
                 .padding(.top, 12)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
     var profileImageLabel: some View {
         let clipShape = ProfileClipShape(
             profileSize: 86,
@@ -133,7 +128,7 @@ private extension OnboardingPetProfileView {
             .frame(width: 86, height: 86)
             .clipShape(clipShape)
             .overlay(clipShape.stroke(.gray40, lineWidth: 1))
-            
+
             Image(.iconImageEdit)
                 .resizable()
                 .scaledToFit()
@@ -141,7 +136,7 @@ private extension OnboardingPetProfileView {
                 .offset(x: 3, y: 3)
         }
     }
-    
+
     var profileImageSection: some View {
         PhotosPicker(selection: $selectedItem, matching: .images) {
             profileImageLabel
@@ -154,7 +149,7 @@ private extension OnboardingPetProfileView {
             }
         }
     }
-    
+
     var nameSection: some View {
         OnboardingTextField(
             placeholder: "이름을 입력하세요",
@@ -165,7 +160,7 @@ private extension OnboardingPetProfileView {
             helper: store.nameHelper
         )
     }
-    
+
     var dateSection: some View {
         VStack(spacing: 8) {
             OnboardingTextField.withCalendar(
@@ -173,7 +168,7 @@ private extension OnboardingPetProfileView {
                 text: .constant(store.birthdayText),
                 onTap: { store.send(.birthdayFieldTapped) }
             )
-            
+
             OnboardingTextField.withCalendar(
                 placeholder: "사별일을 설정하세요",
                 text: .constant(store.deathDayText),
@@ -182,22 +177,22 @@ private extension OnboardingPetProfileView {
             )
         }
     }
-    
+
     var nextButton: some View {
         Button {
             store.send(.nextTapped)
         } label: {
             Text("다음")
                 .typography(.button)
-                .foregroundColor(.gray0)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 42)
-                .background(store.isNextEnabled ? .pawPrimary : .gray40)
+                .padding(.vertical, 16)
+                .background(store.isNextEnabled ? Color.pawPrimary : Color.gray40)
                 .cornerRadius(14, corners: .allCorners)
         }
         .disabled(!store.isNextEnabled)
     }
-    
+
     func datePickerSheet(selection: Binding<Date>, onConfirm: @escaping () -> Void, onCancel: @escaping () -> Void) -> some View {
         VStack(spacing: 0) {
             HStack {
@@ -206,14 +201,14 @@ private extension OnboardingPetProfileView {
                     .foregroundColor(.gray70)
 
                 Spacer()
-                
+
                 Button("확인") { onConfirm() }
                     .typography(.body1M)
                     .foregroundColor(.pawPrimary)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            
+
             DatePicker(
                 "",
                 selection: selection,
@@ -225,6 +220,15 @@ private extension OnboardingPetProfileView {
             .environment(\.locale, Locale(identifier: "ko_KR"))
         }
         .presentationDetents([.height(300)])
+    }
+
+    func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
     }
 }
 

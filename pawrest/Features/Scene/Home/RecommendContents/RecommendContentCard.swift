@@ -65,7 +65,7 @@ private extension RecommendedContentCard {
                     .frame(width: 36, height: 36)
 
                 Text(item.title)
-                    .font(.system(size: 14, weight: .regular))
+                    .typography(.body2M)
                     .lineSpacing(1)
                     .foregroundStyle(.gray80)
                     .multilineTextAlignment(.leading)

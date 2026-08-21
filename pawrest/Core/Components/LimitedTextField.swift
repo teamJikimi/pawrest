@@ -10,13 +10,15 @@ import SwiftUI
 struct LimitedTextField: View {
     @Binding var text: String
     @FocusState.Binding var isFocused: Bool
-    
+
     let placeholder: String
     let maxCharacters: Int
     let minHeight: CGFloat
     let showCounter: Bool
     let isTransparent: Bool
-    
+    let typography: AppTypography
+    let showPlaceholder: Bool
+
     init(
         text: Binding<String>,
         isFocused: FocusState<Bool>.Binding,
@@ -24,7 +26,9 @@ struct LimitedTextField: View {
         maxCharacters: Int = 1000,
         minHeight: CGFloat = 372,
         showCounter: Bool = true,
-        isTransparent: Bool = false
+        isTransparent: Bool = false,
+        typography: AppTypography = .body2R2,
+        showPlaceholder: Bool = true
     ) {
         self._text = text
         self._isFocused = isFocused
@@ -33,26 +37,28 @@ struct LimitedTextField: View {
         self.minHeight = minHeight
         self.showCounter = showCounter
         self.isTransparent = isTransparent
+        self.typography = typography
+        self.showPlaceholder = showPlaceholder
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                if text.isEmpty {
+                if showPlaceholder && text.isEmpty {
                     Text(placeholder)
-                        .typography(.body2R2)
+                        .typography(typography)
                         .foregroundColor(.gray50)
                         .padding(20)
                         .allowsHitTesting(false)
                 }
-                
+
                 TextField("", text: $text, axis: .vertical)
-                    .typography(.body2R2)
+                    .typography(typography)
                     .focused($isFocused)
                     .padding(20)
             }
             .frame(minHeight: minHeight, alignment: .top)
-            
+
             .background(isTransparent ? Color.clear : .gray0)
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
@@ -63,7 +69,7 @@ struct LimitedTextField: View {
                     text = String(newValue.prefix(maxCharacters))
                 }
             }
-            
+
             if showCounter {
                 HStack {
                     Spacer()

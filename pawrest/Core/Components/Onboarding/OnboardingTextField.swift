@@ -57,13 +57,18 @@ private extension OnboardingTextField {
     var fieldRow: some View {
         HStack(spacing: 0) {
             if isEditable {
-                TextField(placeholder, text: $text)
-                    .typography(.body1M)
-                    .foregroundColor(.gray80)
+                TextField(
+                    placeholder,
+                    text: $text,
+                    prompt: Text(placeholder)
+                        .foregroundColor(.gray40)
+                )
+                .typography(.body2M)
+                .foregroundColor(.gray80)
             } else {
                 Text(text.isEmpty ? placeholder : text)
-                    .typography(text.isEmpty ? .body2R1 : .body1M)
-                    .foregroundColor(text.isEmpty ? .gray60 : .gray80)
+                    .typography(.body2M)
+                    .foregroundColor(text.isEmpty ? .gray40 : .gray80)
                 
                 Spacer()
             }
