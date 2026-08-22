@@ -17,6 +17,7 @@ struct OnboardingPetProfileView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
+    @FocusState private var isFocused: Bool
 
     // MARK: - Body
 
@@ -51,7 +52,7 @@ struct OnboardingPetProfileView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            dismissKeyboard()
+            isFocused = false
         }
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
@@ -157,7 +158,8 @@ private extension OnboardingPetProfileView {
                 get: { store.petName },
                 set: { store.send(.petNameChanged($0)) }
             ),
-            helper: store.nameHelper
+            helper: store.nameHelper,
+            isFocused: $isFocused
         )
     }
 
@@ -220,15 +222,6 @@ private extension OnboardingPetProfileView {
             .environment(\.locale, Locale(identifier: "ko_KR"))
         }
         .presentationDetents([.height(300)])
-    }
-
-    func dismissKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder),
-            to: nil,
-            from: nil,
-            for: nil
-        )
     }
 }
 

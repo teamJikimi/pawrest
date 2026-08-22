@@ -57,8 +57,11 @@ struct LimitedTextField: View {
                     .focused($isFocused)
                     .padding(20)
             }
-            .frame(minHeight: minHeight, alignment: .top)
-
+            .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .topLeading)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                isFocused = true
+            }
             .background(isTransparent ? Color.clear : .gray0)
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
@@ -75,7 +78,7 @@ struct LimitedTextField: View {
                     Spacer()
                     Text("\(text.count)/\(maxCharacters)")
                         .font(.date)
-                        .foregroundColor(text.count >= maxCharacters ? .pawPrimary : .gray40)
+                        .foregroundColor(text.count >= maxCharacters ? .pawPrimary : .gray50)
                         .padding(.top, 4)
                 }
             }

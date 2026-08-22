@@ -15,6 +15,7 @@ struct OnboardingUserProfileView: View {
 
     @Bindable var store: StoreOf<OnboardingUserProfileReducer>
     @State private var selectedItem: PhotosPickerItem? = nil
+    @FocusState private var isFocused: Bool
 
     // MARK: - Body
 
@@ -39,7 +40,7 @@ struct OnboardingUserProfileView: View {
         .padding(.bottom, 12)
         .contentShape(Rectangle())
         .onTapGesture {
-            dismissKeyboard()
+            isFocused = false
         }
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
@@ -127,6 +128,7 @@ private extension OnboardingUserProfileView {
             ),
             helper: store.nicknameStatus.helper,
             isButtonEnabled: store.isDuplicateCheckEnabled,
+            isFocused: $isFocused,
             onCheck: { store.send(.duplicateCheckTapped) }
         )
     }
@@ -144,15 +146,6 @@ private extension OnboardingUserProfileView {
                 .cornerRadius(14, corners: .allCorners)
         }
         .disabled(!store.isNextEnabled)
-    }
-
-    func dismissKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder),
-            to: nil,
-            from: nil,
-            for: nil
-        )
     }
 }
 
