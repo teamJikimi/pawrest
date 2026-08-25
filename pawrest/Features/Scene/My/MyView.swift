@@ -14,6 +14,7 @@ struct MyView: View {
     @Bindable var store: StoreOf<MyFeature>
     @Query private var userProfiles: [UserProfile]
     @Query private var petProfiles: [PetProfile]
+    @Query(sort: \AssessmentRecord.date, order: .reverse) private var assessmentRecords: [AssessmentRecord]
     @Environment(\.modelContext) private var modelContext
     
     var onLogoutCompleted: () -> Void = {}
@@ -41,7 +42,8 @@ struct MyView: View {
                         petBirthday: pet.birthday,
                         petDeathDay: pet.deathDay,
                         userImage: user.profileImage,
-                        petImage: pet.profileImage
+                        petImage: pet.profileImage,
+                        lastAssessmentDate: assessmentRecords.first?.date
                     ))
                 }
             }

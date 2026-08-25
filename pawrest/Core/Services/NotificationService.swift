@@ -65,20 +65,26 @@ final class NotificationService {
         }
     }
 
-    func scheduleAssessmentReminder(lastAssessmentDate: Date) {
+    func scheduleAssessmentReminder(lastAssessmentDate: Date?, enabled: Bool) {
         let id = "assessment_reminder"
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
 
-        guard let fireDate = Calendar.current.date(byAdding: .month, value: 3, to: lastAssessmentDate),
+        guard enabled,
+              let lastDate = lastAssessmentDate,
+              let fireDate = Calendar.current.date(byAdding: .month, value: 3, to: lastDate),
               fireDate > Date() else { return }
+
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: fireDate)
+        components.hour = 20
+        components.minute = 0
+        components.second = 0
 
         let content = UNMutableNotificationContent()
         content.title = "심리 검사"
         content.body = "마지막 자가진단이 3달 전이에요. 지금 상태를 한번 확인해볼까요?"
         content.sound = .default
 
-        let interval = fireDate.timeIntervalSinceNow
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }

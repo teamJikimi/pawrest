@@ -6,9 +6,9 @@
 //
 
 // Configuration settings file format documentation can be found at:
-// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+// https://developer.apple.com/doㅋcumentation/xcode/adding-a-build-configuration-file-to-your-project
 
 
 enum Secrets {
-    static let geminiAPIKey = "AQ.Ab8RN6JnECGq6ppyqht1R4rny4iA3JVOIFhnPuSY4eiwGgVCCA"
+    static let geminiAPIKey = "AQ.Ab8RN6KlgOwyAEKQv_P4uMtu79Ap7S5P9GlfL3TRKLIorp9S2Q"
 }

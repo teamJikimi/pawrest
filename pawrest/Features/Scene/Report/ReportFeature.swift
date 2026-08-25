@@ -128,7 +128,8 @@ struct ReportFeature {
 
             case .nextDayTapped:
                 let snapshots = state.emotionSnapshots
-                guard !Calendar.current.isDateInToday(state.dailyTimeData.date),
+                let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.startOfDay(for: Date()))!
+                guard state.dailyTimeData.date < yesterday,
                       let newDate = Calendar.current.date(
                         byAdding: .day, value: 1, to: state.dailyTimeData.date
                       ) else { return .none }
@@ -140,7 +141,7 @@ struct ReportFeature {
                         await send(.loadFailed(error.localizedDescription))
                     }
                 }
-
+                
             case .loadFailed(let message):
                 state.errorMessage = message
                 state.isLoading = false

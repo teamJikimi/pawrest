@@ -32,15 +32,17 @@ struct ReportUseCase: ReportUseCaseProtocol {
 
     func buildLocalData(snapshots: [EmotionSnapshot] = []) -> ReportData {
         let calendar = Calendar.current
-        let today = Date()
-        let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
+        let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        let weekStart = calendar.date(byAdding: .day, value: -6, to: yesterday)!
 
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "M월 d일"
-        let rangeText = "\(formatter.string(from: weekStart)) - \(formatter.string(from: today)), \(calendar.component(.year, from: today))"
+        let rangeText = "\(formatter.string(from: weekStart)) - \(formatter.string(from: yesterday)), \(calendar.component(.year, from: yesterday))"
 
-        let weekSnapshots = snapshots.filter { $0.recordedAt >= weekStart }
+        let weekEnd = calendar.date(byAdding: .day, value: 1, to: yesterday)!
+        let weekSnapshots = snapshots.filter { $0.recordedAt >= weekStart && $0.recordedAt < weekEnd }
 
         let recordedDays = Set(weekSnapshots.map { calendar.startOfDay(for: $0.recordedAt) }).count
 
@@ -70,14 +72,17 @@ struct ReportUseCase: ReportUseCaseProtocol {
         emotionSnapshots: [EmotionSnapshot],
         container: ModelContainer
     ) async throws -> (AIReportResult, String?, DailyTimeEmotionData) {
+
         let context = ModelContext(container)
-        let hash = snapshotHash(emotionSnapshots)
-        let weekEndDate = Calendar.current.startOfDay(for: Date())
+        
+        let calendar = Calendar.current
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: Date()))!
 
         let descriptor = FetchDescriptor<WeeklyReportCache>(
-            predicate: #Predicate { $0.weekEndDate == weekEndDate && $0.snapshotHash == hash }
+            predicate: #Predicate { $0.weekEndDate == yesterday }
         )
         if let cached = try? context.fetch(descriptor).first {
+            print("🔥 캐시 히트 - AI 호출 안함")
             let aiResult = AIReportResult(
                 bannerTitle: cached.summaryTitle,
                 bannerSummary: cached.summaryBody,
@@ -88,6 +93,7 @@ struct ReportUseCase: ReportUseCaseProtocol {
             return (aiResult, cached.weekdayInsight, todayTime)
         }
 
+        print("🔥 AI 호출 시작")
         let weeklyEntries = makeWeeklyEntries(snapshots: emotionSnapshots)
         let aiResult = try await AIService.shared.generateReport(
             snapshots: emotionSnapshots,
@@ -103,9 +109,14 @@ struct ReportUseCase: ReportUseCaseProtocol {
 
         let todayTime = DailyTimeEmotionData(date: Date(), slots: todaySlots, insight: timeInsight)
 
+        let oldDescriptor = FetchDescriptor<WeeklyReportCache>()
+        if let oldCaches = try? context.fetch(oldDescriptor) {
+            for old in oldCaches { context.delete(old) }
+        }
+
         let cache = WeeklyReportCache(
-            weekEndDate: weekEndDate,
-            snapshotHash: hash,
+            weekEndDate: yesterday,
+            snapshotHash: "",
             summaryTitle: aiResult.bannerTitle,
             summaryBody: aiResult.bannerSummary,
             aiSummary: aiResult.weeklySummary,
@@ -131,19 +142,15 @@ struct ReportUseCase: ReportUseCaseProtocol {
 
 private extension ReportUseCase {
 
-    func snapshotHash(_ snapshots: [EmotionSnapshot]) -> String {
-        let joined = snapshots.map { "\($0.type)-\($0.recordedAt.timeIntervalSince1970)" }.joined(separator: "|")
-        return String(joined.hashValue)
-    }
-
     func makeWeeklyEntries(snapshots: [EmotionSnapshot]) -> [(date: String, level: String?)] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "E"
         return (0..<7).map { offset -> (date: String, level: String?) in
-            let date = calendar.date(byAdding: .day, value: offset - 6, to: today)!
+            let date = calendar.date(byAdding: .day, value: offset - 6, to: yesterday)!
             let dayLabel = String(formatter.string(from: date).prefix(1))
             let level = snapshots
                 .filter { calendar.isDate($0.recordedAt, inSameDayAs: date) }
