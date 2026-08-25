@@ -16,10 +16,10 @@ struct MyFeature: Reducer {
     struct State: Equatable {
         var user: MyModel = .mock
 
-        var isEmotionReminderOn: Bool = false
-        var isWeeklyReportOn: Bool = false
-        var isDailyRecordOn: Bool = true
-        var isCommunityReactionOn: Bool = true
+        var isEmotionReminderOn: Bool = UserDefaults.standard.bool(forKey: "emotionReminderEnabled")
+        var isWeeklyReportOn: Bool = UserDefaults.standard.bool(forKey: "weeklyReportEnabled")
+        var isDailyRecordOn: Bool = UserDefaults.standard.object(forKey: "dailyRecordEnabled") as? Bool ?? true
+        var isCommunityReactionOn: Bool = UserDefaults.standard.object(forKey: "communityReactionEnabled") as? Bool ?? true
 
         var showLogoutAlert: Bool = false
         var showDeleteAccountAlert: Bool = false
@@ -117,14 +117,17 @@ struct MyFeature: Reducer {
 
             case .weeklyReportToggled(let value):
                 state.isWeeklyReportOn = value
+                UserDefaults.standard.set(value, forKey: "weeklyReportEnabled")
                 return .none
 
             case .dailyRecordToggled(let value):
                 state.isDailyRecordOn = value
+                UserDefaults.standard.set(value, forKey: "dailyRecordEnabled")
                 return .none
 
             case .communityReactionToggled(let value):
                 state.isCommunityReactionOn = value
+                UserDefaults.standard.set(value, forKey: "communityReactionEnabled")
                 return .none
 
             case .blockedListTapped:
