@@ -41,8 +41,10 @@ struct ReportView: View {
 
     var weekdayChartData: WeekdayEmotionData {
         let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
         var buckets: [Int: [EmotionLevel]] = [:]
         for record in emotionRecords {
+            guard record.recordedAt < today else { continue }
             let weekday = calendar.component(.weekday, from: record.recordedAt) - 1
             if let level = record.emotionTypeEnum?.toEmotionLevel {
                 buckets[weekday, default: []].append(level)
@@ -58,9 +60,10 @@ struct ReportView: View {
 
     var weeklyChartData: WeeklyEmotionChartData {
         let calendar = Calendar.current
-        let today = Date()
+        let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
         let entries = (0..<7).reversed().map { offset -> WeeklyEmotionChartData.DailyEmotionEntry in
-            let date = calendar.date(byAdding: .day, value: -offset, to: today)!
+            let date = calendar.date(byAdding: .day, value: -offset, to: yesterday)!
             let record = emotionRecords.first { calendar.isDate($0.recordedAt, inSameDayAs: date) }
             return .init(date: date, level: record?.emotionTypeEnum?.toEmotionLevel)
         }
@@ -91,16 +94,15 @@ struct ReportView: View {
                         .padding(.bottom, 40)
                 }
             } else if store.isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.top, 100)
+                LoadingView()
             }
         }
         .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
         .onAppear {
-            let snapshots = emotionRecords.map {
-                EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt)
-            }
+            let today = Calendar.current.startOfDay(for: Date())
+            let snapshots = emotionRecords
+                .filter { $0.recordedAt < today }
+                .map { EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt) }
             store.send(.onAppear(snapshots: snapshots, context: modelContext))
         }
         .hideTabBar()
@@ -203,9 +205,10 @@ private extension ReportView {
                             .foregroundStyle(.gray40)
                     }
                     Button {
-                        let snapshots = emotionRecords.map {
-                            EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt)
-                        }
+                        let today = Calendar.current.startOfDay(for: Date())
+                        let snapshots = emotionRecords
+                            .filter { $0.recordedAt < today }
+                            .map { EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt) }
                         store.send(.onAppear(snapshots: snapshots, context: modelContext))
                     } label: {
                         Image(systemName: "arrow.clockwise")

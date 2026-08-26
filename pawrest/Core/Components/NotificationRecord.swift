@@ -41,23 +41,23 @@ enum NotificationType: String {
 
     var iconName: String {
         switch self {
-        case .comment:             return "icon_alarm_comment"
-        case .like:                return "icon_alarm_like"
-        case .memorialLetter:      return "icon_alarm_letter"
-        case .anniversary:         return "icon_alarm_anniversary"
-        case .assessmentReminder:  return "icon_alarm_assessment"
-        case .emotionReminder:     return "icon_alarm_emotion"
+        case .comment:            return "icon_alarm_comment"
+        case .like:               return "icon_alarm_like"
+        case .memorialLetter:     return "icon_alarm_letter"
+        case .anniversary:        return "icon_alarm_anniversary"
+        case .assessmentReminder: return "icon_alarm_assessment"
+        case .emotionReminder:    return "icon_alarm_emotion"
         }
     }
 
     var displayTitle: String {
         switch self {
-        case .comment:             return "댓글"
-        case .like:                return "좋아요"
-        case .memorialLetter:      return "추모 편지"
-        case .anniversary:         return "기일"
-        case .assessmentReminder:  return "심리 검사"
-        case .emotionReminder:     return "감정 기록"
+        case .comment:            return "댓글"
+        case .like:               return "좋아요"
+        case .memorialLetter:     return "추모 편지"
+        case .anniversary:        return "기일"
+        case .assessmentReminder: return "심리 검사"
+        case .emotionReminder:    return "감정 기록"
         }
     }
 }

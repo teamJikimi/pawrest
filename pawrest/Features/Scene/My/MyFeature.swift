@@ -93,8 +93,6 @@ struct MyFeature: Reducer {
         Reduce { state, action in
             switch action {
             case let .onAppear(nickname, petName, petBirthday, petDeathDay, userImage, petImage, lastAssessmentDate):
-                print("🐾 petDeathDay: \(String(describing: petDeathDay))")
-                print("🧠 lastAssessmentDate: \(String(describing: lastAssessmentDate))")
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy.MM.dd"
                 let birthStr = petBirthday.map { formatter.string(from: $0) } ?? "-"

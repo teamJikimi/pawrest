@@ -89,7 +89,7 @@ struct ReportUseCase: ReportUseCaseProtocol {
                 weeklySummary: cached.aiSummary,
                 dailyInsight: cached.weeklyInsight
             )
-            let todayTime = await buildTimeData(for: Date(), snapshots: emotionSnapshots, timeInsight: cached.timeInsight)
+            let todayTime = await buildTimeData(for: yesterday, snapshots: emotionSnapshots, timeInsight: cached.timeInsight)
             return (aiResult, cached.weekdayInsight, todayTime)
         }
 
@@ -103,11 +103,11 @@ struct ReportUseCase: ReportUseCaseProtocol {
         let weekdayEntries = makeWeekdayEntries(snapshots: emotionSnapshots)
         let weekdayInsight = try? await AIService.shared.generateWeekdayInsight(entries: weekdayEntries)
 
-        let todaySlots = makeTimeSlots(for: Date(), snapshots: emotionSnapshots)
+        let todaySlots = makeTimeSlots(for: yesterday, snapshots: emotionSnapshots)
         let timeEntries = todaySlots.map { (timeSlot: $0.timeSlot.label, level: $0.level?.label) }
         let timeInsight = try? await AIService.shared.generateTimeInsight(entries: timeEntries)
 
-        let todayTime = DailyTimeEmotionData(date: Date(), slots: todaySlots, insight: timeInsight)
+        let todayTime = DailyTimeEmotionData(date: yesterday, slots: todaySlots, insight: timeInsight)
 
         let oldDescriptor = FetchDescriptor<WeeklyReportCache>()
         if let oldCaches = try? context.fetch(oldDescriptor) {
