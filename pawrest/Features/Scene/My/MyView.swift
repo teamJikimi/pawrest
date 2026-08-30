@@ -20,6 +20,7 @@ struct MyView: View {
     var onLogoutCompleted: () -> Void = {}
 
     var body: some View {
+        
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             ScrollView {
                 VStack(spacing: 16) {
@@ -105,6 +106,17 @@ struct MyView: View {
         .onChange(of: store.path.count) { _, count in
             if count == 0 {
                 store.send(.subPageDismissed)
+                if let user = userProfiles.first, let pet = petProfiles.first {
+                    store.send(.onAppear(
+                        nickname: user.nickname,
+                        petName: pet.name,
+                        petBirthday: pet.birthday,
+                        petDeathDay: pet.deathDay,
+                        userImage: user.profileImage,
+                        petImage: pet.profileImage,
+                        lastAssessmentDate: assessmentRecords.first?.date
+                    ))
+                }
             }
         }
     }
@@ -236,6 +248,21 @@ private extension MyView {
             petMemory: $store.isDailyRecordOn.sending(\.dailyRecordToggled),
             communityReaction: $store.isCommunityReactionOn.sending(\.communityReactionToggled)
         )
+    }
+    
+    
+    var testButton: some View {
+        Button {
+            NotificationService.shared.scheduleAnniversaryReminderTest(petName: store.user.petName)
+        } label: {
+            Text("기일 알림 테스트 (5초)")
+                .typography(.body3R)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(.pawPrimary)
+                .cornerRadius(12, corners: .allCorners)
+        }
     }
     
     var accountSection: some View {

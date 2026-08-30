@@ -142,6 +142,15 @@ private extension OnboardingIntroduceView {
         modelContext.insert(user)
         modelContext.insert(pet)
         try? modelContext.save()
+
+        if let deathDay = store.petDeathDay {
+            NotificationService.shared.scheduleAnniversaryReminder(
+                petName: store.petName,
+                anniversaryDate: deathDay,
+                enabled: true
+            )
+        }
+
         store.send(.saveCompleted)
     }
 
