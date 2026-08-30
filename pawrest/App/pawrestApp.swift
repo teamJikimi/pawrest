@@ -59,6 +59,33 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         default:           return .emotionReminder
         }
     }
+    
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
+            guard let container = self.modelContainer else { return }
+            let context = ModelContext(container)
+
+            // 이미 저장된 identifier 목록 조회
+            let existing = (try? context.fetch(FetchDescriptor<NotificationRecord>()))?.map { $0.requestIdentifier } ?? []
+
+            for notification in notifications {
+                let identifier = notification.request.identifier
+                guard !existing.contains(identifier) else { continue }  // 중복 스킵
+
+                let content = notification.request.content
+                let type = self.notificationType(from: content.userInfo["type"] as? String ?? "")
+                let record = NotificationRecord(
+                    type: type,
+                    title: content.title,
+                    body: content.body,
+                    receivedAt: notification.date,
+                    requestIdentifier: identifier
+                )
+                context.insert(record)
+            }
+            try? context.save()
+        }
+    }
 }
 
 @main

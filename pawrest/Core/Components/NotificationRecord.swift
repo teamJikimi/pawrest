@@ -16,14 +16,16 @@ final class NotificationRecord {
     var body: String
     var receivedAt: Date
     var isRead: Bool
+    var requestIdentifier: String  // 중복 저장 방지용
 
-    init(type: NotificationType, title: String, body: String, receivedAt: Date = Date()) {
+    init(type: NotificationType, title: String, body: String, receivedAt: Date = Date(), requestIdentifier: String = "") {
         self.id = UUID()
         self.type = type.rawValue
         self.title = title
         self.body = body
         self.receivedAt = receivedAt
         self.isRead = false
+        self.requestIdentifier = requestIdentifier
     }
 
     var notificationType: NotificationType {
