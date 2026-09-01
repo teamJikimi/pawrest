@@ -12,7 +12,7 @@
         43956F112F894EB7003FDE1F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F102F894EB7003FDE1F /* FirebaseFirestore */; };
         F698733C30095C5E001D043F /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = F698733B30095C5E001D043F /* Lottie */; };
         F6CD1C7A2FB8E97E0065FFC9 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = F6CD1C792FB8E97E0065FFC9 /* ComposableArchitecture */; };
-        F6CD1E892FBCF3C70065FFC9 /* Development.xcconfig in Resources */ = {isa = PBXBuildFile; productRef = F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */; };
+        F6CD1E892FBCF3C70065FFC9 /* Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */; };
         F6CEF19930165CA7009FE8CD /* Local.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CEF19830165CA7009FE8CD /* Local.xcconfig */; };
         F6DE6ADF3034A25B0029B52A /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6DE6ADE3034A25B0029B52A /* Secrets.swift */; };
         F6FAD4242FBEC4E100040703 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = F6FAD4232FBEC4E100040703 /* FirebaseStorage */; };
