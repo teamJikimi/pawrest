@@ -11,12 +11,22 @@ import ComposableArchitecture
 
 struct ReportView: View {
     @Bindable var store: StoreOf<ReportFeature>
+    @Environment(\.modelContext) private var modelContext
 
     @Query(sort: \AssessmentRecord.date, order: .reverse)
     private var assessmentRecords: [AssessmentRecord]
 
     @Query(sort: \EmotionRecordModel.recordedAt, order: .reverse)
     private var emotionRecords: [EmotionRecordModel]
+
+    @Query(sort: \LetterModel.sentAt)
+    private var letters: [LetterModel]
+
+    private let deliveryInterval: TimeInterval = 24 * 60 * 60
+
+    var deliveredLetterCount: Int {
+        letters.filter { $0.sentAt.addingTimeInterval(deliveryInterval) <= Date() }.count
+    }
 
     var currentDailyTimeData: DailyTimeEmotionData {
         let calendar = Calendar.current
@@ -26,13 +36,15 @@ struct ReportView: View {
             let record = dayRecords.first { slot.contains(hour: calendar.component(.hour, from: $0.recordedAt)) }
             return TimeSlotEmotion(timeSlot: slot, level: record?.emotionTypeEnum?.toEmotionLevel)
         }
-        return DailyTimeEmotionData(date: date, slots: slots, insight: nil)
+        return DailyTimeEmotionData(date: date, slots: slots, insight: store.dailyTimeData.insight)
     }
 
     var weekdayChartData: WeekdayEmotionData {
         let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
         var buckets: [Int: [EmotionLevel]] = [:]
         for record in emotionRecords {
+            guard record.recordedAt < today else { continue }
             let weekday = calendar.component(.weekday, from: record.recordedAt) - 1
             if let level = record.emotionTypeEnum?.toEmotionLevel {
                 buckets[weekday, default: []].append(level)
@@ -43,18 +55,19 @@ struct ReportView: View {
             let avg = levels.isEmpty ? nil : EmotionLevel(rawValue: levels.map(\.rawValue).reduce(0, +) / levels.count)
             return WeekdayEmotionData.WeekdayEntry(weekday: weekday, level: avg)
         }
-        return WeekdayEmotionData(entries: entries, insight: nil)
+        return WeekdayEmotionData(entries: entries, insight: store.reportData?.weekdayData.insight)
     }
 
     var weeklyChartData: WeeklyEmotionChartData {
         let calendar = Calendar.current
-        let today = Date()
+        let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
         let entries = (0..<7).reversed().map { offset -> WeeklyEmotionChartData.DailyEmotionEntry in
-            let date = calendar.date(byAdding: .day, value: -offset, to: today)!
+            let date = calendar.date(byAdding: .day, value: -offset, to: yesterday)!
             let record = emotionRecords.first { calendar.isDate($0.recordedAt, inSameDayAs: date) }
             return .init(date: date, level: record?.emotionTypeEnum?.toEmotionLevel)
         }
-        return WeeklyEmotionChartData(entries: entries, insight: nil)
+        return WeeklyEmotionChartData(entries: entries, insight: store.reportData?.weeklyChart.insight)
     }
 
     var body: some View {
@@ -81,18 +94,23 @@ struct ReportView: View {
                         .padding(.bottom, 40)
                 }
             } else if store.isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.top, 100)
+                LoadingView()
             }
         }
         .customNavigationBar(store: store.scope(state: \.navigationBar, action: \.navigationBar))
-        .onAppear { store.send(.onAppear) }
+        .onAppear {
+            let today = Calendar.current.startOfDay(for: Date())
+            let snapshots = emotionRecords
+                .filter { $0.recordedAt < today }
+                .map { EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt) }
+            store.send(.onAppear(snapshots: snapshots, context: modelContext))
+        }
         .hideTabBar()
     }
 }
 
 private extension ReportView {
+
     func dateHeader(_ data: ReportData) -> some View {
         Text(data.weekRange)
             .typography(.body2R1)
@@ -105,12 +123,19 @@ private extension ReportView {
                 .resizable()
                 .frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 4) {
-                Text(data.summaryTitle.isEmpty ? "이번 주 감정 기록을 남겨보세요" : data.summaryTitle)
-                    .typography(.body2M)
-                    .foregroundStyle(.gray80)
-                Text(data.summaryBody.isEmpty ? "기록이 쌓이면 변화를 확인할 수 있어요" : data.summaryBody)
-                    .typography(.body3R)
-                    .foregroundStyle(.gray60)
+                if store.isAILoading {
+                    aiLoadingText(width: 120)
+                    aiLoadingText(width: 180)
+                } else {
+                    Text(data.summaryTitle)
+                        .typography(.body2M)
+                        .foregroundStyle(.gray80)
+                    if !data.summaryBody.isEmpty {
+                        Text(data.summaryBody)
+                            .typography(.body3R)
+                            .foregroundStyle(.gray60)
+                    }
+                }
             }
             Spacer()
         }
@@ -121,12 +146,13 @@ private extension ReportView {
                 colors: [.white, .primaryLight],
                 startPoint: .leading,
                 endPoint: .trailing
-            ))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(.gray10, lineWidth: 1)
             )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(.gray10, lineWidth: 1)
+        )
     }
 
     func chartSection(_ data: ReportData) -> some View {
@@ -168,15 +194,55 @@ private extension ReportView {
                     .typography(.body1M)
                     .foregroundStyle(.gray80)
             }
-            Text(data.aiSummary.isEmpty ? "이번 주 감정 기록이 쌓이면\nAI가 감정을 분석해드려요." : data.aiSummary)
-                .typography(.body3R)
-                .foregroundStyle(data.aiSummary.isEmpty ? .gray60 : .gray60)
-                .lineSpacing(4)
+            if store.isAILoadFailed {
+                VStack(spacing: 12) {
+                    VStack(spacing: 4) {
+                        Text("AI 요약을 불러오지 못했어요")
+                            .typography(.body2R2)
+                            .foregroundStyle(.gray60)
+                        Text("잠시 후 다시 시도해 주세요")
+                            .typography(.body3R)
+                            .foregroundStyle(.gray40)
+                    }
+                    Button {
+                        let today = Calendar.current.startOfDay(for: Date())
+                        let snapshots = emotionRecords
+                            .filter { $0.recordedAt < today }
+                            .map { EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt) }
+                        store.send(.onAppear(snapshots: snapshots, context: modelContext))
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(.gray60)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            } else if store.isAILoading {
+                VStack(alignment: .leading, spacing: 8) {
+                    aiLoadingText(width: .infinity)
+                    aiLoadingText(width: .infinity)
+                    aiLoadingText(width: 200)
+                }
+            } else {
+                Text(data.aiSummary.isEmpty ? "이번 주 감정 기록이 쌓이면\nAI가 감정을 분석해드려요." : data.aiSummary)
+                    .typography(.body3R)
+                    .foregroundStyle(.gray60)
+                    .lineSpacing(4)
+            }
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
+    }
+
+    @ViewBuilder
+    func aiLoadingText(width: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.gray20)
+            .frame(maxWidth: width == .infinity ? .infinity : width, minHeight: 14, maxHeight: 14)
+            .shimmer()
     }
 
     func statsSection(_ data: ReportData) -> some View {
@@ -187,12 +253,11 @@ private extension ReportView {
             VStack(spacing: 6) {
                 statRow(label: "감정 기록 일수", value: "\(data.stats.recordedDays)일", color: Color(.pawPrimary))
                 statRow(label: "가장 많이 느낀 감정", value: data.stats.mostFrequentEmotion, color: Color(.gray80))
-                statRow(label: "하늘에 전달된 편지 수", value: "\(data.stats.lettersSent)통", color: Color(.accent))
+                statRow(label: "하늘에 전달된 편지 수", value: "\(deliveredLetterCount)통", color: Color(.accent))
             }
-            
         }
         .padding(.vertical, 20)
-        .padding(.horizontal,16)
+        .padding(.horizontal, 16)
         .background(.gray10)
         .cornerRadius(20, corners: .allCorners)
     }
@@ -265,7 +330,6 @@ private extension ReportView {
         .padding(.vertical, 16)
         .background(.gray10)
     }
-
 
     var counselingSection: some View {
         VStack(alignment: .leading, spacing: 12) {

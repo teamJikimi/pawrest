@@ -75,12 +75,15 @@ struct TabBarView: View {
             }
 
         case .my:
-            MyView(store: store.scope(state: \.my, action: \.my))
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
-                        .opacity(0)
-                        .allowsHitTesting(false)
-                }
+            MyView(
+                store: store.scope(state: \.my, action: \.my),
+                onLogoutCompleted: { store.send(.delegate(.logoutCompleted)) }
+            )
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
+                    .opacity(0)
+                    .allowsHitTesting(false)
+            }
         }
     }
 }

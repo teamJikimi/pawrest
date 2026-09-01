@@ -19,8 +19,7 @@ struct CommunityView: View {
             searchAndSortSection
 
             if store.isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                LoadingView()
             } else if store.displayedPosts.isEmpty {
                 emptyStateView
             } else {

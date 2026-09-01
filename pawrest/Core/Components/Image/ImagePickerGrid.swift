@@ -124,11 +124,11 @@ extension ImagePickerGrid {
                     .resizable()
                     .renderingMode(.template)
                     .frame(width: 24, height: 24)
-                    .foregroundStyle(.gray90)
+                    .foregroundStyle(selectedCount == 0 ? .gray50 : .gray90)
                 
                 Text("\(selectedCount)/\(maxCount)")
                     .typography(.body2R1)
-                    .foregroundStyle(.gray80)
+                    .foregroundStyle(selectedCount == 0 ? .gray50 : .gray90)
             }
             .frame(width: 103, height: 135)
             .background(.gray20)

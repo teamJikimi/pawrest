@@ -16,10 +16,13 @@ struct MyFeature: Reducer {
     struct State: Equatable {
         var user: MyModel = .mock
 
-        var isEmotionReminderOn: Bool = false
-        var isWeeklyReportOn: Bool = false
-        var isDailyRecordOn: Bool = true
-        var isCommunityReactionOn: Bool = true
+        var isEmotionReminderOn: Bool = UserDefaults.standard.bool(forKey: "emotionReminderEnabled")
+        var isWeeklyReportOn: Bool = UserDefaults.standard.bool(forKey: "weeklyReportEnabled")
+        var isDailyRecordOn: Bool = UserDefaults.standard.object(forKey: "dailyRecordEnabled") as? Bool ?? true
+        var isCommunityReactionOn: Bool = UserDefaults.standard.object(forKey: "communityReactionEnabled") as? Bool ?? true
+
+        var lastAssessmentDate: Date? = nil
+        var petDeathDay: Date? = nil
 
         var showLogoutAlert: Bool = false
         var showDeleteAccountAlert: Bool = false
@@ -65,7 +68,7 @@ struct MyFeature: Reducer {
     // MARK: - Action
     @CasePathable
     enum Action {
-        case onAppear(nickname: String, petName: String, petBirthday: Date?, petDeathDay: Date?, userImage: Data?, petImage: Data?)
+        case onAppear(nickname: String, petName: String, petBirthday: Date?, petDeathDay: Date?, userImage: Data?, petImage: Data?, lastAssessmentDate: Date?)
         case profileEditTapped
         case emotionReminderToggled(Bool)
         case weeklyReportToggled(Bool)
@@ -89,7 +92,7 @@ struct MyFeature: Reducer {
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
-            case let .onAppear(nickname, petName, petBirthday, petDeathDay, userImage, petImage):
+            case let .onAppear(nickname, petName, petBirthday, petDeathDay, userImage, petImage, lastAssessmentDate):
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy.MM.dd"
                 let birthStr = petBirthday.map { formatter.string(from: $0) } ?? "-"
@@ -102,6 +105,22 @@ struct MyFeature: Reducer {
                     userImageData: userImage,
                     petImageData: petImage
                 )
+                state.lastAssessmentDate = lastAssessmentDate
+                state.petDeathDay = petDeathDay
+
+                if state.isWeeklyReportOn {
+                    NotificationService.shared.scheduleAssessmentReminder(
+                        lastAssessmentDate: lastAssessmentDate,
+                        enabled: true
+                    )
+                }
+                if state.isDailyRecordOn, let deathDate = petDeathDay {
+                    NotificationService.shared.scheduleAnniversaryReminder(
+                        petName: petName,
+                        anniversaryDate: deathDate,
+                        enabled: true
+                    )
+                }
                 return .none
 
             case .profileEditTapped:
@@ -115,16 +134,31 @@ struct MyFeature: Reducer {
                 NotificationService.shared.scheduleEmotionReminders(enabled: value)
                 return .none
 
+            // TODO: - UserDefaults 읽기/쓰기 및 NotificationService 호출을 @Dependency + Effect로 리팩토링
             case .weeklyReportToggled(let value):
                 state.isWeeklyReportOn = value
+                UserDefaults.standard.set(value, forKey: "weeklyReportEnabled")
+                NotificationService.shared.scheduleAssessmentReminder(
+                    lastAssessmentDate: state.lastAssessmentDate,
+                    enabled: value
+                )
                 return .none
 
             case .dailyRecordToggled(let value):
                 state.isDailyRecordOn = value
+                UserDefaults.standard.set(value, forKey: "dailyRecordEnabled")
+                if let deathDate = state.petDeathDay {
+                    NotificationService.shared.scheduleAnniversaryReminder(
+                        petName: state.user.petName,
+                        anniversaryDate: deathDate,
+                        enabled: value
+                    )
+                }
                 return .none
 
             case .communityReactionToggled(let value):
                 state.isCommunityReactionOn = value
+                UserDefaults.standard.set(value, forKey: "communityReactionEnabled")
                 return .none
 
             case .blockedListTapped:
