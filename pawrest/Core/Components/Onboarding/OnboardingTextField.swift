@@ -40,6 +40,7 @@ struct OnboardingTextField: View {
     var helper: OnboardingTextFieldHelper = .none
     var trailingContent: AnyView? = nil
     var isEditable: Bool = true
+    var isFocused: FocusState<Bool>.Binding? = nil
     var onTap: (() -> Void)? = nil
     
     var body: some View {
@@ -57,13 +58,30 @@ private extension OnboardingTextField {
     var fieldRow: some View {
         HStack(spacing: 0) {
             if isEditable {
-                TextField(placeholder, text: $text)
-                    .typography(.body1M)
-                    .foregroundColor(.gray80)
+                Group {
+                    if let isFocused {
+                        TextField(
+                            placeholder,
+                            text: $text,
+                            prompt: Text(placeholder)
+                                .foregroundColor(.gray40)
+                        )
+                        .focused(isFocused)
+                    } else {
+                        TextField(
+                            placeholder,
+                            text: $text,
+                            prompt: Text(placeholder)
+                                .foregroundColor(.gray40)
+                        )
+                    }
+                }
+                .typography(.body2M)
+                .foregroundColor(.gray80)
             } else {
                 Text(text.isEmpty ? placeholder : text)
-                    .typography(text.isEmpty ? .body2R1 : .body1M)
-                    .foregroundColor(text.isEmpty ? .gray60 : .gray80)
+                    .typography(.body2M)
+                    .foregroundColor(text.isEmpty ? .gray40 : .gray80)
                 
                 Spacer()
             }
@@ -73,6 +91,7 @@ private extension OnboardingTextField {
             }
         }
         .padding(.leading, 20)
+        .frame(maxWidth: .infinity)
         .frame(height: 45)
         .background(.gray10)
         .cornerRadius(10, corners: .allCorners)
@@ -82,6 +101,9 @@ private extension OnboardingTextField {
         )
         .contentShape(Rectangle())
         .onTapGesture {
+            if isEditable {
+                isFocused?.wrappedValue = true
+            }
             onTap?()
         }
     }
@@ -105,6 +127,7 @@ extension OnboardingTextField {
         text: Binding<String>,
         helper: OnboardingTextFieldHelper,
         isButtonEnabled: Bool,
+        isFocused: FocusState<Bool>.Binding? = nil,
         onCheck: @escaping () -> Void
     ) -> OnboardingTextField {
         OnboardingTextField(
@@ -124,7 +147,8 @@ extension OnboardingTextField {
                 .disabled(!isButtonEnabled)
                 .padding(.leading, 20)
                 .padding(.trailing, 12)
-            )
+            ),
+            isFocused: isFocused
         )
     }
     
