@@ -28,50 +28,47 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        saveNotification(notification.request.content)
+        saveNotification(notification.request.content, identifier: notification.request.identifier)
         completionHandler([.banner, .sound])
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
-        saveNotification(response.notification.request.content)
+        saveNotification(response.notification.request.content, identifier: response.notification.request.identifier)
         completionHandler()
     }
 
-    private func saveNotification(_ content: UNNotificationContent) {
+    private func saveNotification(_ content: UNNotificationContent, identifier: String) {
         guard let container = modelContainer else { return }
-        let identifier = content.categoryIdentifier.isEmpty ? content.threadIdentifier : content.categoryIdentifier
-        let type = notificationType(from: content.userInfo["type"] as? String ?? identifier)
+        let type = notificationType(from: content.userInfo["type"] as? String ?? "")
         let context = ModelContext(container)
-        let record = NotificationRecord(type: type, title: content.title, body: content.body)
+        let existing = (try? context.fetch(FetchDescriptor<NotificationRecord>()))?.map { $0.requestIdentifier } ?? []
+        guard !existing.contains(identifier) else { return }
+        let record = NotificationRecord(type: type, title: content.title, body: content.body, requestIdentifier: identifier)
         context.insert(record)
         try? context.save()
     }
 
     private func notificationType(from identifier: String) -> NotificationType {
         switch identifier {
-        case "comment":    return .comment
-        case "like":       return .like
-        case "letter":     return .memorialLetter
+        case "comment":     return .comment
+        case "like":        return .like
+        case "letter":      return .memorialLetter
         case "anniversary": return .anniversary
-        case "assessment": return .assessmentReminder
-        default:           return .emotionReminder
+        case "assessment":  return .assessmentReminder
+        default:            return .emotionReminder
         }
     }
-    
+
     func applicationDidBecomeActive(_ application: UIApplication) {
         UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
             guard let container = self.modelContainer else { return }
             let context = ModelContext(container)
-
-            // 이미 저장된 identifier 목록 조회
             let existing = (try? context.fetch(FetchDescriptor<NotificationRecord>()))?.map { $0.requestIdentifier } ?? []
-
             for notification in notifications {
                 let identifier = notification.request.identifier
-                guard !existing.contains(identifier) else { continue }  // 중복 스킵
-
+                guard !existing.contains(identifier) else { continue }
                 let content = notification.request.content
                 let type = self.notificationType(from: content.userInfo["type"] as? String ?? "")
                 let record = NotificationRecord(
