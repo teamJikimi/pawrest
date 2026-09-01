@@ -3,6 +3,7 @@
 //  pawrest
 //
 //  Created by 곽예리 on 6/14/26.
+//
 
 import SwiftUI
 import ComposableArchitecture
@@ -65,7 +66,7 @@ private extension RecommendedContentCard {
                     .frame(width: 36, height: 36)
 
                 Text(item.title)
-                    .typography(.body3M)
+                    .typography(.body2R1)
                     .lineSpacing(1)
                     .foregroundStyle(.gray80)
                     .multilineTextAlignment(.leading)

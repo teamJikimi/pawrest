@@ -105,6 +105,8 @@ extension MemoryView {
             
             Text("추억을 기록으로\n남겨보세요")
                 .typography(.body1R)
+                .font(.system(size: 16, weight: .regular))
+                .lineSpacing(6)
                 .foregroundStyle(.gray60)
                 .multilineTextAlignment(.center)
             

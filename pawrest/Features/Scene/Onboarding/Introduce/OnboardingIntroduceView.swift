@@ -59,7 +59,7 @@ private extension OnboardingIntroduceView {
         Image(store.currentPageData.imageAsset)
             .resizable()
             .scaledToFit()
-            .frame(height: availableHeight * 0.50, alignment: .bottom) // 화면 높이의 42% — 필요시 비율 조정
+            .frame(height: availableHeight * 0.50, alignment: .bottom)
             .offset(y:8)
             .id(store.currentPage)
             .transition(.opacity)
@@ -125,7 +125,7 @@ private extension OnboardingIntroduceView {
                 .typography(.button)
                 .foregroundColor(.gray0)
                 .frame(maxWidth: .infinity)
-                .frame(height: 42)
+                .padding(.vertical, 16)
                 .background(.pawPrimary)
                 .cornerRadius(14, corners: .allCorners)
         }
@@ -151,7 +151,7 @@ private extension OnboardingIntroduceView {
                 .typography(.button)
                 .foregroundColor(.gray60)
                 .frame(maxWidth: .infinity)
-                .frame(height: 42)
+                .padding(.vertical, 16)
                 .background(.gray10)
                 .cornerRadius(14, corners: .allCorners)
         }

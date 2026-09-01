@@ -335,4 +335,85 @@ final class CommunityFirestoreService {
             }
         }
     }
+    
+    // MARK: - Report
+
+    func createReport(
+        reporterID: String,
+        targetType: String,
+        targetID: String,
+        targetAuthorID: String,
+        reason: String
+    ) async throws {
+        let reportID = UUID().uuidString
+        
+        try await firestore
+            .collection("reports")
+            .document(reportID)
+            .setData([
+                "reporterID": reporterID,
+                "targetType": targetType,
+                "targetID": targetID,
+                "targetAuthorID": targetAuthorID,
+                "reason": reason,
+                "createdAt": Timestamp(date: Date())
+            ])
+    }
+
+    // MARK: - Block
+
+    func blockUser(
+        currentUserID: String,
+        blockedUserID: String,
+        blockedUserName: String
+    ) async throws {
+        try await firestore
+            .collection("users")
+            .document(currentUserID)
+            .collection("blocks")
+            .document(blockedUserID)
+            .setData([
+                "blockedUserName": blockedUserName,
+                "createdAt": Timestamp(date: Date())
+            ])
+    }
+
+    func unblockUser(
+        currentUserID: String,
+        blockedUserID: String
+    ) async throws {
+        try await firestore
+            .collection("users")
+            .document(currentUserID)
+            .collection("blocks")
+            .document(blockedUserID)
+            .delete()
+    }
+
+    func fetchBlockedUsers(
+        currentUserID: String
+        let snapshot = try await firestore
+            .collection("users")
+            .document(currentUserID)
+            .collection("blocks")
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc in
+            let name = doc.data()["blockedUserName"] as? String ?? ""
+            return (id: doc.documentID, name: name)
+        }
+    }
+
+    func fetchBlockedUserIDs(
+        currentUserID: String
+    ) async throws -> Set<String> {
+        let snapshot = try await firestore
+            .collection("users")
+            .document(currentUserID)
+            .collection("blocks")
+            .getDocuments()
+        
+        return Set(snapshot.documents.map { $0.documentID })
+    }
 }
