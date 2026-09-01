@@ -392,6 +392,7 @@ final class CommunityFirestoreService {
 
     func fetchBlockedUsers(
         currentUserID: String
+    ) async throws -> [(id: String, name: String)] {
         let snapshot = try await firestore
             .collection("users")
             .document(currentUserID)

@@ -73,9 +73,11 @@ struct CommunityRepository {
 
     var createReport: @Sendable (
         _ reporterID: String,
+        _ targetType: String,
         _ targetID: String,
         _ targetAuthorID: String,
         _ reason: String
+    ) async throws -> Void
 
     var blockUser: @Sendable (
         _ currentUserID: String,
