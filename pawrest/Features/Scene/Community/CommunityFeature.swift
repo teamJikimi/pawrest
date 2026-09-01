@@ -41,23 +41,25 @@ struct CommunityState: Equatable {
 
     var isLoading: Bool = false
     var errorMessage: String?
+    
+    var blockedUserIDs: Set<String> = []
 
     var displayedPosts: [Post] {
         let filtered: [Post]
 
         if text.isEmpty {
-            filtered = posts
+            filtered = posts.filter { !blockedUserIDs.contains($0.author.id) }
         } else {
             filtered = posts.filter {
-                $0.title.localizedCaseInsensitiveContains(text)
-                    || $0.content.localizedCaseInsensitiveContains(text)
+                !blockedUserIDs.contains($0.author.id)
+                && ($0.title.localizedCaseInsensitiveContains(text)
+                    || $0.content.localizedCaseInsensitiveContains(text))
             }
         }
 
         switch sortMode {
         case .recent:
             return filtered.sorted { $0.createdAt > $1.createdAt }
-
         case .popular:
             return filtered.sorted { $0.likeCount > $1.likeCount }
         }
@@ -110,6 +112,9 @@ enum CommunityAction: Equatable {
     case myPostsUpdated(posts: [Post])
     case postStateUpdated(Post)
     case postDeleted(String)
+    
+    case blockedUserIDsLoaded(Set<String>)
+    case refreshBlockedUsers
 }
 
 // MARK: - Reducer
@@ -155,15 +160,17 @@ struct CommunityReducer: Reducer {
                 state.errorMessage = nil
 
                 return .run { send in
-                    await send(
-                        .postsResponse(
-                            TaskResult {
-                                try await communityRepository.fetchPosts(
-                                    currentUserID
-                                )
-                            }
-                        )
-                    )
+                    async let postsResult = communityRepository.fetchPosts(currentUserID)
+                    async let blockedResult = communityRepository.fetchBlockedUserIDs(currentUserID)
+                    
+                    do {
+                        let posts = try await postsResult
+                        let blockedIDs = try await blockedResult
+                        await send(.postsResponse(.success(posts)))
+                        await send(.blockedUserIDsLoaded(blockedIDs))
+                    } catch {
+                        await send(.postsResponse(.failure(error)))
+                    }
                 }
 
             case .postsResponse(.success(let posts)):
@@ -372,6 +379,21 @@ struct CommunityReducer: Reducer {
                 }
 
                 return .none
+                
+            case .blockedUserIDsLoaded(let ids):
+                state.blockedUserIDs = ids
+                return .none
+                
+            case .refreshBlockedUsers:
+                guard let currentUserID = state.currentUserID else {
+                    return .none
+                }
+                
+                return .run { send in
+                    let blockedIDs = try await communityRepository.fetchBlockedUserIDs(currentUserID)
+                    await send(.blockedUserIDsLoaded(blockedIDs))
+                }
+                
             }
         }
     }

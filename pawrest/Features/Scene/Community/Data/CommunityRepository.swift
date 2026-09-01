@@ -71,7 +71,32 @@ struct CommunityRepository {
         _ content: String
     ) async throws -> Void
     
+    var createReport: @Sendable (
+        _ reporterID: String,
+        _ targetType: String,
+        _ targetID: String,
+        _ targetAuthorID: String,
+        _ reason: String
+    ) async throws -> Void
+
+    var blockUser: @Sendable (
+        _ currentUserID: String,
+        _ blockedUserID: String,
+        _ blockedUserName: String
+    ) async throws -> Void
+
+    var unblockUser: @Sendable (
+        _ currentUserID: String,
+        _ blockedUserID: String
+    ) async throws -> Void
+
+    var fetchBlockedUserIDs: @Sendable (
+        _ currentUserID: String
+    ) async throws -> Set<String>
     
+    var fetchBlockedUsers: @Sendable (
+        _ currentUserID: String
+    ) async throws -> [(id: String, name: String)]
 }
 
 // MARK: - DependencyKey
@@ -275,9 +300,42 @@ extension CommunityRepository: DependencyKey {
                     commentID: commentID,
                     content: content
                 )
+            },
+            
+            createReport: { reporterID, targetType, targetID, targetAuthorID, reason in
+                try await service.createReport(
+                    reporterID: reporterID,
+                    targetType: targetType,
+                    targetID: targetID,
+                    targetAuthorID: targetAuthorID,
+                    reason: reason
+                )
+            },
+
+            blockUser: { currentUserID, blockedUserID, blockedUserName in
+                try await service.blockUser(
+                    currentUserID: currentUserID,
+                    blockedUserID: blockedUserID,
+                    blockedUserName: blockedUserName
+                )
+            },
+
+            unblockUser: { currentUserID, blockedUserID in
+                try await service.unblockUser(
+                    currentUserID: currentUserID,
+                    blockedUserID: blockedUserID
+                )
+            },
+
+            fetchBlockedUserIDs: { currentUserID in
+                try await service.fetchBlockedUserIDs(
+                    currentUserID: currentUserID
+                )
+            },
+            
+            fetchBlockedUsers: { currentUserID in
+                try await service.fetchBlockedUsers(currentUserID: currentUserID)
             }
-            
-            
         )
     }()
 }
