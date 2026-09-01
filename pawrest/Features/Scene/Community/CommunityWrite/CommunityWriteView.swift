@@ -24,11 +24,11 @@ struct CommunityWriteView: View {
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
                     imageGridSection
-                        .padding(.top, 34)
+                        .padding(.top, 16)
                     
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 12) {
                         titleTextField
                         contentTextField
                     }
@@ -38,6 +38,10 @@ struct CommunityWriteView: View {
                 
                 saveButton
                     .padding(.horizontal, 20)
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .onTapGesture {
+                isFocused = false
             }
         }
         .customNavigationBar(
@@ -74,20 +78,26 @@ private extension CommunityWriteView {
                 store.send(.imageGrid(.pickerItemsChanged(items)))
             }
         )
-        .frame(height: 155)
+        .frame(height: 135)
         .onAppear {
             requestPhotoLibraryPermission()
         }
     }
     
-    var titleTextField: some View {
+    var titleTextField: some View { 
         TextField(
             "제목을 입력하세요.",
             text: $store.title.sending(\.titleChanged)
         )
         .typography(.body2R1)
+        .focused($isFocused)
         .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity)
         .frame(height: 45)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isFocused = true
+        }
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(.gray10)
@@ -96,6 +106,11 @@ private extension CommunityWriteView {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(.gray20, lineWidth: 1)
         )
+        .onChange(of: store.title) { oldValue, newValue in
+            if newValue.count > 22 {
+                store.send(.titleChanged(String(newValue.prefix(22))))
+            }
+        }
     }
     
     var contentTextField: some View {
@@ -116,9 +131,9 @@ private extension CommunityWriteView {
                 .typography(.button)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 42)
+                .padding(.vertical, 16)
                 .background(store.isSaveButtonEnabled ? .pawPrimary : .gray40)
-                .cornerRadius(24, corners: .allCorners)
+                .cornerRadius(14, corners: .allCorners)
         }
         .disabled(!store.isSaveButtonEnabled)
         .padding(.bottom, 20)
