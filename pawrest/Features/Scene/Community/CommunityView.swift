@@ -36,6 +36,9 @@ struct CommunityView: View {
             store.send(.userProfileLoaded(nickname))
             store.send(.onAppear)
         }
+        .onAppear {
+            store.send(.refreshBlockedUsers)
+        }
         .customNavigationBar(
             store: store.scope(
                 state: \.navigationBar,

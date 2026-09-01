@@ -114,6 +114,7 @@ enum CommunityAction: Equatable {
     case postDeleted(String)
     
     case blockedUserIDsLoaded(Set<String>)
+    case refreshBlockedUsers
 }
 
 // MARK: - Reducer
@@ -382,6 +383,16 @@ struct CommunityReducer: Reducer {
             case .blockedUserIDsLoaded(let ids):
                 state.blockedUserIDs = ids
                 return .none
+                
+            case .refreshBlockedUsers:
+                guard let currentUserID = state.currentUserID else {
+                    return .none
+                }
+                
+                return .run { send in
+                    let blockedIDs = try await communityRepository.fetchBlockedUserIDs(currentUserID)
+                    await send(.blockedUserIDsLoaded(blockedIDs))
+                }
                 
             }
         }
