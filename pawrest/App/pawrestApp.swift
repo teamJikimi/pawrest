@@ -57,6 +57,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         case "letter":      return .memorialLetter
         case "anniversary": return .anniversary
         case "assessment":  return .assessmentReminder
+        case "emotionReminder": return .emotionReminder
         default:            return .emotionReminder
         }
     }
