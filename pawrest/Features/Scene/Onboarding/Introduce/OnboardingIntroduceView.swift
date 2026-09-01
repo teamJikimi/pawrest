@@ -59,7 +59,7 @@ private extension OnboardingIntroduceView {
         Image(store.currentPageData.imageAsset)
             .resizable()
             .scaledToFit()
-            .frame(height: availableHeight * 0.50, alignment: .bottom) 
+            .frame(height: availableHeight * 0.50, alignment: .bottom)
             .offset(y:8)
             .id(store.currentPage)
             .transition(.opacity)
