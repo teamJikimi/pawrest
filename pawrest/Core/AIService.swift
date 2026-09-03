@@ -23,10 +23,9 @@ final class AIService {
     private init() {}
 
     // MARK: - 통합 리포트 생성
-    func generateReport(snapshots: [EmotionSnapshot], weeklyEntries: [(date: String, level: String?)]) async throws -> AIReportResult {
+    func generateReport(snapshots: [EmotionSnapshot], weeklyEntries: [(date: String, level: String?)], assessmentRecords: [AssessmentRecord] = []) async throws -> AIReportResult {
         let count = snapshots.count
 
-        // 0건: AI 호출 없이 고정 문구
         if count == 0 {
             return AIReportResult(
                 bannerTitle: "이번 주 기록을 남겨보세요",
@@ -38,11 +37,11 @@ final class AIService {
 
         let emotionText = buildEmotionText(snapshots)
         let chartText = weeklyEntries.map { "\($0.date): \($0.level ?? "기록없음")" }.joined(separator: "\n")
+        let assessmentText = buildAssessmentText(assessmentRecords)
 
         let prompt: String
 
         if count <= 2 {
-            // 1~2건 전용 프롬프트
             prompt = """
             [역할]
             너는 반려동물과 사별한 사용자의 감정 기록을 정리해 주는 주간 리포트 작성자야.
@@ -56,6 +55,7 @@ final class AIService {
             날짜별 감정:
             \(chartText)
             감정 척도: 편안(5) 안정(4) 보통(3) 답답(2) 우울(1)
+            \(assessmentText.isEmpty ? "" : "\n[자가진단 결과]\n\(assessmentText)")
 
             [절대 규칙]
             1. 입력에 없는 감정, 사건, 상태를 절대 만들어내지 마.
@@ -85,7 +85,6 @@ final class AIService {
             }
             """
         } else {
-            // 3건 이상 정식 프롬프트
             prompt = """
             [역할]
             너는 반려동물과 사별한 사용자의 감정 기록을 정리해 주는 주간 리포트 작성자야.
@@ -97,6 +96,7 @@ final class AIService {
             상세 기록:
             \(emotionText)
             감정 척도: 편안(5) 안정(4) 보통(3) 답답(2) 우울(1)
+            \(assessmentText.isEmpty ? "" : "\n[자가진단 결과]\n\(assessmentText)")
 
             [절대 규칙]
             1. 입력에 없는 감정, 사건, 상태를 절대 만들어내지 마.
@@ -171,10 +171,21 @@ final class AIService {
         }.joined(separator: "\n")
     }
 
+    private func buildAssessmentText(_ records: [AssessmentRecord]) -> String {
+        guard !records.isEmpty else { return "" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd"
+        return records.map { record in
+            let typeName = record.type?.title ?? record.typeRawValue
+            let label = record.type?.resultLabel(for: record.totalScore) ?? ""
+            let dateStr = formatter.string(from: record.date)
+            return "\(dateStr) \(typeName): \(record.totalScore)점 (\(label))"
+        }.joined(separator: "\n")
+    }
+
     private func parseReportJSON(_ raw: String, count: Int) -> AIReportResult {
         guard let data = raw.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            // JSON 직접 파싱 실패 시 {} 블록 추출 시도
             guard let startIdx = raw.firstIndex(of: "{"),
                   let endIdx = raw.lastIndex(of: "}") else {
                 print("[AIService] JSON 블록 없음: \(raw)")

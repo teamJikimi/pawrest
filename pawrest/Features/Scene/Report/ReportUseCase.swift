@@ -10,7 +10,7 @@ import SwiftData
 
 protocol ReportUseCaseProtocol {
     func buildLocalData(snapshots: [EmotionSnapshot]) -> ReportData
-    func fetchAIData(emotionSnapshots: [EmotionSnapshot], container: ModelContainer) async throws -> (AIReportResult, String?, DailyTimeEmotionData)
+    func fetchAIData(emotionSnapshots: [EmotionSnapshot], assessmentRecords: [AssessmentRecord], container: ModelContainer) async throws -> (AIReportResult, String?, DailyTimeEmotionData)
     func fetchDailyTimeEmotion(for date: Date, emotionSnapshots: [EmotionSnapshot]) async throws -> DailyTimeEmotionData
 }
 
@@ -70,6 +70,7 @@ struct ReportUseCase: ReportUseCaseProtocol {
 
     func fetchAIData(
         emotionSnapshots: [EmotionSnapshot],
+        assessmentRecords: [AssessmentRecord],
         container: ModelContainer
     ) async throws -> (AIReportResult, String?, DailyTimeEmotionData) {
 
@@ -97,7 +98,8 @@ struct ReportUseCase: ReportUseCaseProtocol {
         let weeklyEntries = makeWeeklyEntries(snapshots: emotionSnapshots)
         let aiResult = try await AIService.shared.generateReport(
             snapshots: emotionSnapshots,
-            weeklyEntries: weeklyEntries
+            weeklyEntries: weeklyEntries,
+            assessmentRecords: assessmentRecords
         )
 
         let weekdayEntries = makeWeekdayEntries(snapshots: emotionSnapshots)

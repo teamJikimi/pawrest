@@ -31,7 +31,7 @@ struct ReportFeature {
 
     @CasePathable
     enum Action {
-        case onAppear(snapshots: [EmotionSnapshot], context: ModelContext)
+        case onAppear(snapshots: [EmotionSnapshot], assessmentRecords: [AssessmentRecord], context: ModelContext)
         case aiDataLoaded(AIReportResult, weekdayInsight: String?, todayTimeData: DailyTimeEmotionData)
         case dailyTimeDataLoaded(DailyTimeEmotionData)
         case tabChanged(ReportTab)
@@ -59,7 +59,7 @@ struct ReportFeature {
         Reduce { state, action in
             switch action {
 
-            case .onAppear(let snapshots, let context):
+            case .onAppear(let snapshots, let assessmentRecords, let context):
                 state.emotionSnapshots = snapshots
                 state.isAILoadFailed = false
                 let localData = useCase.buildLocalData(snapshots: snapshots)
@@ -68,10 +68,11 @@ struct ReportFeature {
                 state.isAILoading = true
                 let container = context.container
 
-                return .run { [snapshots, useCase] send in
+                return .run { [snapshots, assessmentRecords, useCase] send in
                     do {
                         let (aiResult, weekdayInsight, todayTimeData) = try await useCase.fetchAIData(
                             emotionSnapshots: snapshots,
+                            assessmentRecords: assessmentRecords,
                             container: container
                         )
                         await send(.aiDataLoaded(aiResult, weekdayInsight: weekdayInsight, todayTimeData: todayTimeData))
@@ -141,7 +142,7 @@ struct ReportFeature {
                         await send(.loadFailed(error.localizedDescription))
                     }
                 }
-                
+
             case .loadFailed(let message):
                 state.errorMessage = message
                 state.isLoading = false
