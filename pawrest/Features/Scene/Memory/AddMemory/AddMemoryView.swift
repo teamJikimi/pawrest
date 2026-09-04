@@ -72,7 +72,7 @@ extension AddMemoryView {
         }
     }
     
-    private var titleTextField: some View { 
+    private var titleTextField: some View {
         TextField(
             "제목을 입력하세요.",
             text: $store.title.sending(\.titleChanged)

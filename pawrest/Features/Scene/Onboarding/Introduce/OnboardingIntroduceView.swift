@@ -59,7 +59,7 @@ private extension OnboardingIntroduceView {
         Image(store.currentPageData.imageAsset)
             .resizable()
             .scaledToFit()
-            .frame(height: availableHeight * 0.50, alignment: .bottom) 
+            .frame(height: availableHeight * 0.50, alignment: .bottom)
             .offset(y:8)
             .id(store.currentPage)
             .transition(.opacity)
@@ -142,6 +142,15 @@ private extension OnboardingIntroduceView {
         modelContext.insert(user)
         modelContext.insert(pet)
         try? modelContext.save()
+
+        if let deathDay = store.petDeathDay {
+            NotificationService.shared.scheduleAnniversaryReminder(
+                petName: store.petName,
+                anniversaryDate: deathDay,
+                enabled: true
+            )
+        }
+
         store.send(.saveCompleted)
     }
 

@@ -70,7 +70,7 @@ struct CommunityRepository {
         _ commentID: UUID,
         _ content: String
     ) async throws -> Void
-    
+
     var createReport: @Sendable (
         _ reporterID: String,
         _ targetType: String,

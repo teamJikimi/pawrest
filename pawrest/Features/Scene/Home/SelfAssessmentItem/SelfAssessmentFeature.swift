@@ -90,7 +90,7 @@ struct SelfAssessmentReducer: Reducer {
                 if let score = state.type.calculateScore(answers: state.answers) {
                     state.totalScore = score
                     state.isResultPresented = true
-                    NotificationService.shared.scheduleAssessmentReminder(lastAssessmentDate: Date())
+                    NotificationService.shared.scheduleAssessmentReminder(lastAssessmentDate: Date(), enabled: true)
                 }
                 return .none
                 

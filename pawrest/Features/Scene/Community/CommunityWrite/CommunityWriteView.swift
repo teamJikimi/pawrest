@@ -84,7 +84,7 @@ private extension CommunityWriteView {
         }
     }
     
-    var titleTextField: some View { 
+    var titleTextField: some View {
         TextField(
             "제목을 입력하세요.",
             text: $store.title.sending(\.titleChanged)
