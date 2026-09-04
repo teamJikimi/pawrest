@@ -97,6 +97,23 @@ struct CommunityRepository {
     var fetchBlockedUsers: @Sendable (
         _ currentUserID: String
     ) async throws -> [(id: String, name: String)]
+    
+    var createNotification: @Sendable (
+        _ targetUserID: String,
+        _ type: String,
+        _ senderName: String,
+        _ postID: String,
+        _ body: String
+    ) async throws -> Void
+
+    var fetchNotifications: @Sendable (
+        _ userID: String
+    ) async throws -> [(id: String, type: String, senderName: String, postID: String, body: String, createdAt: Date, isRead: Bool)]
+
+    var markNotificationRead: @Sendable (
+        _ userID: String,
+        _ notificationID: String
+    ) async throws -> Void
 }
 
 // MARK: - DependencyKey
@@ -335,6 +352,27 @@ extension CommunityRepository: DependencyKey {
             
             fetchBlockedUsers: { currentUserID in
                 try await service.fetchBlockedUsers(currentUserID: currentUserID)
+            },
+            
+            createNotification: { targetUserID, type, senderName, postID, body in
+                try await service.createNotification(
+                    targetUserID: targetUserID,
+                    type: type,
+                    senderName: senderName,
+                    postID: postID,
+                    body: body
+                )
+            },
+
+            fetchNotifications: { userID in
+                try await service.fetchNotifications(userID: userID)
+            },
+
+            markNotificationRead: { userID, notificationID in
+                try await service.markNotificationRead(
+                    userID: userID,
+                    notificationID: notificationID
+                )
             }
         )
     }()

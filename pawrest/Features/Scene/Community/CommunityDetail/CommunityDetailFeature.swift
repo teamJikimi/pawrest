@@ -158,7 +158,29 @@ struct CommunityDetailReducer: Reducer {
                 }
                 
             case .likeResponse(let previousIsLiked, let success):
-                guard !success else { return .none }
+                guard !success else {
+                    if !previousIsLiked {
+                        let currentUserID = state.currentUserID
+                        let authorName = state.authorName
+                        let postID = state.post.id
+                        let postAuthorID = state.post.author.id
+                        
+                        guard postAuthorID != currentUserID else { return .none }
+                        
+                        return .run { _ in
+                            try? await communityRepository.createNotification(
+                                postAuthorID,
+                                "like",
+                                authorName,
+                                postID,
+                                "\(authorName)님이 좋아요를 눌렀습니다."
+                            )
+                        }
+                    }
+                    return .none
+                }
+                
+                // 실패 → rollback
                 state.post.isLiked = previousIsLiked
                 state.post.likeCount += previousIsLiked ? 1 : -1
                 return .none
@@ -269,7 +291,36 @@ struct CommunityDetailReducer: Reducer {
                 } else {
                     state.post.comments.append(comment)
                 }
-                return .none
+                
+                let currentUserID = state.currentUserID
+                let authorName = state.authorName
+                let postID = state.post.id
+                let postAuthorID = state.post.author.id
+                let content = comment.content
+                
+                let targetUserID: String?
+                if let parentCommentID,
+                   let parentComment = findComment(commentID: parentCommentID, in: state.post) {
+                    targetUserID = parentComment.author.id != currentUserID
+                        ? parentComment.author.id
+                        : nil
+                } else {
+                    targetUserID = postAuthorID != currentUserID
+                        ? postAuthorID
+                        : nil
+                }
+                
+                guard let targetUserID else { return .none }
+                
+                return .run { _ in
+                    try? await communityRepository.createNotification(
+                        targetUserID,
+                        "comment",
+                        authorName,
+                        postID,
+                        "새로운 댓글이 달렸습니다:\n\(content)"
+                    )
+                }
                 
             case .commentCreationResponse(_, .failure(let error)):
                 state.errorMessage = error.localizedDescription

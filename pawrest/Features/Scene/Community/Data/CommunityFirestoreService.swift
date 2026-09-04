@@ -22,7 +22,7 @@ final class CommunityFirestoreService {
     func fetchPosts() async throws -> [CommunityPostDTO] {
         let snapshot = try await firestore
             .collection("posts")
-            .order(by: "createdAt", descending: true)
+            .order(by: "NdAt", descending: true)
             .getDocuments()
 
         return snapshot.documents.compactMap {
@@ -416,5 +416,77 @@ final class CommunityFirestoreService {
             .getDocuments()
         
         return Set(snapshot.documents.map { $0.documentID })
+    }
+    
+    // MARK: - Notification
+
+    func createNotification(
+        targetUserID: String,
+        type: String,
+        senderName: String,
+        postID: String,
+        body: String
+    ) async throws {
+        let notifID = UUID().uuidString
+        
+        try await firestore
+            .collection("users")
+            .document(targetUserID)
+            .collection("notifications")
+            .document(notifID)
+            .setData([
+                "type": type,
+                "senderName": senderName,
+                "postID": postID,
+                "body": body,
+                "createdAt": Timestamp(date: Date()),
+                "isRead": false
+            ])
+    }
+
+    func fetchNotifications(
+        userID: String
+    ) async throws -> [(id: String, type: String, senderName: String, postID: String, body: String, createdAt: Date, isRead: Bool)] {
+        let snapshot = try await firestore
+            .collection("users")
+            .document(userID)
+            .collection("notifications")
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc in
+            let data = doc.data()
+            guard
+                let type = data["type"] as? String,
+                let senderName = data["senderName"] as? String,
+                let postID = data["postID"] as? String,
+                let body = data["body"] as? String
+            else { return nil }
+            
+            let createdAt = (data["createdAt"] as? Timestamp)?.dateValue() ?? Date()
+            let isRead = data["isRead"] as? Bool ?? false
+            
+            return (
+                id: doc.documentID,
+                type: type,
+                senderName: senderName,
+                postID: postID,
+                body: body,
+                createdAt: createdAt,
+                isRead: isRead
+            )
+        }
+    }
+
+    func markNotificationRead(
+        userID: String,
+        notificationID: String
+    ) async throws {
+        try await firestore
+            .collection("users")
+            .document(userID)
+            .collection("notifications")
+            .document(notificationID)
+            .updateData(["isRead": true])
     }
 }
