@@ -116,15 +116,16 @@ struct pawrestApp: App {
         return state
     }
 
+    init() {
+        delegate.modelContainer = sharedModelContainer
+    }
+
     var body: some Scene {
         WindowGroup {
             AppView(store: Store(initialState: initialAppState) {
                 AppReducer()
             })
             .preferredColorScheme(.light)
-            .onAppear {
-                delegate.modelContainer = sharedModelContainer
-            }
         }
         .modelContainer(sharedModelContainer)
     }

@@ -36,13 +36,36 @@ struct ReportAISummarySectionView: View {
         } else if isAILoading {
             loadingState
         } else {
-            Text(data.aiSummary.isEmpty
-                 ? "이번 주 감정 기록이 쌓이면\nAI가 감정을 분석해드려요."
-                 : data.aiSummary)
-                .typography(.body3R)
-                .foregroundStyle(.gray60)
-                .lineSpacing(4)
+            VStack(alignment: .leading, spacing: 12) {
+                Text(data.aiSummary.isEmpty
+                     ? "이번 주 감정 기록이 쌓이면\nAI가 감정을 분석해드려요."
+                     : data.aiSummary)
+                    .typography(.body3R)
+                    .foregroundStyle(.gray60)
+                    .lineSpacing(4)
+
+                if let suggestion = data.aiSuggestion, !suggestion.isEmpty {
+                    suggestionBanner(suggestion)
+                }
+            }
         }
+    }
+
+    private func suggestionBanner(_ text: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "lightbulb")
+                .font(.system(size: 13))
+                .foregroundStyle(.pawPrimary)
+            Text(text)
+                .typography(.body3R)
+                .foregroundStyle(.gray70)
+                .lineSpacing(3)
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.primaryLight)
+        .cornerRadius(10, corners: .allCorners)
     }
 
     private var failedState: some View {

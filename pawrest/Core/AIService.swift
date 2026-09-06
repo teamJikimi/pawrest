@@ -12,6 +12,7 @@ struct AIReportResult: Equatable {
     let bannerSummary: String
     let weeklySummary: String
     let dailyInsight: String?
+    let suggestion: String?
 }
 
 final class AIService {
@@ -31,7 +32,8 @@ final class AIService {
                 bannerTitle: "이번 주 기록을 남겨보세요",
                 bannerSummary: "기록이 쌓이면 변화를 확인할 수 있어요",
                 weeklySummary: "이번 주는 기록된 감정이 없어요.\n짧게라도 남겨두면 다음 주엔\n마음의 흐름을 함께 살펴볼 수 있어요.",
-                dailyInsight: nil
+                dailyInsight: nil,
+                suggestion: nil
             )
         }
 
@@ -81,7 +83,8 @@ final class AIService {
               "bannerTitle": "10자 이내. 기록된 감정을 표현하는 제목.",
               "bannerSummary": "20자 이내. 기록된 감정을 한 문장으로. 추세 표현 쓰지 마.",
               "weeklySummary": "2문장. 각 15어절 이내. 1문장: 언제 어떤 감정인지. 2문장: 짧은 인정.",
-              "dailyInsight": "1~2문장. 각 13어절 이내. 기록된 날 감정 짚기 + 바람 표현 1회(생략 가능)."
+              "dailyInsight": "1~2문장. 각 13어절 이내. 기록된 날 감정 짚기 + 바람 표현 1회(생략 가능).",
+              "suggestion": "1문장. 20자 이내. 감정 상태에 맞는 가벼운 활동 제안. 산책, 음악, 커뮤니티에 털어놓기 등. 권유형으로. 지시하지 마."
             }
             """
         } else {
@@ -121,7 +124,8 @@ final class AIService {
               "bannerTitle": "10자 이내. 이번 주 감정을 표현하는 제목.",
               "bannerSummary": "20자 이내. 이번 주 흐름을 한 문장으로.",
               "weeklySummary": "3문장. 각 15어절 이내. 일별/시간대별/요일별 통합 요약.",
-              "dailyInsight": "2문장. 각 13어절 이내. 높/낮은 날 짚고 한마디 덧붙여."
+              "dailyInsight": "2문장. 각 13어절 이내. 높/낮은 날 짚고 한마디 덧붙여.",
+              "suggestion": "1문장. 20자 이내. 감정 상태에 맞는 가벼운 활동 제안. 산책, 음악, 커뮤니티에 털어놓기 등. 권유형으로. 지시하지 마."
             }
             """
         }
@@ -130,7 +134,7 @@ final class AIService {
         return parseReportJSON(raw, count: count)
     }
 
-    // MARK: - 요일별/시간대별 인사이트 (별도)
+    // MARK: - 요일별 인사이트
     func generateWeekdayInsight(entries: [(weekday: String, level: String?)]) async throws -> String? {
         guard entries.contains(where: { $0.level != nil }) else { return nil }
         let chartText = entries.map { "\($0.weekday): \($0.level ?? "기록없음")" }.joined(separator: "\n")
@@ -146,6 +150,7 @@ final class AIService {
         return result.isEmpty ? nil : result
     }
 
+    // MARK: - 시간대별 인사이트
     func generateTimeInsight(entries: [(timeSlot: String, level: String?)]) async throws -> String? {
         guard entries.contains(where: { $0.level != nil }) else { return nil }
         let chartText = entries.map { "\($0.timeSlot): \($0.level ?? "기록없음")" }.joined(separator: "\n")
@@ -184,32 +189,37 @@ final class AIService {
     }
 
     private func parseReportJSON(_ raw: String, count: Int) -> AIReportResult {
-        guard let data = raw.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            guard let startIdx = raw.firstIndex(of: "{"),
-                  let endIdx = raw.lastIndex(of: "}") else {
-                print("[AIService] JSON 블록 없음: \(raw)")
-                return fallbackResult(count: count)
-            }
-            let jsonString = String(raw[startIdx...endIdx])
-            guard let data2 = jsonString.data(using: .utf8),
-                  let json2 = try? JSONSerialization.jsonObject(with: data2) as? [String: Any] else {
-                print("[AIService] JSON 파싱 실패: \(raw)")
-                return fallbackResult(count: count)
-            }
-            return AIReportResult(
-                bannerTitle: (json2["bannerTitle"] as? String) ?? fallbackResult(count: count).bannerTitle,
-                bannerSummary: (json2["bannerSummary"] as? String) ?? fallbackResult(count: count).bannerSummary,
-                weeklySummary: (json2["weeklySummary"] as? String) ?? fallbackResult(count: count).weeklySummary,
-                dailyInsight: json2["dailyInsight"] as? String
+        let fallback = fallbackResult(count: count)
+
+        func extract(from json: [String: Any]) -> AIReportResult {
+            AIReportResult(
+                bannerTitle: (json["bannerTitle"] as? String) ?? fallback.bannerTitle,
+                bannerSummary: (json["bannerSummary"] as? String) ?? fallback.bannerSummary,
+                weeklySummary: (json["weeklySummary"] as? String) ?? fallback.weeklySummary,
+                dailyInsight: json["dailyInsight"] as? String,
+                suggestion: json["suggestion"] as? String
             )
         }
-        return AIReportResult(
-            bannerTitle: (json["bannerTitle"] as? String) ?? fallbackResult(count: count).bannerTitle,
-            bannerSummary: (json["bannerSummary"] as? String) ?? fallbackResult(count: count).bannerSummary,
-            weeklySummary: (json["weeklySummary"] as? String) ?? fallbackResult(count: count).weeklySummary,
-            dailyInsight: json["dailyInsight"] as? String
-        )
+
+        if let data = raw.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            return extract(from: json)
+        }
+
+        guard let startIdx = raw.firstIndex(of: "{"),
+              let endIdx = raw.lastIndex(of: "}") else {
+            print("[AIService] JSON 블록 없음: \(raw)")
+            return fallback
+        }
+
+        let jsonString = String(raw[startIdx...endIdx])
+        guard let data2 = jsonString.data(using: .utf8),
+              let json2 = try? JSONSerialization.jsonObject(with: data2) as? [String: Any] else {
+            print("[AIService] JSON 파싱 실패: \(raw)")
+            return fallback
+        }
+
+        return extract(from: json2)
     }
 
     private func fallbackResult(count: Int) -> AIReportResult {
@@ -218,14 +228,16 @@ final class AIService {
                 bannerTitle: "이번 주 기록을 남겨보세요",
                 bannerSummary: "기록이 쌓이면 변화를 확인할 수 있어요",
                 weeklySummary: "이번 주는 기록된 감정이 없어요.\n짧게라도 남겨두면 다음 주엔\n마음의 흐름을 함께 살펴볼 수 있어요.",
-                dailyInsight: nil
+                dailyInsight: nil,
+                suggestion: nil
             )
         }
         return AIReportResult(
             bannerTitle: "이번 주 기록을 남겨보세요",
             bannerSummary: "기록이 쌓이면 변화를 확인할 수 있어요",
             weeklySummary: "",
-            dailyInsight: nil
+            dailyInsight: nil,
+            suggestion: nil
         )
     }
 

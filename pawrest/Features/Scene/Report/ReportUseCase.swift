@@ -10,7 +10,12 @@ import SwiftData
 
 protocol ReportUseCaseProtocol {
     func buildLocalData(snapshots: [EmotionSnapshot]) -> ReportData
-    func fetchAIData(emotionSnapshots: [EmotionSnapshot], assessmentRecords: [AssessmentRecord], container: ModelContainer) async throws -> (AIReportResult, String?, DailyTimeEmotionData)
+    func fetchAIData(
+        emotionSnapshots: [EmotionSnapshot],
+        assessmentRecords: [AssessmentRecord],
+        container: ModelContainer,
+        forceRefresh: Bool
+    ) async throws -> (AIReportResult, String?, DailyTimeEmotionData)
     func fetchDailyTimeEmotion(for date: Date, emotionSnapshots: [EmotionSnapshot]) async throws -> DailyTimeEmotionData
 }
 
@@ -56,6 +61,7 @@ struct ReportUseCase: ReportUseCaseProtocol {
             summaryTitle: "AI분석에 실패 했어요",
             summaryBody: "잠시뒤에 다시 시도해주세요",
             aiSummary: "AI가 이번 주 감정 흐름을 분석 중이에요.\n잠시만 기다려주세요.",
+            aiSuggestion: nil,  // 추가
             stats: ReportStats(
                 recordedDays: recordedDays,
                 mostFrequentEmotion: mostFrequent,
@@ -67,31 +73,34 @@ struct ReportUseCase: ReportUseCaseProtocol {
             weekdayData: .empty
         )
     }
-
     func fetchAIData(
         emotionSnapshots: [EmotionSnapshot],
-        assessmentRecords: [AssessmentRecord],
-        container: ModelContainer
-    ) async throws -> (AIReportResult, String?, DailyTimeEmotionData) {
+        assessmentRecords: sending [AssessmentRecord],
+        container: ModelContainer,
+        forceRefresh: Bool
+    ) async throws -> (AIReportResult, String?, DailyTimeEmotionData){
 
         let context = ModelContext(container)
-        
+
         let calendar = Calendar.current
         let yesterday = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: Date()))!
 
-        let descriptor = FetchDescriptor<WeeklyReportCache>(
-            predicate: #Predicate { $0.weekEndDate == yesterday }
-        )
-        if let cached = try? context.fetch(descriptor).first {
-            print("🔥 캐시 히트 - AI 호출 안함")
-            let aiResult = AIReportResult(
-                bannerTitle: cached.summaryTitle,
-                bannerSummary: cached.summaryBody,
-                weeklySummary: cached.aiSummary,
-                dailyInsight: cached.weeklyInsight
+        if !forceRefresh {
+            let descriptor = FetchDescriptor<WeeklyReportCache>(
+                predicate: #Predicate { $0.weekEndDate == yesterday }
             )
-            let todayTime = await buildTimeData(for: yesterday, snapshots: emotionSnapshots, timeInsight: cached.timeInsight)
-            return (aiResult, cached.weekdayInsight, todayTime)
+            if let cached = try? context.fetch(descriptor).first {
+                print("🔥 캐시 히트 - AI 호출 안함")
+                let aiResult = AIReportResult(
+                    bannerTitle: cached.summaryTitle,
+                    bannerSummary: cached.summaryBody,
+                    weeklySummary: cached.aiSummary,
+                    dailyInsight: cached.weeklyInsight,
+                    suggestion: nil
+                )
+                let todayTime = await buildTimeData(for: yesterday, snapshots: emotionSnapshots, timeInsight: cached.timeInsight)
+                return (aiResult, cached.weekdayInsight, todayTime)
+            }
         }
 
         print("🔥 AI 호출 시작")
