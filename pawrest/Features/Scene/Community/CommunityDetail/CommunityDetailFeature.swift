@@ -7,6 +7,7 @@
 
 import Foundation
 import ComposableArchitecture
+import SwiftData
 
 // MARK: - State
 
@@ -159,28 +160,27 @@ struct CommunityDetailReducer: Reducer {
                 
             case .likeResponse(let previousIsLiked, let success):
                 guard !success else {
-                    if !previousIsLiked {
+                    if state.post.isLiked {
+                        let postAuthorID = state.post.author.id
                         let currentUserID = state.currentUserID
                         let authorName = state.authorName
                         let postID = state.post.id
-                        let postAuthorID = state.post.author.id
-                        
-                        guard postAuthorID != currentUserID else { return .none }
                         
                         return .run { _ in
-                            try? await communityRepository.createNotification(
-                                postAuthorID,
-                                "like",
-                                authorName,
-                                postID,
-                                "\(authorName)님이 좋아요를 눌렀습니다."
+                            let container = try ModelContainer(for: NotificationRecord.self)
+                            let context = ModelContext(container)
+                            CommunityNotificationService.shared.handleNewLike(
+                                postAuthorID: postAuthorID,
+                                likedByUserID: currentUserID,
+                                likedByUserName: authorName,
+                                postID: postID,
+                                context: context
                             )
                         }
                     }
                     return .none
                 }
                 
-                // 실패 → rollback
                 state.post.isLiked = previousIsLiked
                 state.post.likeCount += previousIsLiked ? 1 : -1
                 return .none
@@ -292,33 +292,28 @@ struct CommunityDetailReducer: Reducer {
                     state.post.comments.append(comment)
                 }
                 
-                let currentUserID = state.currentUserID
-                let authorName = state.authorName
-                let postID = state.post.id
-                let postAuthorID = state.post.author.id
-                let content = comment.content
-                
-                let targetUserID: String?
+                let targetUserID: String
                 if let parentCommentID,
-                   let parentComment = findComment(commentID: parentCommentID, in: state.post) {
-                    targetUserID = parentComment.author.id != currentUserID
-                        ? parentComment.author.id
-                        : nil
+                   let parentComment = state.post.comments.first(where: { $0.id == parentCommentID }) {
+                    targetUserID = parentComment.author.id
                 } else {
-                    targetUserID = postAuthorID != currentUserID
-                        ? postAuthorID
-                        : nil
+                    targetUserID = state.post.author.id
                 }
-                
-                guard let targetUserID else { return .none }
+                let commentAuthorID = comment.author.id
+                let commentAuthorName = state.authorName
+                let commentContent = comment.content
+                let postID = state.post.id
                 
                 return .run { _ in
-                    try? await communityRepository.createNotification(
-                        targetUserID,
-                        "comment",
-                        authorName,
-                        postID,
-                        "새로운 댓글이 달렸습니다:\n\(content)"
+                    let container = try ModelContainer(for: NotificationRecord.self)
+                    let context = ModelContext(container)
+                    CommunityNotificationService.shared.handleNewComment(
+                        targetUserID: targetUserID,
+                        commentAuthorID: commentAuthorID,
+                        commentAuthorName: commentAuthorName,
+                        commentContent: commentContent,
+                        postID: postID,
+                        context: context
                     )
                 }
                 

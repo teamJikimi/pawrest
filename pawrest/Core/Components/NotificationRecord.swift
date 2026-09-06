@@ -17,8 +17,9 @@ final class NotificationRecord {
     var receivedAt: Date
     var isRead: Bool
     var requestIdentifier: String  // 중복 저장 방지용
+    var postID: String?
 
-    init(type: NotificationType, title: String, body: String, receivedAt: Date = Date(), requestIdentifier: String = "") {
+    init(type: NotificationType, title: String, body: String, receivedAt: Date = Date(), requestIdentifier: String = "", postID: String? = nil) {
         self.id = UUID()
         self.type = type.rawValue
         self.title = title
@@ -26,6 +27,7 @@ final class NotificationRecord {
         self.receivedAt = receivedAt
         self.isRead = false
         self.requestIdentifier = requestIdentifier
+        self.postID = postID
     }
 
     var notificationType: NotificationType {
