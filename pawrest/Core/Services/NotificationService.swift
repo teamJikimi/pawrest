@@ -109,21 +109,6 @@ final class NotificationService {
         UNUserNotificationCenter.current().add(request)
     }
 
-    func scheduleAnniversaryReminderTest(petName: String) {
-        let id = "anniversary_test"
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
-
-        let content = UNMutableNotificationContent()
-        content.title = "기일"
-        content.body = "\(petName)의 기일이에요. 편지를 보내볼까요?"
-        content.sound = .default
-        content.userInfo = ["type": "anniversary"]
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request)
-    }
-
     func scheduleLetterDelivery(letterId: String) {
         let id = "letter_\(letterId)"
         let content = UNMutableNotificationContent()

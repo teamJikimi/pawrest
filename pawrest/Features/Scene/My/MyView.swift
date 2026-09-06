@@ -77,6 +77,7 @@ struct MyView: View {
                     try? modelContext.delete(model: MemoryModel.self)
                     try? modelContext.delete(model: LetterModel.self)
                     try? modelContext.delete(model: NotificationRecord.self)
+                    UserDefaults.standard.removeObject(forKey: "isOnboardingComplete")
                     store.send(.deleteAccountConfirmed)
                     onLogoutCompleted()
                 }
@@ -248,21 +249,6 @@ private extension MyView {
             petMemory: $store.isDailyRecordOn.sending(\.dailyRecordToggled),
             communityReaction: $store.isCommunityReactionOn.sending(\.communityReactionToggled)
         )
-    }
-    
-    
-    var testButton: some View {
-        Button {
-            NotificationService.shared.scheduleAnniversaryReminderTest(petName: store.user.petName)
-        } label: {
-            Text("기일 알림 테스트 (5초)")
-                .typography(.body3R)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(.pawPrimary)
-                .cornerRadius(12, corners: .allCorners)
-        }
     }
     
     var accountSection: some View {
