@@ -128,6 +128,7 @@ private extension CommunityView {
                 }
             }
             .padding(.horizontal, 20)
+            .padding(.top, 8)
         }
         .scrollDismissesKeyboard(.immediately)
         .safeAreaInset(edge: .bottom, spacing: 0) {
