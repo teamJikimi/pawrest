@@ -7,7 +7,6 @@
 
 import Foundation
 import ComposableArchitecture
-import SwiftData
 
 // MARK: - State
 
@@ -167,14 +166,11 @@ struct CommunityDetailReducer: Reducer {
                         let postID = state.post.id
                         
                         return .run { _ in
-                            let container = try ModelContainer(for: NotificationRecord.self)
-                            let context = ModelContext(container)
                             CommunityNotificationService.shared.handleNewLike(
                                 postAuthorID: postAuthorID,
                                 likedByUserID: currentUserID,
                                 likedByUserName: authorName,
-                                postID: postID,
-                                context: context
+                                postID: postID
                             )
                         }
                     }
@@ -305,15 +301,12 @@ struct CommunityDetailReducer: Reducer {
                 let postID = state.post.id
                 
                 return .run { _ in
-                    let container = try ModelContainer(for: NotificationRecord.self)
-                    let context = ModelContext(container)
                     CommunityNotificationService.shared.handleNewComment(
                         targetUserID: targetUserID,
                         commentAuthorID: commentAuthorID,
                         commentAuthorName: commentAuthorName,
                         commentContent: commentContent,
-                        postID: postID,
-                        context: context
+                        postID: postID
                     )
                 }
                 
