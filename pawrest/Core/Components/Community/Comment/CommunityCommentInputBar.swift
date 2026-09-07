@@ -7,6 +7,37 @@
 
 import SwiftUI
 
+// MARK: - TopRoundedBorder
+
+struct TopRoundedBorder: Shape {
+    var radius: CGFloat
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
+        path.addArc(
+            center: CGPoint(x: rect.minX + radius, y: rect.minY + radius),
+            radius: radius,
+            startAngle: .degrees(180),
+            endAngle: .degrees(270),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+        path.addArc(
+            center: CGPoint(x: rect.maxX - radius, y: rect.minY + radius),
+            radius: radius,
+            startAngle: .degrees(270),
+            endAngle: .degrees(0),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        return path
+    }
+}
+
+// MARK: - View
+
 struct CommunityCommentInputBar: View {
     
     //MARK: - Properties
@@ -30,29 +61,21 @@ struct CommunityCommentInputBar: View {
         textFieldContainer
             .padding(.horizontal, 20)
             .padding(.top, isFocused ? 8 : 18)
-            .padding(.bottom, isFocused ? 8 : max(36-safeAreaBottom, 0))
+            .padding(.bottom, isFocused ? 8 : max(36 - safeAreaBottom, 0))
         
             .frame(maxWidth: .infinity)
             .background(.gray0)
-
             .cornerRadius(isFocused ? 0 : 20, corners: [.topRight, .topLeft])
             .overlay {
-                RoundedCorner(
-                    radius: isFocused ? 0 : 20,
-                    corners: [.topRight, .topLeft]
-                )
-                .stroke(.gray10, lineWidth: 1)
-                .mask(Rectangle().padding(.bottom, 1))
-                
+                TopRoundedBorder(radius: isFocused ? 0 : 20)
+                    .stroke(.gray10, lineWidth: 1)
             }
             .background(
                 Color.gray0.ignoresSafeArea(.container, edges: .bottom)
             )
             .animation(.easeInOut(duration: 0.25), value: isFocused)
-        
     }
 }
-
 
 //MARK: - Layouts
 
@@ -90,7 +113,7 @@ private extension CommunityCommentInputBar {
     }
     
     var sendButton: some View {
-        Button(action: onSend){
+        Button(action: onSend) {
             Image(text.isEmpty ? .iconSendDefault : .iconSendActive)
                 .resizable()
                 .scaledToFit()
@@ -98,5 +121,25 @@ private extension CommunityCommentInputBar {
         }
         .buttonStyle(.plain)
         .disabled(text.isEmpty)
+    }
+}
+
+// MARK: - Preview
+
+private struct PreviewWrapper: View {
+    @State private var text: String = ""
+    @FocusState private var isFocused: Bool
+    
+    var body: some View {
+        VStack {
+            Spacer()
+            CommunityCommentInputBar(
+                text: $text,
+                onSend: {},
+                placeholder: "댓글을 입력하세요.",
+                isFocused: $isFocused
+            )
+        }
+        .background(.gray10)
     }
 }
