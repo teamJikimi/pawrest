@@ -201,7 +201,15 @@ struct MyFeature: Reducer {
             case .deleteAccountConfirmed:
                 state.showDeleteAccountAlert = false
                 return .run { _ in
-                    try? await Auth.auth().currentUser?.delete()
+                    guard let user = Auth.auth().currentUser else { return }
+                    let userID = user.uid
+                    
+                    //커뮤니티 글 전체 삭제 하고
+                    let service = await MainActor.run { CommunityFirestoreService() }
+                    try? await service.deleteAllPostsByUser(authorID: userID)
+                    
+                    //계정 삭제
+                    try? await user.delete()
                 }
 
             case .subPageDismissed:
