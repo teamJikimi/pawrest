@@ -81,7 +81,7 @@ private extension CommunityDetailView {
                     imageSection
                 }
                 CommunityDivider()
-                    .padding(.top, 18)
+                    .padding(.top, 16)
                 likeCommentBarSection
                 CommunityDivider()
                 commentsSection
@@ -106,7 +106,7 @@ private extension CommunityDetailView {
             author: store.post.author,
             date: store.post.createdAt
         )
-        .padding(.vertical, 18)
+        .padding(.vertical, 12)
         .padding(.horizontal, 20)
     }
     
@@ -115,7 +115,7 @@ private extension CommunityDetailView {
             Text(store.post.title)
                 .typography(.body1Accent)
                 .foregroundColor(.gray80)
-                .padding(.top, 18)
+                .padding(.top, 16)
             
             Text(store.post.content)
                 .typography(.body2R2)
@@ -154,7 +154,7 @@ private extension CommunityDetailView {
             isLiked: store.post.isLiked,
             onLikeTapped: { store.send(.likeTapped) }
         )
-        .padding(.vertical, 15)
+        .padding(.vertical, 12)
         .padding(.horizontal, 20)
     }
     
@@ -167,7 +167,7 @@ private extension CommunityDetailView {
                 )
             }
         }
-        .padding(.top, 20)
+        .padding(.top, 18)
     }
     
     @ViewBuilder
@@ -184,7 +184,7 @@ private extension CommunityDetailView {
         .padding(.horizontal, 20)
         
         if !parent.replies.isEmpty {
-            Color.clear.frame(height: 18)
+            Color.clear.frame(height: 12)
             
             ForEach(Array(parent.replies.enumerated()), id: \.element.id) { rIdx, reply in
                 if rIdx > 0 {
@@ -204,12 +204,10 @@ private extension CommunityDetailView {
             }
         }
         
+        Color.clear.frame(height: 12)
         if !isLastGroup {
-            Color.clear.frame(height: 20)
             CommunityDivider(horizontalPadding: 20)
-            Color.clear.frame(height: 20)
-        } else {
-            Color.clear.frame(height: parent.replies.isEmpty ? 20 : 16)
+            Color.clear.frame(height: 12)
         }
     }
     
