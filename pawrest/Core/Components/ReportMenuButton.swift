@@ -77,7 +77,7 @@ struct ReportMenuButton: View {
                                 Image(.iconReport)
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: size.iconSize, height: size.iconSize)
+                                    .frame(width: 24, height: 24)
                                     .foregroundStyle(.gray80)
                             }
                             .padding(.horizontal, 12)
@@ -90,7 +90,8 @@ struct ReportMenuButton: View {
                                 closeMenu()
                             }) {
                                 HStack(spacing: 8) {
-                                    Text("게시판 성격에 부적절함")
+                                    Text("게시판 성격에\n부적절함")
+                                        .lineLimit(2)
                                         .typography(.body2R1)
                                         .foregroundStyle(.gray80)
                                     Spacer()
@@ -142,7 +143,7 @@ struct ReportMenuButton: View {
                                 Image(.iconBlock)
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: size.iconSize, height: size.iconSize)
+                                    .frame(width: 24, height: 24)
                                     .foregroundStyle(.gray80)
                             }
                             .padding(.horizontal, 12)
