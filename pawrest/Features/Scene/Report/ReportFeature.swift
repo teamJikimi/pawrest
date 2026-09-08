@@ -74,7 +74,7 @@ struct ReportFeature {
                             emotionSnapshots: snapshots,
                             assessmentRecords: assessmentRecords,
                             container: container,
-                            forceRefresh: false
+                            forceRefresh: true
                         )
                         await send(.aiDataLoaded(aiResult, weekdayInsight: weekdayInsight, todayTimeData: todayTimeData))
                     } catch {

@@ -19,7 +19,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		434D3011300141C700423C3C /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
 		43BA8D832F7E2F8700540947 /* pawrest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pawrest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
 		F6CEF19830165CA7009FE8CD /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = "<group>"; };
@@ -104,7 +103,6 @@
 		F6CEE53630123902009FE8CD /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
-				434D3011300141C700423C3C /* Local.xcconfig */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";

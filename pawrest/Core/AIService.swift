@@ -18,8 +18,9 @@ struct AIReportResult: Equatable {
 final class AIService {
     static let shared = AIService()
 
-    private let apiKey = Secrets.geminiAPIKey
-    private let baseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent"
+    private let apiKey = Secrets.factchatAPIKey
+    private let baseURL = "https://factchat-cloud.mindlogic.ai/v1/gateway/chat/completions/"
+    private let model = "gemini-3.5-flash-lite"
 
     private init() {}
 
@@ -84,7 +85,7 @@ final class AIService {
               "bannerSummary": "20자 이내. 기록된 감정을 한 문장으로. 추세 표현 쓰지 마.",
               "weeklySummary": "2문장. 각 15어절 이내. 1문장: 언제 어떤 감정인지. 2문장: 짧은 인정.",
               "dailyInsight": "1~2문장. 각 13어절 이내. 기록된 날 감정 짚기 + 바람 표현 1회(생략 가능).",
-              "suggestion": "1문장. 20자 이내. 감정 상태에 맞는 가벼운 활동 제안. 산책, 음악, 커뮤니티에 털어놓기 등. 권유형으로. 지시하지 마."
+             "suggestion": "1문장. 25자 이내. 이번 주 감정(\(count)건 기록)에 맞는 구체적인 행동 1가지. 반려동물을 잃은 상황을 고려해서 사진 꺼내보기, 추억 앨범 만들기, 짧은 산책 등 애도 과정에 맞는 현실적인 행동으로. 예: '답답한 날엔 함께했던 사진을 잠깐 꺼내봐도 좋아요.' 권유형으로. 지시하지 마."
             }
             """
         } else {
@@ -125,7 +126,7 @@ final class AIService {
               "bannerSummary": "20자 이내. 이번 주 흐름을 한 문장으로.",
               "weeklySummary": "3문장. 각 15어절 이내. 일별/시간대별/요일별 통합 요약.",
               "dailyInsight": "2문장. 각 13어절 이내. 높/낮은 날 짚고 한마디 덧붙여.",
-              "suggestion": "1문장. 20자 이내. 감정 상태에 맞는 가벼운 활동 제안. 산책, 음악, 커뮤니티에 털어놓기 등. 권유형으로. 지시하지 마."
+             "suggestion": "1문장. 25자 이내. 이번 주 감정 흐름에 맞는 구체적인 행동 1가지. 반려동물을 잃은 상황을 고려해서 사진 꺼내보기, 추억 앨범 만들기, 일기 쓰기, 짧은 산책 등 애도 과정에 맞는 현실적인 행동으로. 감정이 낮으면 작은 행동(물 한 잔, 창문 열기)도 좋아요. 예: '이번 주처럼 마음이 무거울 땐 함께했던 사진을 한 장 꺼내봐도 괜찮아요.' 권유형으로. 지시하지 마."
             }
             """
         }
@@ -241,18 +242,25 @@ final class AIService {
         )
     }
 
-    // MARK: - Gemini API 요청
+    // MARK: - FactChat API 요청
     private func request(prompt: String) async throws -> String {
         let body: [String: Any] = [
-            "contents": [["parts": [["text": prompt]]]]
+            "model": model,
+            "messages": [
+                ["role": "user", "content": prompt]
+            ],
+            "max_tokens": 1000,
+            "temperature": 0.7,
+            "stream": false
         ]
 
-        guard let url = URL(string: "\(baseURL)?key=\(apiKey)") else {
+        guard let url = URL(string: baseURL) else {
             throw URLError(.badURL)
         }
 
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
+        req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
 
@@ -271,10 +279,9 @@ final class AIService {
             return ""
         }
 
-        guard let candidates = json["candidates"] as? [[String: Any]],
-              let content = candidates.first?["content"] as? [String: Any],
-              let parts = content["parts"] as? [[String: Any]],
-              let text = parts.first?["text"] as? String else { return "" }
+        guard let choices = json["choices"] as? [[String: Any]],
+              let message = choices.first?["message"] as? [String: Any],
+              let text = message["content"] as? String else { return "" }
 
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
