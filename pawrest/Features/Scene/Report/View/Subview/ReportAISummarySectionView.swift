@@ -36,7 +36,7 @@ struct ReportAISummarySectionView: View {
         } else if isAILoading {
             loadingState
         } else {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(data.aiSummary.isEmpty
                      ? "이번 주 감정 기록이 쌓이면\nAI가 감정을 분석해드려요."
                      : data.aiSummary)
@@ -50,26 +50,16 @@ struct ReportAISummarySectionView: View {
             }
         }
     }
-
+    
     private func suggestionBanner(_ text: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "lightbulb")
-                .font(.system(size: 13))
-                .foregroundStyle(.pawPrimary)
-            Text(text)
-                .typography(.body3R)
-                .foregroundStyle(.gray70)
-                .lineSpacing(3)
-        }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.primaryLight)
-        .cornerRadius(10, corners: .allCorners)
+        Text(text)
+            .typography(.body3R)
+            .foregroundStyle(.gray60)
+            .lineSpacing(4)
     }
 
     private var failedState: some View {
-        VStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 4) {
             VStack(spacing: 4) {
                 Text("AI 요약을 불러오지 못했어요")
                     .typography(.body2R2)

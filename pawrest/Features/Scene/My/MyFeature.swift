@@ -108,7 +108,6 @@ struct MyFeature: Reducer {
                 state.lastAssessmentDate = lastAssessmentDate
                 state.petDeathDay = petDeathDay
 
-                // UserDefaults에서 최신 토글 상태 동기화
                 state.isEmotionReminderOn = UserDefaults.standard.bool(forKey: "emotionReminderEnabled")
                 state.isWeeklyReportOn = UserDefaults.standard.bool(forKey: "weeklyReportEnabled")
 
