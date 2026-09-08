@@ -14,6 +14,10 @@ struct AlarmView: View {
 
     @Query(sort: \NotificationRecord.receivedAt, order: .reverse)
     private var notifications: [NotificationRecord]
+    
+    @Environment(\.modelContext) private var modelContext
+    @State private var selectedPost: Post? = nil
+    @State private var isDetailPresented: Bool = false
 
     var body: some View {
         ZStack {
@@ -32,12 +36,18 @@ struct AlarmView: View {
                     LazyVStack(spacing: 8) {
                         ForEach(notifications) { record in
                             AlarmRow(record: record)
+                                .onTapGesture {
+                                    handleTap(record: record)
+                                }
                         }
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 20)
                 }
             }
+        }
+        .task {
+            await syncCommunityNotifications()
         }
         .onAppear {
             store.send(.onAppear)
@@ -54,6 +64,21 @@ struct AlarmView: View {
                 NavigationBarReducer()
             }
         )
+        .navigationDestination(isPresented: $isDetailPresented) {
+            if let post = selectedPost,
+               let userID = AuthSessionClient.liveValue.currentUserID() {
+                CommunityDetailView(
+                    store: Store(
+                        initialState: CommunityDetailState(
+                            post: post,
+                            currentUserID: userID,
+                            authorName: ""
+                        ),
+                        reducer: { CommunityDetailReducer() }
+                    )
+                )
+            }
+        }
         .hideTabBar()
     }
 }
@@ -124,3 +149,27 @@ private extension Date {
     }
 }
 
+// MARK: - Community Alarm
+
+private extension AlarmView {
+    
+    func syncCommunityNotifications() async {
+        guard let userID = AuthSessionClient.liveValue.currentUserID() else { return }
+        await CommunityAlarmSync.shared.sync(userID: userID, context: modelContext)
+    }
+    
+    func handleTap(record: NotificationRecord) {
+        guard let postID = record.postID else { return }
+        guard let userID = AuthSessionClient.liveValue.currentUserID() else { return }
+        
+        Task {
+            let repo = CommunityRepository.liveValue
+            let posts = try? await repo.fetchPosts(userID)
+            guard let post = posts?.first(where: { $0.id == postID }) else { return }
+            await MainActor.run {
+                selectedPost = post
+                isDetailPresented = true
+            }
+        }
+    }
+}

@@ -158,7 +158,25 @@ struct CommunityDetailReducer: Reducer {
                 }
                 
             case .likeResponse(let previousIsLiked, let success):
-                guard !success else { return .none }
+                guard !success else {
+                    if state.post.isLiked {
+                        let postAuthorID = state.post.author.id
+                        let currentUserID = state.currentUserID
+                        let authorName = state.authorName
+                        let postID = state.post.id
+                        
+                        return .run { _ in
+                            CommunityNotificationService.shared.handleNewLike(
+                                postAuthorID: postAuthorID,
+                                likedByUserID: currentUserID,
+                                likedByUserName: authorName,
+                                postID: postID
+                            )
+                        }
+                    }
+                    return .none
+                }
+                
                 state.post.isLiked = previousIsLiked
                 state.post.likeCount += previousIsLiked ? 1 : -1
                 return .none
@@ -269,7 +287,28 @@ struct CommunityDetailReducer: Reducer {
                 } else {
                     state.post.comments.append(comment)
                 }
-                return .none
+                
+                let targetUserID: String
+                if let parentCommentID,
+                   let parentComment = state.post.comments.first(where: { $0.id == parentCommentID }) {
+                    targetUserID = parentComment.author.id
+                } else {
+                    targetUserID = state.post.author.id
+                }
+                let commentAuthorID = comment.author.id
+                let commentAuthorName = state.authorName
+                let commentContent = comment.content
+                let postID = state.post.id
+                
+                return .run { _ in
+                    CommunityNotificationService.shared.handleNewComment(
+                        targetUserID: targetUserID,
+                        commentAuthorID: commentAuthorID,
+                        commentAuthorName: commentAuthorName,
+                        commentContent: commentContent,
+                        postID: postID
+                    )
+                }
                 
             case .commentCreationResponse(_, .failure(let error)):
                 state.errorMessage = error.localizedDescription
