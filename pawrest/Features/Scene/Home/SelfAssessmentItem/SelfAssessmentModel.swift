@@ -194,7 +194,7 @@ struct SelfAssessmentResultRange: Equatable {
 // MARK: - SwiftData Record
 
 @Model
-class AssessmentRecord {
+class AssessmentRecord: @unchecked Sendable {
     var typeRawValue: String
     var answers: [Int]
     var totalScore: Int
