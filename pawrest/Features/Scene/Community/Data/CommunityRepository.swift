@@ -97,6 +97,10 @@ struct CommunityRepository {
     var fetchBlockedUsers: @Sendable (
         _ currentUserID: String
     ) async throws -> [(id: String, name: String)]
+    
+    var deleteAllPostsByUser: @Sendable (
+        _ authorID: String
+    ) async throws -> Void
 }
 
 // MARK: - DependencyKey
@@ -335,6 +339,10 @@ extension CommunityRepository: DependencyKey {
             
             fetchBlockedUsers: { currentUserID in
                 try await service.fetchBlockedUsers(currentUserID: currentUserID)
+            },
+            
+            deleteAllPostsByUser: { authorID in
+                try await service.deleteAllPostsByUser(authorID: authorID)
             }
         )
     }()

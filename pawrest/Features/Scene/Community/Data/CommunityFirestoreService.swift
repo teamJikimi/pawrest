@@ -417,4 +417,44 @@ final class CommunityFirestoreService {
         
         return Set(snapshot.documents.map { $0.documentID })
     }
+    
+    // MARK: - Account Deletion
+
+    func deleteAllPostsByUser(authorID: String) async throws {
+        let snapshot = try await firestore
+            .collection("posts")
+            .whereField("authorID", isEqualTo: authorID)
+            .getDocuments()
+        
+        for document in snapshot.documents {
+            let postID = document.documentID
+            let imageURLs = document.data()["imageURLs"] as? [String] ?? []
+            
+            let commentsSnapshot = try await document.reference
+                .collection("comments").getDocuments()
+            for comment in commentsSnapshot.documents {
+                try await comment.reference.delete()
+            }
+            
+            let likesSnapshot = try await document.reference
+                .collection("likes").getDocuments()
+            for like in likesSnapshot.documents {
+                try await like.reference.delete()
+            }
+            
+            try await document.reference.delete()
+            
+            try? await deletePostImages(imageURLs: imageURLs)
+        }
+        
+        let blocksSnapshot = try await firestore
+            .collection("users")
+            .document(authorID)
+            .collection("blocks")
+            .getDocuments()
+        
+        for block in blocksSnapshot.documents {
+            try await block.reference.delete()
+        }
+    }
 }
