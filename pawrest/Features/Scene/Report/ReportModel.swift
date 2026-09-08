@@ -12,6 +12,7 @@ struct ReportData: Equatable {
     let summaryTitle: String
     let summaryBody: String
     let aiSummary: String
+    let aiSuggestion: String?
     let stats: ReportStats
     let statusCards: [StatusCardData]
     let weeklyChart: WeeklyEmotionChartData

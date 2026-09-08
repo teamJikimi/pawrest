@@ -39,9 +39,6 @@ struct AlarmView: View {
                 }
             }
         }
-        .onAppear {
-            store.send(.onAppear)
-        }
         .customNavigationBar(
             store: Store(
                 initialState: NavigationBarState(
@@ -99,6 +96,7 @@ private struct AlarmRow: View {
         .cornerRadius(12, corners: .allCorners)
     }
 }
+
 // MARK: - Subviews
 
 private extension AlarmView {

@@ -108,6 +108,9 @@ struct MyFeature: Reducer {
                 state.lastAssessmentDate = lastAssessmentDate
                 state.petDeathDay = petDeathDay
 
+                state.isEmotionReminderOn = UserDefaults.standard.bool(forKey: "emotionReminderEnabled")
+                state.isWeeklyReportOn = UserDefaults.standard.bool(forKey: "weeklyReportEnabled")
+
                 if state.isWeeklyReportOn {
                     NotificationService.shared.scheduleAssessmentReminder(
                         lastAssessmentDate: lastAssessmentDate,
