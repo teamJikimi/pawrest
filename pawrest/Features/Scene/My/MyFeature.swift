@@ -107,6 +107,8 @@ struct MyFeature: Reducer {
                 )
                 state.lastAssessmentDate = lastAssessmentDate
                 state.petDeathDay = petDeathDay
+                state.isEmotionReminderOn = UserDefaults.standard.bool(forKey: "emotionReminderEnabled")
+                state.isWeeklyReportOn = UserDefaults.standard.bool(forKey: "weeklyReportEnabled")
 
                 if state.isWeeklyReportOn {
                     NotificationService.shared.scheduleAssessmentReminder(
@@ -203,12 +205,10 @@ struct MyFeature: Reducer {
                 return .run { _ in
                     guard let user = Auth.auth().currentUser else { return }
                     let userID = user.uid
-                    
-                    //커뮤니티 글 전체 삭제 하고
+
                     let service = await MainActor.run { CommunityFirestoreService() }
                     try? await service.deleteAllPostsByUser(authorID: userID)
-                    
-                    //계정 삭제
+
                     try? await user.delete()
                 }
 
