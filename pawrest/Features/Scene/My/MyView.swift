@@ -28,7 +28,8 @@ struct MyView: View {
                     notificationSection
                     accountSection
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
                 .safeAreaInset(edge: .bottom) {
                     Color.clear.frame(height: 60)
                 }
@@ -127,7 +128,7 @@ struct MyView: View {
 private extension MyView {
     
     var petProfileSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             userHeader
             petProfileCard
         }
@@ -214,7 +215,6 @@ private extension MyView {
             petThumbnail
                 .offset(x: 16, y: 40 - 30)
         }
-        .padding(.vertical, 8)
     }
     
     var petThumbnail: some View {
