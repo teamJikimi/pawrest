@@ -83,9 +83,9 @@ private extension EmotionCheckInCard {
                 .foregroundStyle(.gray90)
                 .scrollContentBackground(.hidden)
                 .background(.clear)
-                .frame(height: 104)
                 .padding(.horizontal, 10)
                 .padding(.top, 8)
+                .frame(height: 104)
             }
             
             Button {
