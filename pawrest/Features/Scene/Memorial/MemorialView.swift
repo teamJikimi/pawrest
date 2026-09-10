@@ -124,7 +124,7 @@ struct MemorialView: View {
                         .scaledToFit()
                         .frame(width: 100, height: 120)
                     Text(formattedPetName(petName))
-                        .font(.custom("Ownglyph_PDH-Rg", size: 22))
+                        .font(.custom("Ownglyph_PDH-Rg", size: 24))
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
