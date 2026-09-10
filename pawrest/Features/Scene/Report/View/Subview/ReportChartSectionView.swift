@@ -18,7 +18,7 @@ struct ReportChartSectionView: View {
     var body: some View {
         VStack(spacing: 0) {
             SegmentTabBar(items: ReportTab.allCases, selection: $selectedTab)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
                 .padding(.bottom, 12)
             chartContent
         }
@@ -29,17 +29,17 @@ struct ReportChartSectionView: View {
         switch selectedTab {
         case .daily:
             EmotionLineChartCard(chartData: weeklyChartData)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
         case .time:
             TimeEmotionChartCard(
                 data: Binding(get: { dailyTimeData }, set: { _ in }),
                 onPrevious: onPreviousDay,
                 onNext: onNextDay
             )
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
         case .weekday:
             WeekdayEmotionChartCard(data: weekdayChartData)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
         }
     }
 }
