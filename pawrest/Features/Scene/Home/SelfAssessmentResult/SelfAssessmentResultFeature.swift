@@ -66,17 +66,17 @@ enum AssessmentType: Equatable {
     func scoreLevel(for score: Int) -> AssessmentScoreLevel {
         switch self {
         case .pbq:
-            if score < 28 { return .pbqLow }
-            if score < 37 { return .pbqAverage }
+            if score < 16 { return .pbqLow }
+            if score < 32 { return .pbqAverage }
             return .pbqHigh
         case .cesD:
-            if score <= 20 { return .cesDNormal }
-            if score <= 40 { return .cesDHighRisk }
+            if score < 16 { return .cesDNormal }
+            if score < 25 { return .cesDHighRisk }
             return .cesDDepression
         case .pds:
-            if score <= 20 { return .pdsMild }
-            if score <= 40 { return .pdsModerate }
-            if score <= 60 { return .pdsModerateToSevere }
+            if score < 11 { return .pdsMild }
+            if score < 21 { return .pdsModerate }
+            if score < 36 { return .pdsModerateToSevere }
             return .pdsSevere
         }
     }
@@ -116,19 +116,19 @@ enum AssessmentScoreLevel: Equatable {
 
     var rangeText: String {
         switch self {
-        case .pbqLow:               return "28점 미만"
-        case .pbqAverage:           return "28점 이상"
-        case .pbqHigh:              return "37점 이상"
-        case .cesDNormal:           return "0~20점"
-        case .cesDHighRisk:         return "21~40점"
-        case .cesDDepression:       return "41~60점"
-        case .pdsMild:              return "0~20점"
-        case .pdsModerate:          return "21~40점"
-        case .pdsModerateToSevere:  return "41~60점"
-        case .pdsSevere:            return "41~60점"
+        case .pbqLow:               return "0~15점"
+        case .pbqAverage:           return "16~31점"
+        case .pbqHigh:              return "32점 이상"
+        case .cesDNormal:           return "0~15점"
+        case .cesDHighRisk:         return "16~24점"
+        case .cesDDepression:       return "25점 이상"
+        case .pdsMild:              return "11점 미만"
+        case .pdsModerate:          return "11~20점"
+        case .pdsModerateToSevere:  return "21~35점"
+        case .pdsSevere:            return "36점 이상"
         }
     }
-
+    
     var icon: ImageResource {
         switch self {
         case .pbqLow, .cesDNormal, .pdsMild:
@@ -160,7 +160,7 @@ enum AssessmentScoreLevel: Equatable {
     }
 
     var badgeBackground: Color { scoreColor.opacity(0.15) }
-    
+
     var backgroundIcon: ImageResource {
         switch self {
         case .pbqLow, .cesDNormal, .pdsMild:
