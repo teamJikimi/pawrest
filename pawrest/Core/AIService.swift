@@ -42,6 +42,23 @@ final class AIService {
         let chartText = weeklyEntries.map { "\($0.date): \($0.level ?? "기록없음")" }.joined(separator: "\n")
         let assessmentText = buildAssessmentText(assessmentRecords)
 
+        let suggestionExamples = """
+        예시(상황에 맞게 하나만 선택):
+        - 감정이 낮을 때: '오늘은 따뜻한 차 한 잔만 마셔봐도 괜찮아요.', '창문을 열고 바깥 공기를 잠깐 마셔봐도 좋아요.'
+        - 그리움이 느껴질 때: '함께했던 사진을 한 장 꺼내봐도 좋아요.', '반려동물과의 추억을 짧게 일기로 남겨봐도 괜찮아요.'
+        - 어느 정도 안정될 때: '좋아하는 음악을 틀어놓고 잠깐 쉬어봐도 좋아요.', '짧게 산책하며 바깥 풍경을 바라봐도 좋아요.'
+        - 마음이 무거울 때: '오늘 하루 수고했다고 스스로에게 말해봐도 좋아요.', '가까운 사람에게 안부 연락 하나 보내봐도 괜찮아요.'
+        - 혼자 감당하기 힘들 때: '커뮤니티에서 비슷한 경험을 나눈 분들의 이야기를 읽어봐도 좋아요.', '커뮤니티에서 다른 분들이 어떻게 이겨냈는지 살펴봐도 괜찮아요.'
+        """
+        let assessmentInstruction = assessmentText.isEmpty ? "" : """
+
+        [자가진단 비교 규칙]
+        - 같은 검사 종류의 기록이 2건 이상이면, 이전과 비교해서 나아졌는지 비슷한지를 weeklySummary 마지막 문장에 간접적으로 녹여줘.
+          예: '자가진단에서도 마음이 조금 가벼워진 흐름이 보여요.' / '검사 결과에서도 비슷한 무게감이 확인돼요.'
+        - 기록이 1건뿐이면: '자가진단에서도 마음의 부담이 느껴지는 상태예요.' 정도로만.
+        - 점수, 등급명(경도·중등도·위험 등), 진단 표현은 절대 쓰지 마.
+        """
+
         let prompt: String
 
         if count <= 2 {
@@ -58,7 +75,8 @@ final class AIService {
             날짜별 감정:
             \(chartText)
             감정 척도: 편안(5) 안정(4) 보통(3) 답답(2) 우울(1)
-            \(assessmentText.isEmpty ? "" : "\n[자가진단 결과]\n\(assessmentText)")
+            \(assessmentText.isEmpty ? "" : "\n[자가진단 결과 (날짜순)]\n\(assessmentText)")
+            \(assessmentInstruction)
 
             [절대 규칙]
             1. 입력에 없는 감정, 사건, 상태를 절대 만들어내지 마.
@@ -83,9 +101,9 @@ final class AIService {
             {
               "bannerTitle": "10자 이내. 기록된 감정을 표현하는 제목.",
               "bannerSummary": "20자 이내. 기록된 감정을 한 문장으로. 추세 표현 쓰지 마.",
-              "weeklySummary": "2문장. 각 15어절 이내. 1문장: 언제 어떤 감정인지. 2문장: 짧은 인정.",
+              "weeklySummary": "2문장. 각 15어절 이내. 1문장: 언제 어떤 감정인지. 2문장: 자가진단 비교 규칙에 따라 작성(자가진단 없으면 짧은 인정으로).",
               "dailyInsight": "1~2문장. 각 13어절 이내. 기록된 날 감정 짚기 + 바람 표현 1회(생략 가능).",
-             "suggestion": "1문장. 25자 이내. 이번 주 감정(\(count)건 기록)에 맞는 구체적인 행동 1가지. 반려동물을 잃은 상황을 고려해서 사진 꺼내보기, 추억 앨범 만들기, 짧은 산책 등 애도 과정에 맞는 현실적인 행동으로. 예: '답답한 날엔 함께했던 사진을 잠깐 꺼내봐도 좋아요.' 권유형으로. 지시하지 마."
+              "suggestion": "1문장. 25자 이내. 이번 주 감정에 맞는 구체적인 행동 1가지. 반려동물을 잃은 상황을 고려해서 권유형으로. 지시하지 마.\n\(suggestionExamples)"
             }
             """
         } else {
@@ -100,7 +118,8 @@ final class AIService {
             상세 기록:
             \(emotionText)
             감정 척도: 편안(5) 안정(4) 보통(3) 답답(2) 우울(1)
-            \(assessmentText.isEmpty ? "" : "\n[자가진단 결과]\n\(assessmentText)")
+            \(assessmentText.isEmpty ? "" : "\n[자가진단 결과 (날짜순)]\n\(assessmentText)")
+            \(assessmentInstruction)
 
             [절대 규칙]
             1. 입력에 없는 감정, 사건, 상태를 절대 만들어내지 마.
@@ -124,9 +143,9 @@ final class AIService {
             {
               "bannerTitle": "10자 이내. 이번 주 감정을 표현하는 제목.",
               "bannerSummary": "20자 이내. 이번 주 흐름을 한 문장으로.",
-              "weeklySummary": "3문장. 각 15어절 이내. 일별/시간대별/요일별 통합 요약.",
+              "weeklySummary": "3문장. 각 15어절 이내. 1~2문장: 일별/시간대별/요일별 통합 요약. 3문장: 자가진단 비교 규칙에 따라 작성(자가진단 없으면 생략).",
               "dailyInsight": "2문장. 각 13어절 이내. 높/낮은 날 짚고 한마디 덧붙여.",
-             "suggestion": "1문장. 25자 이내. 이번 주 감정 흐름에 맞는 구체적인 행동 1가지. 반려동물을 잃은 상황을 고려해서 사진 꺼내보기, 추억 앨범 만들기, 일기 쓰기, 짧은 산책 등 애도 과정에 맞는 현실적인 행동으로. 감정이 낮으면 작은 행동(물 한 잔, 창문 열기)도 좋아요. 예: '이번 주처럼 마음이 무거울 땐 함께했던 사진을 한 장 꺼내봐도 괜찮아요.' 권유형으로. 지시하지 마."
+              "suggestion": "1문장. 25자 이내. 이번 주 감정 흐름에 맞는 구체적인 행동 1가지. 반려동물을 잃은 상황을 고려해서 권유형으로. 지시하지 마.\n\(suggestionExamples)"
             }
             """
         }
@@ -181,7 +200,8 @@ final class AIService {
         guard !records.isEmpty else { return "" }
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy.MM.dd"
-        return records.map { record in
+        let sorted = records.sorted { $0.date < $1.date }
+        return sorted.map { record in
             let typeName = record.type?.title ?? record.typeRawValue
             let label = record.type?.resultLabel(for: record.totalScore) ?? ""
             let dateStr = formatter.string(from: record.date)
