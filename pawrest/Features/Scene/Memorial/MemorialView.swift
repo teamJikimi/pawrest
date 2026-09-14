@@ -104,6 +104,7 @@ struct MemorialView: View {
             let model = LetterModel(petName: pending.petName, content: pending.content)
             modelContext.insert(model)
             try? modelContext.save()
+            NotificationService.shared.scheduleLetterDelivery(letterId: model.id.uuidString)
             store.send(.letterSaved)
             if let name = petProfiles.first?.name {
                 petName = name

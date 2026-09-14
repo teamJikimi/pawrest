@@ -28,7 +28,7 @@ enum LetterAction: Equatable {
 
     @CasePathable
     enum Delegate: Equatable {
-        case didSend(letterId: String)
+        case didSend
         case didClose
     }
 }
@@ -45,10 +45,8 @@ struct LetterReducer: Reducer {
 
             case .sendButtonTapped:
                 guard state.isSendEnabled else { return .none }
-                let letterId = UUID().uuidString
-                NotificationService.shared.scheduleLetterDelivery(letterId: letterId)
-                return .send(.delegate(.didSend(letterId: letterId)))
-
+                return .send(.delegate(.didSend))
+                
             case .closeTapped:
                 return .send(.delegate(.didClose))
 

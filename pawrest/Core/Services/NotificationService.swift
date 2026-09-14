@@ -109,6 +109,21 @@ final class NotificationService {
         UNUserNotificationCenter.current().add(request)
     }
 
+    func scheduleAnniversaryReminderTest(petName: String) {
+        let id = "anniversary_test"
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+
+        let content = UNMutableNotificationContent()
+        content.title = "기일"
+        content.body = "\(petName)의 기일이에요. 편지를 보내볼까요?"
+        content.sound = .default
+        content.userInfo = ["type": "anniversary"]
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+    }
+
     func scheduleLetterDelivery(letterId: String) {
         let id = "letter_\(letterId)"
         let content = UNMutableNotificationContent()
@@ -118,6 +133,24 @@ final class NotificationService {
         content.userInfo = ["type": "letter"]
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * 60 * 24, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    func cancelNotification(id: String) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["letter_\(id)"])
+    }
+
+    // TODO: 테스트 후 삭제
+    func scheduleEmotionReminderTest() {
+        let id = "emotion_reminder_test"
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+        let content = UNMutableNotificationContent()
+        content.title = "감정 기록"
+        content.body = "오늘 하루는 어떠셨나요? 감정을 기록해보세요."
+        content.sound = .default
+        content.userInfo = ["type": "emotionReminder"]
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }

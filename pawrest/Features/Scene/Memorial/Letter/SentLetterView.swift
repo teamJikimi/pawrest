@@ -108,9 +108,12 @@ struct SentLetterView: View {
 
             if isEditing {
                 ActiveButton(title: "저장", isEnabled: isSaveEnabled) {
+                    let oldId = letter.id.uuidString
                     letter.content = editContent
                     letter.sentAt = Date()
                     try? modelContext.save()
+                    NotificationService.shared.cancelNotification(id: oldId)
+                    NotificationService.shared.scheduleLetterDelivery(letterId: letter.id.uuidString)
                     isEditing = false
                 }
                 .padding(.horizontal, 20)
