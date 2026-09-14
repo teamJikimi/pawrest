@@ -68,6 +68,7 @@ struct ReportDiagnosticsSectionView: View {
                 }
             }
             .padding(.leading, 36)
+            .padding(.trailing, 36)
             .padding(.bottom, 20)
         }
         .frame(height: 164)
