@@ -48,7 +48,7 @@ struct MemorialReducer: Reducer {
                 state.isLetterPresented = true
                 return .none
 
-            case .letter(.delegate(.didSend)):
+            case .letter(.delegate(.didSend(_))):
                 state.pendingSave = PendingLetter(
                     petName: state.petName,
                     content: state.letter?.content ?? ""
