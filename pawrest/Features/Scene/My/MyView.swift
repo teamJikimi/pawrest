@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 import FirebaseAuth
 import ComposableArchitecture
 
@@ -77,6 +78,8 @@ struct MyView: View {
                     try? modelContext.delete(model: MemoryModel.self)
                     try? modelContext.delete(model: LetterModel.self)
                     try? modelContext.delete(model: NotificationRecord.self)
+                    UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                    UNUserNotificationCenter.current().removeAllDeliveredNotifications()
                     UserDefaults.standard.removeObject(forKey: "isOnboardingComplete")
                     store.send(.deleteAccountConfirmed)
                     onLogoutCompleted()
