@@ -74,8 +74,7 @@ struct ReportFeature {
                             emotionSnapshots: snapshots,
                             assessmentRecords: assessmentRecords,
                             container: container,
-                            //MARK: - AI 호출 false로 바꾸기
-                            forceRefresh: true
+                            forceRefresh: false
                         )
                         await send(.aiDataLoaded(aiResult, weekdayInsight: weekdayInsight, todayTimeData: todayTimeData))
                     } catch {
