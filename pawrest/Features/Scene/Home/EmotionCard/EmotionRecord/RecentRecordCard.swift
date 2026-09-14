@@ -14,7 +14,7 @@ import ComposableArchitecture
 struct RecentRecordCard: View {
     let store: StoreOf<RecentRecordFeature>
     @Environment(\.modelContext) private var modelContext
-    @Query private var allRecords: [EmotionRecordModel]
+    @Query(sort: \EmotionRecordModel.recordedAt, order: .reverse) private var allRecords: [EmotionRecordModel]
     @State private var recordToDelete: EmotionRecordModel? = nil
     
     private var filteredRecords: [EmotionRecordModel] {
