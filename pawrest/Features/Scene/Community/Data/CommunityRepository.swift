@@ -23,6 +23,7 @@ struct CommunityRepository {
     ) async throws -> Post
     
     var uploadImages: @Sendable (
+        _ authorID: String,
         _ postID: String,
         _ imageDatas: [Data]
     ) async throws -> [String]
@@ -172,7 +173,7 @@ extension CommunityRepository: DependencyKey {
                 return postDTO.toDomain()
             },
             
-            uploadImages: { postID, imageDatas in
+            uploadImages: { authorID, postID, imageDatas in
                 let storageService = FirebaseStorageService()
                 var urls: [String] = []
                 
@@ -184,6 +185,7 @@ extension CommunityRepository: DependencyKey {
                     let url = try await storageService.upload(
                         image: entity,
                         to: .community(
+                            userId: authorID,
                             postID: postID,
                             imageID: UUID().uuidString
                         )
@@ -196,7 +198,7 @@ extension CommunityRepository: DependencyKey {
             
             deletePost: { postID, imageURLs in
                 try await service.deletePost(postID: postID)
-                try? await service.deletePostImages(imageURLs: imageURLs)
+                await FirebaseStorageService().delete(urls: imageURLs)
             },
             
             updatePost: { post, newImageDatas in
@@ -213,6 +215,7 @@ extension CommunityRepository: DependencyKey {
                         let url = try await storageService.upload(
                             image: entity,
                             to: .community(
+                                userId: post.author.id,
                                 postID: post.id,
                                 imageID: UUID().uuidString
                             )

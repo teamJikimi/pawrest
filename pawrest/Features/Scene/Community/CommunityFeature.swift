@@ -330,6 +330,7 @@ struct CommunityReducer: Reducer {
                                 let postID = UUID().uuidString
                                 
                                 let imageURLs = try await communityRepository.uploadImages(
+                                    currentUserID,
                                     postID,
                                     imageDatas
                                 )

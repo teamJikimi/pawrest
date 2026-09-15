@@ -240,7 +240,7 @@ private extension CommunityDetailView {
     
     func editSave(title: String, content: String, images: [UIImage]) {
         let imageDatas = images.compactMap {
-            $0.jpegData(compressionQuality: 0.8)
+            $0.resizedJPEGData()
         }
         store.send(.postEdited(
             title: title,

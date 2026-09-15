@@ -79,7 +79,7 @@ struct CommunityView: View {
                 ),
                 onSave: { title, content, images in
                     let imageDatas = images.compactMap {
-                        $0.jpegData(compressionQuality: 0.8)
+                        $0.resizedJPEGData()
                     }
                     store.send(.newPostCreated(
                         title: title,
