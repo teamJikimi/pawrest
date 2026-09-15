@@ -1,4 +1,3 @@
-
 //
 //  EmotionCheckInCard.swift
 //  pawrest
@@ -119,7 +118,7 @@ private extension EmotionCheckInCard {
     
     func emotionButton(_ emotion: EmotionType) -> some View {
         Button {
-                store.send(.emotionTapped(emotion))
+            store.send(.emotionTapped(emotion))
         } label: {
             VStack(spacing: 6) {
                 Image(emotion.imageName)

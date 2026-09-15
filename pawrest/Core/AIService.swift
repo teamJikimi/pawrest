@@ -25,7 +25,7 @@ final class AIService {
     private init() {}
 
     // MARK: - 통합 리포트 생성
-    func generateReport(snapshots: [EmotionSnapshot], weeklyEntries: [(date: String, level: String?)], assessmentRecords: [AssessmentRecord] = []) async throws -> AIReportResult {
+    func generateReport(snapshots: [EmotionSnapshot], weeklyEntries: [(date: String, level: String?)], assessmentRecords: [AssessmentRecord] = [], petName: String = "") async throws -> AIReportResult {
         let count = snapshots.count
 
         if count == 0 {
@@ -101,7 +101,7 @@ final class AIService {
             [출력]
             아래 JSON만 출력. 다른 말 붙이지 마.
             {
-              "bannerTitle": "10자 이내. 기록된 감정을 표현하는 제목.",
+              "bannerTitle": "10자 이내. 기록된 감정을 표현하는 제목. '~을 향한', '~를 위한' 같은 표현을 쓸 때는 반드시 '\(petName)'을 사용해.",
               "bannerSummary": "20자 이내. 기록된 감정을 한 문장으로. 추세 표현 쓰지 마.",
               "weeklySummary": "2문장. 각 15어절 이내. 1문장: 어떤 감정이었는지. 2문장: 자가진단 비교 규칙에 따라 작성(자가진단 없으면 짧은 인정으로).",
               "dailyInsight": "1~2문장. 각 13어절 이내. 기록된 날 감정 짚기 + 바람 표현 1회(생략 가능).",
@@ -144,7 +144,7 @@ final class AIService {
             [출력]
             아래 JSON만 출력. 다른 말 붙이지 마.
             {
-              "bannerTitle": "10자 이내. 이번 주 감정을 표현하는 제목.",
+              "bannerTitle": "10자 이내. 이번 주 감정을 표현하는 제목. '~을 향한', '~를 위한' 같은 표현을 쓸 때는 반드시 '\(petName)'을 사용해.",
               "bannerSummary": "20자 이내. 이번 주 흐름을 한 문장으로.",
               "weeklySummary": "3문장. 각 15어절 이내. 1~2문장: 어떤 감정들이 있었는지 요약. 3문장: 자가진단 비교 규칙에 따라 작성(자가진단 없으면 생략).",
               "dailyInsight": "2문장. 각 13어절 이내. 높/낮은 날 짚고 한마디 덧붙여.",

@@ -22,6 +22,8 @@ struct ReportView: View {
     @Query(sort: \LetterModel.sentAt)
     private var letters: [LetterModel]
 
+    @Query private var petProfiles: [PetProfile]
+    
     private let deliveryInterval: TimeInterval = 24 * 60 * 60
 
     private var riskDetector: EmotionRiskDetector {
@@ -30,6 +32,13 @@ struct ReportView: View {
 
     private var deliveredLetterCount: Int {
         letters.filter { $0.sentAt.addingTimeInterval(deliveryInterval) <= Date() }.count
+    }
+
+    private var weeklyAssessmentRecords: [AssessmentRecord] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekStart = calendar.date(byAdding: .day, value: -7, to: today)!
+        return assessmentRecords.filter { $0.date >= weekStart && $0.date < today }
     }
 
     private var currentDailyTimeData: DailyTimeEmotionData {
@@ -110,7 +119,7 @@ struct ReportView: View {
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
 
-                    ReportDiagnosticsSectionView(assessmentRecords: assessmentRecords)
+                    ReportDiagnosticsSectionView(assessmentRecords: weeklyAssessmentRecords)
                         .padding(.bottom, 20)
 
                     if riskDetector.shouldShowCounselingBanner {
@@ -138,7 +147,8 @@ struct ReportView: View {
         store.send(.onAppear(
             snapshots: snapshots,
             assessmentRecords: Array(assessmentRecords),
-            context: modelContext
+            context: modelContext,
+            petName: petProfiles.first?.name ?? ""
         ))
     }
 }
