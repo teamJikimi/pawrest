@@ -26,7 +26,7 @@ struct OnboardingPetProfileView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     headerSection
-                        .padding(.top, 19)
+                        .padding(.top, 14)
 
                     Color.clear.frame(height: 45)
 
@@ -50,6 +50,7 @@ struct OnboardingPetProfileView: View {
             }
             .scrollDismissesKeyboard(.interactively)
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .contentShape(Rectangle())
         .onTapGesture {
             isFocused = false

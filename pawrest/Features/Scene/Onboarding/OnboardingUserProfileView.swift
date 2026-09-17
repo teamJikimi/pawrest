@@ -20,24 +20,31 @@ struct OnboardingUserProfileView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerSection
-                .padding(.top, 35)
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 0) {
+                    headerSection
+                        .padding(.top, 14)
 
-            Color.clear.frame(height: 45)
+                    Color.clear.frame(height: 45)
 
-            profileImageSection
+                    profileImageSection
 
-            Color.clear.frame(height: 40)
+                    Color.clear.frame(height: 40)
 
-            nicknameSection
+                    nicknameSection
 
-            Spacer()
+                    Spacer(minLength: 40)
 
-            nextButton
+                    nextButton
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
+                .frame(minHeight: geo.size.height)
+            }
+            .scrollDismissesKeyboard(.interactively)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 12)
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .contentShape(Rectangle())
         .onTapGesture {
             isFocused = false

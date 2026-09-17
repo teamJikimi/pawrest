@@ -18,6 +18,7 @@ struct LimitedTextField: View {
     let isTransparent: Bool
     let typography: AppTypography
     let showPlaceholder: Bool
+    let isFixedHeight: Bool
 
     init(
         text: Binding<String>,
@@ -28,7 +29,8 @@ struct LimitedTextField: View {
         showCounter: Bool = true,
         isTransparent: Bool = false,
         typography: AppTypography = .body2R2,
-        showPlaceholder: Bool = true
+        showPlaceholder: Bool = true,
+        isFixedHeight: Bool = false
     ) {
         self._text = text
         self._isFocused = isFocused
@@ -39,25 +41,20 @@ struct LimitedTextField: View {
         self.isTransparent = isTransparent
         self.typography = typography
         self.showPlaceholder = showPlaceholder
+        self.isFixedHeight = isFixedHeight
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                if showPlaceholder && text.isEmpty {
-                    Text(placeholder)
-                        .typography(typography)
-                        .foregroundColor(.gray50)
-                        .padding(20)
-                        .allowsHitTesting(false)
+            Group {
+                if isFixedHeight {
+                    fieldContent
+                        .frame(height: minHeight)
+                } else {
+                    fieldContent
+                        .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .topLeading)
                 }
-
-                TextField("", text: $text, axis: .vertical)
-                    .typography(typography)
-                    .focused($isFocused)
-                    .padding(20)
             }
-            .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .topLeading)
             .contentShape(Rectangle())
             .onTapGesture {
                 isFocused = true
@@ -81,6 +78,32 @@ struct LimitedTextField: View {
                         .foregroundColor(text.count >= maxCharacters ? .pawPrimary : .gray50)
                         .padding(.top, 4)
                 }
+            }
+        }
+    }
+
+    private var fieldContent: some View {
+        ZStack(alignment: .topLeading) {
+            if showPlaceholder && text.isEmpty {
+                Text(placeholder)
+                    .typography(typography)
+                    .foregroundColor(.gray50)
+                    .padding(20)
+                    .allowsHitTesting(false)
+            }
+
+            if isFixedHeight {
+                TextEditor(text: $text)
+                    .typography(typography)
+                    .focused($isFocused)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.clear)
+                    .padding(16)
+            } else {
+                TextField("", text: $text, axis: .vertical)
+                    .typography(typography)
+                    .focused($isFocused)
+                    .padding(20)
             }
         }
     }
