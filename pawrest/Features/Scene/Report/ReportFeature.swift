@@ -31,7 +31,7 @@ struct ReportFeature {
 
     @CasePathable
     enum Action {
-        case onAppear(snapshots: [EmotionSnapshot], assessmentRecords: [AssessmentRecord], context: ModelContext)
+        case onAppear(snapshots: [EmotionSnapshot], assessmentRecords: [AssessmentRecord], context: ModelContext, petName: String)
         case aiDataLoaded(AIReportResult, weekdayInsight: String?, todayTimeData: DailyTimeEmotionData)
         case dailyTimeDataLoaded(DailyTimeEmotionData)
         case tabChanged(ReportTab)
@@ -59,7 +59,7 @@ struct ReportFeature {
         Reduce { state, action in
             switch action {
 
-            case .onAppear(let snapshots, let assessmentRecords, let context):
+            case .onAppear(let snapshots, let assessmentRecords, let context, let petName):
                 state.emotionSnapshots = snapshots
                 state.isAILoadFailed = false
                 let localData = useCase.buildLocalData(snapshots: snapshots)
@@ -74,7 +74,9 @@ struct ReportFeature {
                             emotionSnapshots: snapshots,
                             assessmentRecords: assessmentRecords,
                             container: container,
-                            forceRefresh: true
+                            //TODO: - false로 바꾸기
+                            forceRefresh: true,
+                            petName: petName
                         )
                         await send(.aiDataLoaded(aiResult, weekdayInsight: weekdayInsight, todayTimeData: todayTimeData))
                     } catch {

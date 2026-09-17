@@ -112,10 +112,14 @@ struct OnboardingUserProfileReducer: Reducer {
                     return .none
                 }
                 state.nicknameStatus = .checking
-                
+                let nickname = state.nickname
                 return .run { send in
-                    try await Task.sleep(for: .milliseconds(500))
-                    await send(.duplicateCheckResult(isAvailable: true))
+                    do {
+                        let isAvailable = try await UserFirestoreService.shared.isNicknameAvailable(nickname)
+                        await send(.duplicateCheckResult(isAvailable: isAvailable))
+                    } catch {
+                        await send(.duplicateCheckResult(isAvailable: false))
+                    }
                 }
                 
             case .duplicateCheckResult(let isAvailable):

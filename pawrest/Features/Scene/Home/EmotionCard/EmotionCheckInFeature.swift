@@ -9,6 +9,9 @@ import Foundation
 import ComposableArchitecture
 
 struct EmotionCheckInFeature: Reducer {
+
+    private let memoMaxLength = 100
+
     @ObservableState
     struct State: Equatable {
         var selectedEmotion: EmotionType? = nil
@@ -39,7 +42,7 @@ struct EmotionCheckInFeature: Reducer {
             return .none
 
         case .memoTextChanged(let text):
-            state.memoText = text
+            state.memoText = String(text.prefix(memoMaxLength))
             return .none
 
         case .submitTapped:

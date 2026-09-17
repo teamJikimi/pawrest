@@ -20,6 +20,10 @@ struct ProfileEditView: View {
     @State private var selectedPetItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
+    @State private var showUserImageActionSheet = false
+    @State private var showUserPhotoPicker = false
+    @State private var showPetImageActionSheet = false
+    @State private var showPetPhotoPicker = false
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -92,6 +96,40 @@ struct ProfileEditView: View {
             ),
             message: "프로필이 저장되었어요"
         )
+        .confirmationDialog("프로필 사진", isPresented: $showUserImageActionSheet) {
+            Button("사진 선택") { showUserPhotoPicker = true }
+            if store.userProfileImage != nil {
+                Button("삭제", role: .destructive) {
+                    store.send(.userImageSelected(nil))
+                }
+            }
+            Button("취소", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $showUserPhotoPicker, selection: $selectedUserItem, matching: .images)
+        .onChange(of: selectedUserItem) { _, newItem in
+            Task { @MainActor in
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    store.send(.userImageSelected(data))
+                }
+            }
+        }
+        .confirmationDialog("프로필 사진", isPresented: $showPetImageActionSheet) {
+            Button("사진 선택") { showPetPhotoPicker = true }
+            if store.petProfileImage != nil {
+                Button("삭제", role: .destructive) {
+                    store.send(.petImageSelected(nil))
+                }
+            }
+            Button("취소", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $showPetPhotoPicker, selection: $selectedPetItem, matching: .images)
+        .onChange(of: selectedPetItem) { _, newItem in
+            Task { @MainActor in
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    store.send(.petImageSelected(data))
+                }
+            }
+        }
     }
 }
 
@@ -221,16 +259,16 @@ private extension ProfileEditView {
     }
 
     var userProfileImageSection: some View {
-        PhotosPicker(selection: $selectedUserItem, matching: .images) {
+        Button {
+            if store.userProfileImage != nil {
+                showUserImageActionSheet = true
+            } else {
+                showUserPhotoPicker = true
+            }
+        } label: {
             userProfileImageLabel
         }
-        .onChange(of: selectedUserItem) { _, newItem in
-            Task { @MainActor in
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    store.send(.userImageSelected(data))
-                }
-            }
-        }
+        .buttonStyle(.plain)
     }
 
     // MARK: 펫 이미지
@@ -261,16 +299,16 @@ private extension ProfileEditView {
     }
 
     var petProfileImageSection: some View {
-        PhotosPicker(selection: $selectedPetItem, matching: .images) {
+        Button {
+            if store.petProfileImage != nil {
+                showPetImageActionSheet = true
+            } else {
+                showPetPhotoPicker = true
+            }
+        } label: {
             petProfileImageLabel
         }
-        .onChange(of: selectedPetItem) { _, newItem in
-            Task { @MainActor in
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    store.send(.petImageSelected(data))
-                }
-            }
-        }
+        .buttonStyle(.plain)
     }
 
     // MARK: 텍스트 필드

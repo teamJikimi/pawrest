@@ -20,6 +20,8 @@ final class NotificationService {
     static let shared = NotificationService()
     private init() {}
 
+    private let emotionReminderDays = 30
+
     func requestAuthorization() async -> Bool {
         let center = UNUserNotificationCenter.current()
         let granted = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
@@ -27,12 +29,12 @@ final class NotificationService {
     }
 
     func scheduleEmotionReminders(enabled: Bool) {
-        let ids = (0..<64).map { "emotion_reminder_\($0)" }
+        let ids = (0..<emotionReminderDays).map { "emotion_reminder_\($0)" }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
         guard enabled else { return }
 
         let calendar = Calendar.current
-        for day in 0..<64 {
+        for day in 0..<emotionReminderDays {
             guard let date = calendar.date(byAdding: .day, value: day, to: Date()) else { continue }
             var components = calendar.dateComponents([.year, .month, .day], from: date)
             components.hour = 21
@@ -109,6 +111,21 @@ final class NotificationService {
         UNUserNotificationCenter.current().add(request)
     }
 
+    func scheduleAnniversaryReminderTest(petName: String) {
+        let id = "anniversary_test"
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+
+        let content = UNMutableNotificationContent()
+        content.title = "기일"
+        content.body = "\(petName)의 기일이에요. 편지를 보내볼까요?"
+        content.sound = .default
+        content.userInfo = ["type": "anniversary"]
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+    }
+
     func scheduleLetterDelivery(letterId: String) {
         let id = "letter_\(letterId)"
         let content = UNMutableNotificationContent()
@@ -118,6 +135,39 @@ final class NotificationService {
         content.userInfo = ["type": "letter"]
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * 60 * 24, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    func scheduleLetterDeliveryTest() {
+        let id = "letter_test"
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+
+        let content = UNMutableNotificationContent()
+        content.title = "추모 편지"
+        content.body = "오늘의 편지가 무지개 다리 너머로 전달됐어요."
+        content.sound = .default
+        content.userInfo = ["type": "letter"]
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    func cancelNotification(id: String) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["letter_\(id)"])
+    }
+
+    // TODO: 테스트 후 삭제
+    func scheduleEmotionReminderTest() {
+        let id = "emotion_reminder_test"
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+        let content = UNMutableNotificationContent()
+        content.title = "감정 기록"
+        content.body = "오늘 하루는 어떠셨나요? 감정을 기록해보세요."
+        content.sound = .default
+        content.userInfo = ["type": "emotionReminder"]
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }
