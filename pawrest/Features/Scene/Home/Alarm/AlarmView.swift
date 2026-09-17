@@ -61,17 +61,16 @@ private struct AlarmRow: View {
     let record: NotificationRecord
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Rectangle()
-                .fill(Color.gray10)
-                .frame(width: 32, height: 32)
-                .cornerRadius(10, corners: .allCorners)
-                .overlay(
-                    Image(record.notificationType.iconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 18, height: 18)
-                )
+        HStack(alignment: .center, spacing: 12) {
+            ZStack(alignment: .center) {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray10)
+                Image(record.notificationType.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+            }
+            .frame(width: 32, height: 32)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
@@ -121,4 +120,3 @@ private extension Date {
         return formatter.string(from: self)
     }
 }
-

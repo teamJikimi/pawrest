@@ -139,6 +139,21 @@ final class NotificationService {
         UNUserNotificationCenter.current().add(request)
     }
 
+    func scheduleLetterDeliveryTest() {
+        let id = "letter_test"
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+
+        let content = UNMutableNotificationContent()
+        content.title = "추모 편지"
+        content.body = "오늘의 편지가 무지개 다리 너머로 전달됐어요."
+        content.sound = .default
+        content.userInfo = ["type": "letter"]
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+    }
+
     func cancelNotification(id: String) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["letter_\(id)"])
     }

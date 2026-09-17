@@ -28,6 +28,7 @@ struct MyView: View {
                     petProfileSection
                     notificationSection
                     accountSection
+                    testSection
                 }
                 .padding(20)
                 .safeAreaInset(edge: .bottom) {
@@ -212,11 +213,12 @@ private extension MyView {
             }
             .padding(.top, 40 + 12)
             .padding(.leading, 16 + 86 + 12)
-            .padding(.bottom, 34)
+            .padding(.bottom, 16)
             
             petThumbnail
-                .offset(x: 16, y: 40 - 30)
+                .offset(x: 16, y: 16)
         }
+        .frame(minHeight: 118)
         .padding(.vertical, 8)
     }
     
@@ -234,6 +236,11 @@ private extension MyView {
         }
         .frame(width: 86, height: 86)
         .clipShape(Circle())
+        .background(
+            Circle()
+                .fill(Color.white)
+                .padding(-4)
+        )
         .overlay(
             Circle()
                 .stroke(Color.white, lineWidth: 5)
@@ -262,5 +269,17 @@ private extension MyView {
             onDeleteAccount: { store.send(.deleteAccountTapped) },
             onLogout: { store.send(.logoutTapped) }
         )
+    }
+
+    var testSection: some View {
+        VStack(spacing: 8) {
+            Button("편지 알림 테스트 (5초)") {
+                NotificationService.shared.scheduleLetterDeliveryTest()
+            }
+            .font(.system(size: 13))
+            .foregroundStyle(.gray60)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
     }
 }
