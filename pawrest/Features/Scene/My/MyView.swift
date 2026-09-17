@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 import FirebaseAuth
 import ComposableArchitecture
 
@@ -20,7 +21,6 @@ struct MyView: View {
     var onLogoutCompleted: () -> Void = {}
 
     var body: some View {
-        
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             ScrollView {
                 VStack(spacing: 16) {
@@ -78,6 +78,8 @@ struct MyView: View {
                     try? modelContext.delete(model: MemoryModel.self)
                     try? modelContext.delete(model: LetterModel.self)
                     try? modelContext.delete(model: NotificationRecord.self)
+                    UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                    UNUserNotificationCenter.current().removeAllDeliveredNotifications()
                     UserDefaults.standard.removeObject(forKey: "isOnboardingComplete")
                     store.send(.deleteAccountConfirmed)
                     onLogoutCompleted()
@@ -210,11 +212,13 @@ private extension MyView {
             }
             .padding(.top, 40 + 12)
             .padding(.leading, 16 + 86 + 12)
-            .padding(.bottom, 34)
+            .padding(.bottom, 16)
             
             petThumbnail
-                .offset(x: 16, y: 40 - 30)
+                .offset(x: 16, y: 16)
         }
+        .frame(minHeight: 118)
+        .padding(.vertical, 8)
     }
     
     var petThumbnail: some View {
@@ -231,6 +235,11 @@ private extension MyView {
         }
         .frame(width: 86, height: 86)
         .clipShape(Circle())
+        .background(
+            Circle()
+                .fill(Color.white)
+                .padding(-4)
+        )
         .overlay(
             Circle()
                 .stroke(Color.white, lineWidth: 5)

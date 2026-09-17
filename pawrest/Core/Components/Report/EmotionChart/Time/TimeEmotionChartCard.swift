@@ -69,17 +69,21 @@ private extension TimeEmotionChartCard {
                     .renderingMode(.template)
                     .frame(width: 18, height: 18)
                     .scaleEffect(x: -1)
-                    .foregroundStyle(isToday ? .gray40 : .gray80)
+                    .foregroundStyle(isNextDisabled ? .gray40 : .gray80)
             }
-            .disabled(isToday)
+            .disabled(isNextDisabled)
         }
         .padding(.horizontal, 4)
     }
-    
-    var isToday: Bool {
-        Calendar.current.isDateInToday(data.date)
+
+    var isNextDisabled: Bool {
+        let yesterday = Calendar.current.date(
+            byAdding: .day, value: -1,
+            to: Calendar.current.startOfDay(for: Date())
+        )!
+        return data.date >= yesterday
     }
-    
+
     @ViewBuilder
     var content: some View {
         if data.hasData {

@@ -101,9 +101,11 @@ struct MemorialView: View {
         }
         .onChange(of: store.pendingSave) { _, pending in
             guard let pending else { return }
-            let model = LetterModel(petName: pending.petName, content: pending.content)
+            let name = petProfiles.first?.name ?? pending.petName  
+            let model = LetterModel(petName: name, content: pending.content)
             modelContext.insert(model)
             try? modelContext.save()
+            NotificationService.shared.scheduleLetterDelivery(letterId: model.id.uuidString)
             store.send(.letterSaved)
             if let name = petProfiles.first?.name {
                 petName = name
@@ -124,7 +126,7 @@ struct MemorialView: View {
                         .scaledToFit()
                         .frame(width: 100, height: 120)
                     Text(formattedPetName(petName))
-                        .font(.custom("Ownglyph_PDH-Rg", size: 22))
+                        .font(.custom("Ownglyph_PDH-Rg", size: 24))
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)

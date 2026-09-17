@@ -14,7 +14,7 @@ import ComposableArchitecture
 struct RecentRecordCard: View {
     let store: StoreOf<RecentRecordFeature>
     @Environment(\.modelContext) private var modelContext
-    @Query private var allRecords: [EmotionRecordModel]
+    @Query(sort: \EmotionRecordModel.recordedAt, order: .reverse) private var allRecords: [EmotionRecordModel]
     @State private var recordToDelete: EmotionRecordModel? = nil
     
     private var filteredRecords: [EmotionRecordModel] {
@@ -164,7 +164,9 @@ private extension RecentRecordCard {
     }
     
     func recordRow(_ record: EmotionRecordModel) -> some View {
-        HStack(alignment: record.memo.isEmpty ? .center : .top, spacing: 12) {
+        let isToday = Calendar.current.isDateInToday(record.recordedAt)
+
+        return HStack(alignment: record.memo.isEmpty ? .center : .top, spacing: 12) {
             if let emotion = record.emotionTypeEnum {
                 ZStack {
                     Circle()
@@ -185,17 +187,19 @@ private extension RecentRecordCard {
                     
                     Spacer()
                     
-                    Button {
-                        if let target = allRecords.first(where: { $0.id == record.id }) {
-                            recordToDelete = target
+                    if isToday {
+                        Button {
+                            if let target = allRecords.first(where: { $0.id == record.id }) {
+                                recordToDelete = target
+                            }
+                        } label: {
+                            Image(.iconClose)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
                         }
-                    } label: {
-                        Image(.iconClose)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 16, height: 16)
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)

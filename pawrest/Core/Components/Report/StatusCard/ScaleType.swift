@@ -22,7 +22,7 @@ enum ScaleType {
 
     var maxScore: Int {
         switch self {
-        case .pbq:  return 60
+        case .pbq:  return 48
         case .cesd: return 60
         case .pds:  return 51
         }
