@@ -20,10 +20,8 @@ struct ProfileEditView: View {
     @State private var selectedPetItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
-    @State private var showUserImageActionSheet = false
-    @State private var showUserPhotoPicker = false
-    @State private var showPetImageActionSheet = false
-    @State private var showPetPhotoPicker = false
+    @State private var localNickname: String = ""
+    @State private var localPetName: String = ""
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -62,6 +60,8 @@ struct ProfileEditView: View {
                     birthday: pet.birthday,
                     deathDay: pet.deathDay
                 ))
+                localNickname = user.nickname
+                localPetName = pet.name
                 if let b = pet.birthday { tempBirthday = b }
                 if let d = pet.deathDay { tempDeathDay = d }
             }
@@ -96,40 +96,6 @@ struct ProfileEditView: View {
             ),
             message: "프로필이 저장되었어요"
         )
-        .confirmationDialog("프로필 사진", isPresented: $showUserImageActionSheet) {
-            Button("사진 선택") { showUserPhotoPicker = true }
-            if store.userProfileImage != nil {
-                Button("삭제", role: .destructive) {
-                    store.send(.userImageSelected(nil))
-                }
-            }
-            Button("취소", role: .cancel) {}
-        }
-        .photosPicker(isPresented: $showUserPhotoPicker, selection: $selectedUserItem, matching: .images)
-        .onChange(of: selectedUserItem) { _, newItem in
-            Task { @MainActor in
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    store.send(.userImageSelected(data))
-                }
-            }
-        }
-        .confirmationDialog("프로필 사진", isPresented: $showPetImageActionSheet) {
-            Button("사진 선택") { showPetPhotoPicker = true }
-            if store.petProfileImage != nil {
-                Button("삭제", role: .destructive) {
-                    store.send(.petImageSelected(nil))
-                }
-            }
-            Button("취소", role: .cancel) {}
-        }
-        .photosPicker(isPresented: $showPetPhotoPicker, selection: $selectedPetItem, matching: .images)
-        .onChange(of: selectedPetItem) { _, newItem in
-            Task { @MainActor in
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    store.send(.petImageSelected(data))
-                }
-            }
-        }
     }
 }
 
@@ -172,13 +138,17 @@ private extension ProfileEditView {
                 .padding(.leading, 10)
                 .padding(.trailing, 10)
 
-            TextField("", text: Binding(
-                get: { store.nickname },
-                set: { store.send(.nicknameChanged($0)) }
-            ))
-            .typography(.body3R)
-            .foregroundStyle(.gray80)
-            .focused($isFocused)
+            TextField("", text: $localNickname)
+                .typography(.body3R)
+                .foregroundStyle(.gray80)
+                .focused($isFocused)
+                .onChange(of: localNickname) { _, newValue in
+                    let clamped = String(newValue.prefix(12))
+                    if clamped != newValue {
+                        localNickname = clamped
+                    }
+                    store.send(.nicknameChanged(clamped))
+                }
 
             Button {
                 store.send(.duplicateCheckTapped)
@@ -209,11 +179,15 @@ private extension ProfileEditView {
             VStack(spacing: 8) {
                 editTextField(
                     label: "이름",
-                    text: Binding(
-                        get: { store.petName },
-                        set: { store.send(.petNameChanged($0)) }
-                    )
+                    text: $localPetName
                 )
+                .onChange(of: localPetName) { _, newValue in
+                    let clamped = String(newValue.prefix(12))
+                    if clamped != newValue {
+                        localPetName = clamped
+                    }
+                    store.send(.petNameChanged(clamped))
+                }
 
                 editDateField(
                     label: "생일",
@@ -259,16 +233,16 @@ private extension ProfileEditView {
     }
 
     var userProfileImageSection: some View {
-        Button {
-            if store.userProfileImage != nil {
-                showUserImageActionSheet = true
-            } else {
-                showUserPhotoPicker = true
-            }
-        } label: {
+        PhotosPicker(selection: $selectedUserItem, matching: .images) {
             userProfileImageLabel
         }
-        .buttonStyle(.plain)
+        .onChange(of: selectedUserItem) { _, newItem in
+            Task { @MainActor in
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    store.send(.userImageSelected(data))
+                }
+            }
+        }
     }
 
     // MARK: 펫 이미지
@@ -299,16 +273,16 @@ private extension ProfileEditView {
     }
 
     var petProfileImageSection: some View {
-        Button {
-            if store.petProfileImage != nil {
-                showPetImageActionSheet = true
-            } else {
-                showPetPhotoPicker = true
-            }
-        } label: {
+        PhotosPicker(selection: $selectedPetItem, matching: .images) {
             petProfileImageLabel
         }
-        .buttonStyle(.plain)
+        .onChange(of: selectedPetItem) { _, newItem in
+            Task { @MainActor in
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    store.send(.petImageSelected(data))
+                }
+            }
+        }
     }
 
     // MARK: 텍스트 필드

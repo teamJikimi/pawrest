@@ -116,7 +116,8 @@ private extension MemoryDetailView {
                     minHeight: 275,
                     showCounter: false,
                     isTransparent: true,
-                    typography: .body3R
+                    typography: .body3R,
+                    isFixedHeight: true
                 )
                 .foregroundStyle(.white)
                 .background(Color.white.opacity(0.25))
