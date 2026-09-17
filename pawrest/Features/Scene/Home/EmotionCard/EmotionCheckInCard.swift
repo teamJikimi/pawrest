@@ -80,11 +80,11 @@ private extension EmotionCheckInCard {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
                 }
-                
                 TextEditor(text: Binding(
                     get: { store.memoText },
                     set: { newValue in
-                        store.send(.memoTextChanged(newValue), animation: .none)
+                        let limited = String(newValue.prefix(100))
+                        store.send(.memoTextChanged(limited), animation: .none)
                     }
                 ))
                 .typography(.body3R)
@@ -94,6 +94,7 @@ private extension EmotionCheckInCard {
                 .frame(height: 104)
                 .padding(.horizontal, 10)
                 .padding(.top, 8)
+                .clipped()
             }
             
             Button {
