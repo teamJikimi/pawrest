@@ -101,7 +101,8 @@ struct MemorialView: View {
         }
         .onChange(of: store.pendingSave) { _, pending in
             guard let pending else { return }
-            let model = LetterModel(petName: pending.petName, content: pending.content)
+            let name = petProfiles.first?.name ?? pending.petName  
+            let model = LetterModel(petName: name, content: pending.content)
             modelContext.insert(model)
             try? modelContext.save()
             NotificationService.shared.scheduleLetterDelivery(letterId: model.id.uuidString)

@@ -20,6 +20,8 @@ struct SentLetterView: View {
     @State private var editContent = ""
     @State private var now = Date()
 
+    @Query private var petProfiles: [PetProfile]
+    
     private let lineSpacing: CGFloat = 40
     private let firstLineY: CGFloat = 16 + 20
     private let minLineCount: Int = 11
@@ -89,7 +91,7 @@ struct SentLetterView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 36, height: 36)
-            Text("\(letter.petName)에게")
+            Text("\(letter.petName.isEmpty ? (petProfiles.first?.name ?? "") : letter.petName)에게")
                 .typography(.body1M)
                 .foregroundStyle(.pawPrimary)
         }

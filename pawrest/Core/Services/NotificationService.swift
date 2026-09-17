@@ -20,6 +20,8 @@ final class NotificationService {
     static let shared = NotificationService()
     private init() {}
 
+    private let emotionReminderDays = 30
+
     func requestAuthorization() async -> Bool {
         let center = UNUserNotificationCenter.current()
         let granted = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
@@ -27,12 +29,12 @@ final class NotificationService {
     }
 
     func scheduleEmotionReminders(enabled: Bool) {
-        let ids = (0..<64).map { "emotion_reminder_\($0)" }
+        let ids = (0..<emotionReminderDays).map { "emotion_reminder_\($0)" }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
         guard enabled else { return }
 
         let calendar = Calendar.current
-        for day in 0..<64 {
+        for day in 0..<emotionReminderDays {
             guard let date = calendar.date(byAdding: .day, value: day, to: Date()) else { continue }
             var components = calendar.dateComponents([.year, .month, .day], from: date)
             components.hour = 21

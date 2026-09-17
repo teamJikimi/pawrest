@@ -25,9 +25,9 @@ enum AssessmentType: Equatable {
 
     var maxScore: Int {
         switch self {
-        case .pbq:  return 60
+        case .pbq:  return 48
         case .cesD: return 60
-        case .pds:  return 60
+        case .pds:  return 51
         }
     }
 

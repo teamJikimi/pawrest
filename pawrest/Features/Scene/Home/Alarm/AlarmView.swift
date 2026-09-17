@@ -64,13 +64,13 @@ private struct AlarmRow: View {
         HStack(alignment: .top, spacing: 12) {
             Rectangle()
                 .fill(Color.gray10)
-                .frame(width: 44, height: 44)
+                .frame(width: 32, height: 32)
                 .cornerRadius(10, corners: .allCorners)
                 .overlay(
                     Image(record.notificationType.iconName)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 24, height: 24)
+                        .frame(width: 18, height: 18)
                 )
 
             VStack(alignment: .leading, spacing: 4) {
