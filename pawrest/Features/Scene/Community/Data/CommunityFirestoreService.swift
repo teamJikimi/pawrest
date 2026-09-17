@@ -7,7 +7,6 @@
 
 import Foundation
 import FirebaseFirestore
-//import FirebaseStorage
 
 final class CommunityFirestoreService {
     
@@ -315,27 +314,6 @@ final class CommunityFirestoreService {
             ])
     }
     
-    //    func deletePostImages(imageURLs: [String]) async throws {
-    //        let storage = Storage.storage()
-    //
-    //        for urlString in imageURLs {
-    //            guard let url = URL(string: urlString) else { continue }
-    //            let path = url.path
-    //
-    //            guard let range = path.range(of: "community/") else {
-    //                continue
-    //            }
-    //
-    //            let storagePath = String(path[range.lowerBound...])
-    //
-    //            do {
-    //                try await storage.reference().child(storagePath).delete()
-    //            } catch {
-    //                print("⚠️ 이미지 삭제 실패: \(storagePath)")
-    //            }
-    //        }
-    //    }
-    
     // MARK: - Report
     
     func createReport(
@@ -427,7 +405,6 @@ final class CommunityFirestoreService {
             .getDocuments()
         
         for document in snapshot.documents {
-            let postID = document.documentID
             let imageURLs = document.data()["imageURLs"] as? [String] ?? []
             
             let commentsSnapshot = try await document.reference
@@ -444,7 +421,6 @@ final class CommunityFirestoreService {
             
             try await document.reference.delete()
             
-            //            try? await deletePostImages(imageURLs: imageURLs)
             await FirebaseStorageService().delete(urls: imageURLs)
         }
         
