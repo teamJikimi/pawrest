@@ -20,6 +20,8 @@ struct ProfileEditView: View {
     @State private var selectedPetItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
+    @State private var localNickname: String = ""
+    @State private var localPetName: String = ""
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -58,6 +60,8 @@ struct ProfileEditView: View {
                     birthday: pet.birthday,
                     deathDay: pet.deathDay
                 ))
+                localNickname = user.nickname
+                localPetName = pet.name
                 if let b = pet.birthday { tempBirthday = b }
                 if let d = pet.deathDay { tempDeathDay = d }
             }
@@ -134,13 +138,17 @@ private extension ProfileEditView {
                 .padding(.leading, 10)
                 .padding(.trailing, 10)
 
-            TextField("", text: Binding(
-                get: { store.nickname },
-                set: { store.send(.nicknameChanged($0)) }
-            ))
-            .typography(.body3R)
-            .foregroundStyle(.gray80)
-            .focused($isFocused)
+            TextField("", text: $localNickname)
+                .typography(.body3R)
+                .foregroundStyle(.gray80)
+                .focused($isFocused)
+                .onChange(of: localNickname) { _, newValue in
+                    let clamped = String(newValue.prefix(12))
+                    if clamped != newValue {
+                        localNickname = clamped
+                    }
+                    store.send(.nicknameChanged(clamped))
+                }
 
             Button {
                 store.send(.duplicateCheckTapped)
@@ -171,11 +179,15 @@ private extension ProfileEditView {
             VStack(spacing: 8) {
                 editTextField(
                     label: "이름",
-                    text: Binding(
-                        get: { store.petName },
-                        set: { store.send(.petNameChanged($0)) }
-                    )
+                    text: $localPetName
                 )
+                .onChange(of: localPetName) { _, newValue in
+                    let clamped = String(newValue.prefix(12))
+                    if clamped != newValue {
+                        localPetName = clamped
+                    }
+                    store.send(.petNameChanged(clamped))
+                }
 
                 editDateField(
                     label: "생일",

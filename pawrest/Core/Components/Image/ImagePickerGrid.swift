@@ -55,7 +55,10 @@ public struct ImagePickerGrid: View {
                     )
                 }
             }
-            .padding(.horizontal, 20) 
+            .padding(.horizontal, 20)
+        }
+        .onChange(of: pickerItems) { _, newValue in
+            localPickerItems = newValue
         }
     }
     
@@ -160,11 +163,15 @@ extension ImagePickerGrid {
         }
         
         private var deleteButton: some View {
-            Button(action: onDelete) {
-                Image(.iconImageXmark)
-                    .frame(width: 24, height: 24)
-            }
-            .padding(8)
+            Image(.iconImageXmark)
+                .frame(width: 24, height: 24)
+                .padding(8)
+                .contentShape(Rectangle())
+                .highPriorityGesture(
+                    TapGesture().onEnded {
+                        onDelete()
+                    }
+                )
         }
     }
 }
