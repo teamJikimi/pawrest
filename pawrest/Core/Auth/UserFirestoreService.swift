@@ -21,7 +21,12 @@ final class UserFirestoreService {
             .collection("users")
             .whereField("nickname", isEqualTo: nickname)
             .getDocuments()
-        return snapshot.isEmpty
+        
+        guard let uid = Auth.auth().currentUser?.uid else { return snapshot.isEmpty }
+        
+        // 본인 문서만 있으면 사용 가능
+        let others = snapshot.documents.filter { $0.documentID != uid }
+        return others.isEmpty
     }
 
     // MARK: - 유저 프로필 저장

@@ -66,6 +66,14 @@ struct ProfileEditState: Equatable {
         deathDay != originalDeathDay
     }
 
+    var isSaveEnabled: Bool {
+        guard isChanged else { return false }
+        if nickname != originalNickname {
+            return nicknameStatus == .available
+        }
+        return true
+    }
+
     var birthdayText: String {
         guard let date = birthday else { return "" }
         let f = DateFormatter()

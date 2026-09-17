@@ -353,10 +353,10 @@ private extension ProfileEditView {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(store.isChanged ? .pawPrimary : .gray40)
+                .background(store.isSaveEnabled ? .pawPrimary : .gray40)
                 .cornerRadius(14, corners: .allCorners)
         }
-        .disabled(!store.isChanged)
+        .disabled(!store.isSaveEnabled)
     }
 
     // MARK: 날짜 피커 시트
