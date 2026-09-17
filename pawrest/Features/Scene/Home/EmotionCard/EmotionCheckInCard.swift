@@ -36,13 +36,22 @@ struct EmotionCheckInCard: View {
 private extension EmotionCheckInCard {
     var headerSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(store.dateText)
-                .typography(.date)
-                .foregroundStyle(.gray60)
+            TimelineView(.periodic(from: .now, by: 60)) { context in
+                Text(formattedDate(context.date))
+                    .typography(.date)
+                    .foregroundStyle(.gray60)
+            }
             Text("지금 마음 상태는 어떤가요?")
                 .typography(.body1Accent)
                 .foregroundStyle(.gray90)
         }
+    }
+
+    func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "MM월 dd일 (E) HH:mm"
+        return formatter.string(from: date)
     }
     
     var emotionButtons: some View {
