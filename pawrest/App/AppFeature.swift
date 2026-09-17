@@ -104,6 +104,12 @@ struct AppReducer: Reducer {
                 state.destination = .onboardingIntroduce
                 return .none
 
+            case .onboardingUserProfile(.navigationBar(.leftButtonTapped)):
+                state.login = LoginState()
+                state.onboardingUserProfile = OnboardingUserProfileState()
+                state.destination = .login
+                return .none
+
             case .onboardingPetProfile(.navigationBar(.leftButtonTapped)):
                 state.destination = .onboardingUserProfile
                 return .none
