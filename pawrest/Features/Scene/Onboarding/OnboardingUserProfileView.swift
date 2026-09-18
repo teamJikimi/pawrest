@@ -15,29 +15,38 @@ struct OnboardingUserProfileView: View {
 
     @Bindable var store: StoreOf<OnboardingUserProfileReducer>
     @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var showImageActionSheet = false
+    @State private var showPhotoPicker = false
     @FocusState private var isFocused: Bool
 
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerSection
-                .padding(.top, 35)
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 0) {
+                    headerSection
+                        .padding(.top, 14)
 
-            Color.clear.frame(height: 45)
+                    Color.clear.frame(height: 45)
 
-            profileImageSection
+                    profileImageSection
 
-            Color.clear.frame(height: 40)
+                    Color.clear.frame(height: 40)
 
-            nicknameSection
+                    nicknameSection
 
-            Spacer()
+                    Spacer(minLength: 40)
 
-            nextButton
+                    nextButton
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
+                .frame(minHeight: geo.size.height)
+            }
+            .scrollDismissesKeyboard(.interactively)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 12)
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .contentShape(Rectangle())
         .onTapGesture {
             isFocused = false
@@ -45,6 +54,23 @@ struct OnboardingUserProfileView: View {
         .customNavigationBar(
             store: store.scope(state: \.navigationBar, action: \.navigationBar)
         )
+        .confirmationDialog("프로필 사진", isPresented: $showImageActionSheet) {
+            Button("사진 선택") { showPhotoPicker = true }
+            if store.profileImage != nil {
+                Button("삭제", role: .destructive) {
+                    store.send(.profileImageSelected(nil))
+                }
+            }
+            Button("취소", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $showPhotoPicker, selection: $selectedItem, matching: .images)
+        .onChange(of: selectedItem) { _, newItem in
+            Task { @MainActor in
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    store.send(.profileImageSelected(data))
+                }
+            }
+        }
     }
 }
 
@@ -107,16 +133,16 @@ private extension OnboardingUserProfileView {
     }
 
     var profileImageSection: some View {
-        PhotosPicker(selection: $selectedItem, matching: .images) {
+        Button {
+            if store.profileImage != nil {
+                showImageActionSheet = true
+            } else {
+                showPhotoPicker = true
+            }
+        } label: {
             profileImageLabel
         }
-        .onChange(of: selectedItem) { _, newItem in
-            Task { @MainActor in
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    store.send(.profileImageSelected(data))
-                }
-            }
-        }
+        .buttonStyle(.plain)
     }
 
     var nicknameSection: some View {
@@ -146,17 +172,5 @@ private extension OnboardingUserProfileView {
                 .cornerRadius(14, corners: .allCorners)
         }
         .disabled(!store.isNextEnabled)
-    }
-}
-
-#Preview {
-    NavigationStack {
-        OnboardingUserProfileView(
-            store: Store(
-                initialState: OnboardingUserProfileState()
-            ) {
-                OnboardingUserProfileReducer()
-            }
-        )
     }
 }

@@ -66,6 +66,14 @@ struct ProfileEditState: Equatable {
         deathDay != originalDeathDay
     }
 
+    var isSaveEnabled: Bool {
+        guard isChanged else { return false }
+        if nickname != originalNickname {
+            return nicknameStatus == .available
+        }
+        return true
+    }
+
     var birthdayText: String {
         guard let date = birthday else { return "" }
         let f = DateFormatter()
@@ -162,9 +170,14 @@ struct ProfileEditFeature: Reducer {
                     return .none
                 }
                 state.nicknameStatus = .checking
+                let nickname = state.nickname
                 return .run { send in
-                    try await Task.sleep(for: .milliseconds(500))
-                    await send(.duplicateCheckResult(isAvailable: true))
+                    do {
+                        let isAvailable = try await UserFirestoreService.shared.isNicknameAvailable(nickname)
+                        await send(.duplicateCheckResult(isAvailable: isAvailable))
+                    } catch {
+                        await send(.duplicateCheckResult(isAvailable: false))
+                    }
                 }
 
             case .duplicateCheckResult(let isAvailable):
@@ -205,14 +218,31 @@ struct ProfileEditFeature: Reducer {
                 return .none
 
             case .saveTapped:
+                let nickname = state.nickname
+                let userImage = state.userProfileImage
+                let petName = state.petName
+                let petImage = state.petProfileImage
+                let birthday = state.birthday
+                let deathDay = state.deathDay
                 state.showSavedToast = true
-                state.originalNickname = state.nickname
-                state.originalUserProfileImage = state.userProfileImage
-                state.originalPetName = state.petName
-                state.originalPetProfileImage = state.petProfileImage
-                state.originalBirthday = state.birthday
-                state.originalDeathDay = state.deathDay
-                return .none
+                state.originalNickname = nickname
+                state.originalUserProfileImage = userImage
+                state.originalPetName = petName
+                state.originalPetProfileImage = petImage
+                state.originalBirthday = birthday
+                state.originalDeathDay = deathDay
+                return .run { _ in
+                    try? await UserFirestoreService.shared.updateUserProfile(
+                        nickname: nickname,
+                        profileImageData: userImage
+                    )
+                    try? await UserFirestoreService.shared.savePetProfile(
+                        name: petName,
+                        profileImageData: petImage,
+                        birthday: birthday,
+                        deathDay: deathDay
+                    )
+                }
 
             case .toastDismissed:
                 state.showSavedToast = false

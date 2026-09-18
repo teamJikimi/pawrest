@@ -143,6 +143,19 @@ private extension OnboardingIntroduceView {
         modelContext.insert(pet)
         try? modelContext.save()
 
+        Task {
+            try? await UserFirestoreService.shared.saveUserProfile(
+                nickname: store.nickname,
+                profileImageData: store.userProfileImage
+            )
+            try? await UserFirestoreService.shared.savePetProfile(
+                name: store.petName,
+                profileImageData: store.petProfileImage,
+                birthday: store.petBirthday,
+                deathDay: store.petDeathDay
+            )
+        }
+
         if let deathDay = store.petDeathDay {
             NotificationService.shared.scheduleAnniversaryReminder(
                 petName: store.petName,

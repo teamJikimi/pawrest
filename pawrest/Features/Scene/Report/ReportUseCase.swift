@@ -14,7 +14,8 @@ protocol ReportUseCaseProtocol {
         emotionSnapshots: [EmotionSnapshot],
         assessmentRecords: [AssessmentRecord],
         container: ModelContainer,
-        forceRefresh: Bool
+        forceRefresh: Bool,
+        petName: String
     ) async throws -> (AIReportResult, String?, DailyTimeEmotionData)
     func fetchDailyTimeEmotion(for date: Date, emotionSnapshots: [EmotionSnapshot]) async throws -> DailyTimeEmotionData
 }
@@ -61,7 +62,7 @@ struct ReportUseCase: ReportUseCaseProtocol {
             summaryTitle: "AI분석에 실패 했어요",
             summaryBody: "잠시뒤에 다시 시도해주세요",
             aiSummary: "AI가 이번 주 감정 흐름을 분석 중이에요.\n잠시만 기다려주세요.",
-            aiSuggestion: nil,  // 추가
+            aiSuggestion: nil,
             stats: ReportStats(
                 recordedDays: recordedDays,
                 mostFrequentEmotion: mostFrequent,
@@ -73,12 +74,14 @@ struct ReportUseCase: ReportUseCaseProtocol {
             weekdayData: .empty
         )
     }
+
     func fetchAIData(
         emotionSnapshots: [EmotionSnapshot],
         assessmentRecords: sending [AssessmentRecord],
         container: ModelContainer,
-        forceRefresh: Bool
-    ) async throws -> (AIReportResult, String?, DailyTimeEmotionData){
+        forceRefresh: Bool,
+        petName: String
+    ) async throws -> (AIReportResult, String?, DailyTimeEmotionData) {
 
         let context = ModelContext(container)
 
@@ -108,7 +111,8 @@ struct ReportUseCase: ReportUseCaseProtocol {
         let aiResult = try await AIService.shared.generateReport(
             snapshots: emotionSnapshots,
             weeklyEntries: weeklyEntries,
-            assessmentRecords: assessmentRecords
+            assessmentRecords: assessmentRecords,
+            petName: petName
         )
 
         let weekdayEntries = makeWeekdayEntries(snapshots: emotionSnapshots)

@@ -55,7 +55,10 @@ public struct ImagePickerGrid: View {
                     )
                 }
             }
-            .padding(.horizontal, 20) 
+            .padding(.horizontal, 20)
+        }
+        .onChange(of: pickerItems) { _, newValue in
+            localPickerItems = newValue
         }
     }
     
@@ -124,11 +127,11 @@ extension ImagePickerGrid {
                     .resizable()
                     .renderingMode(.template)
                     .frame(width: 24, height: 24)
-                    .foregroundStyle(selectedCount == 0 ? .gray50 : .gray90)
-                
+                    .foregroundStyle(.gray80)
+
                 Text("\(selectedCount)/\(maxCount)")
                     .typography(.body2R1)
-                    .foregroundStyle(selectedCount == 0 ? .gray50 : .gray90)
+                    .foregroundStyle(.gray80)
             }
             .frame(width: 103, height: 135)
             .background(.gray20)
@@ -160,11 +163,15 @@ extension ImagePickerGrid {
         }
         
         private var deleteButton: some View {
-            Button(action: onDelete) {
-                Image(.iconImageXmark)
-                    .frame(width: 24, height: 24)
-            }
-            .padding(8)
+            Image(.iconImageXmark)
+                .frame(width: 24, height: 24)
+                .padding(8)
+                .contentShape(Rectangle())
+                .highPriorityGesture(
+                    TapGesture().onEnded {
+                        onDelete()
+                    }
+                )
         }
     }
 }

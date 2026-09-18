@@ -45,9 +45,8 @@ struct LetterReducer: Reducer {
 
             case .sendButtonTapped:
                 guard state.isSendEnabled else { return .none }
-                // TODO: SwiftData 저장 + NotificationService.scheduleLetterDelivery 호출
                 return .send(.delegate(.didSend))
-
+                
             case .closeTapped:
                 return .send(.delegate(.didClose))
 

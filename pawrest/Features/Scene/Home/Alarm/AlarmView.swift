@@ -61,17 +61,16 @@ private struct AlarmRow: View {
     let record: NotificationRecord
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Rectangle()
-                .fill(Color.gray10)
-                .frame(width: 44, height: 44)
-                .cornerRadius(10, corners: .allCorners)
-                .overlay(
-                    Image(record.notificationType.iconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                )
+        HStack(alignment: .center, spacing: 12) {
+            ZStack(alignment: .center) {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray10)
+                Image(record.notificationType.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+            }
+            .frame(width: 32, height: 32)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
@@ -101,10 +100,10 @@ private struct AlarmRow: View {
 
 private extension AlarmView {
     var emptyView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             Image("icon_no_alarm")
             Text("아직 알림이 없어요")
-                .typography(.body3R)
+                .typography(.body2R1)
                 .foregroundStyle(.gray60)
         }
         .frame(maxWidth: .infinity)
@@ -121,4 +120,3 @@ private extension Date {
         return formatter.string(from: self)
     }
 }
-

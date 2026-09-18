@@ -37,11 +37,13 @@ enum OnboardingTextFieldHelper: Equatable {
 struct OnboardingTextField: View {
     let placeholder: String
     @Binding var text: String
+    @State private var localText: String = ""
     var helper: OnboardingTextFieldHelper = .none
     var trailingContent: AnyView? = nil
     var isEditable: Bool = true
     var isFocused: FocusState<Bool>.Binding? = nil
     var onTap: (() -> Void)? = nil
+    var maxLength: Int = 12
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -62,7 +64,7 @@ private extension OnboardingTextField {
                     if let isFocused {
                         TextField(
                             placeholder,
-                            text: $text,
+                            text: $localText,
                             prompt: Text(placeholder)
                                 .foregroundColor(.gray40)
                         )
@@ -70,7 +72,7 @@ private extension OnboardingTextField {
                     } else {
                         TextField(
                             placeholder,
-                            text: $text,
+                            text: $localText,
                             prompt: Text(placeholder)
                                 .foregroundColor(.gray40)
                         )
@@ -78,6 +80,13 @@ private extension OnboardingTextField {
                 }
                 .typography(.body2M)
                 .foregroundColor(.gray80)
+                .onChange(of: localText) { _, newValue in
+                    let clamped = String(newValue.prefix(maxLength))
+                    if clamped != newValue {
+                        localText = clamped
+                    }
+                    text = clamped
+                }
             } else {
                 Text(text.isEmpty ? placeholder : text)
                     .typography(.body2M)

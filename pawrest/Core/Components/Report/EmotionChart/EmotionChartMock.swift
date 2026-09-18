@@ -72,8 +72,9 @@ extension DailyTimeEmotionData {
     }
 
     static var empty: DailyTimeEmotionData {
-        DailyTimeEmotionData(
-            date: Date(),
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.startOfDay(for: Date()))!
+        return DailyTimeEmotionData(
+            date: yesterday,
             slots: TimeSlotEmotion.TimeSlot.allCases.map {
                 TimeSlotEmotion(timeSlot: $0, level: nil)
             },

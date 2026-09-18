@@ -1,4 +1,3 @@
-
 //
 //  EmotionCheckInCard.swift
 //  pawrest
@@ -37,13 +36,22 @@ struct EmotionCheckInCard: View {
 private extension EmotionCheckInCard {
     var headerSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(store.dateText)
-                .typography(.date)
-                .foregroundStyle(.gray60)
+            TimelineView(.periodic(from: .now, by: 60)) { context in
+                Text(formattedDate(context.date))
+                    .typography(.date)
+                    .foregroundStyle(.gray60)
+            }
             Text("지금 마음 상태는 어떤가요?")
                 .typography(.body1Accent)
                 .foregroundStyle(.gray90)
         }
+    }
+
+    func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "MM월 dd일 (E) HH:mm"
+        return formatter.string(from: date)
     }
     
     var emotionButtons: some View {
@@ -72,11 +80,11 @@ private extension EmotionCheckInCard {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
                 }
-                
                 TextEditor(text: Binding(
                     get: { store.memoText },
                     set: { newValue in
-                        store.send(.memoTextChanged(newValue), animation: .none)
+                        let limited = String(newValue.prefix(100))
+                        store.send(.memoTextChanged(limited), animation: .none)
                     }
                 ))
                 .typography(.body3R)
@@ -86,6 +94,7 @@ private extension EmotionCheckInCard {
                 .padding(.horizontal, 10)
                 .padding(.top, 8)
                 .frame(height: 104)
+                .clipped()
             }
             
             Button {
@@ -119,7 +128,7 @@ private extension EmotionCheckInCard {
     
     func emotionButton(_ emotion: EmotionType) -> some View {
         Button {
-                store.send(.emotionTapped(emotion))
+            store.send(.emotionTapped(emotion))
         } label: {
             VStack(spacing: 6) {
                 Image(emotion.imageName)

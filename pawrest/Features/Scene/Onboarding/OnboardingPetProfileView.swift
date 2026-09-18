@@ -17,6 +17,8 @@ struct OnboardingPetProfileView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
+    @State private var showImageActionSheet = false
+    @State private var showPhotoPicker = false
     @FocusState private var isFocused: Bool
 
     // MARK: - Body
@@ -26,7 +28,7 @@ struct OnboardingPetProfileView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     headerSection
-                        .padding(.top, 19)
+                        .padding(.top, 14)
 
                     Color.clear.frame(height: 45)
 
@@ -50,6 +52,7 @@ struct OnboardingPetProfileView: View {
             }
             .scrollDismissesKeyboard(.interactively)
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .contentShape(Rectangle())
         .onTapGesture {
             isFocused = false
@@ -86,6 +89,23 @@ struct OnboardingPetProfileView: View {
                     store.send(.pickerDismissed)
                 }
             )
+        }
+        .confirmationDialog("프로필 사진", isPresented: $showImageActionSheet) {
+            Button("사진 선택") { showPhotoPicker = true }
+            if store.profileImage != nil {
+                Button("삭제", role: .destructive) {
+                    store.send(.profileImageSelected(nil))
+                }
+            }
+            Button("취소", role: .cancel) {}
+        }
+        .photosPicker(isPresented: $showPhotoPicker, selection: $selectedItem, matching: .images)
+        .onChange(of: selectedItem) { _, newItem in
+            Task { @MainActor in
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    store.send(.profileImageSelected(data))
+                }
+            }
         }
     }
 }
@@ -139,16 +159,16 @@ private extension OnboardingPetProfileView {
     }
 
     var profileImageSection: some View {
-        PhotosPicker(selection: $selectedItem, matching: .images) {
+        Button {
+            if store.profileImage != nil {
+                showImageActionSheet = true
+            } else {
+                showPhotoPicker = true
+            }
+        } label: {
             profileImageLabel
         }
-        .onChange(of: selectedItem) { _, newItem in
-            Task { @MainActor in
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    store.send(.profileImageSelected(data))
-                }
-            }
-        }
+        .buttonStyle(.plain)
     }
 
     var nameSection: some View {
@@ -222,20 +242,5 @@ private extension OnboardingPetProfileView {
             .environment(\.locale, Locale(identifier: "ko_KR"))
         }
         .presentationDetents([.height(300)])
-    }
-}
-
-#Preview {
-    NavigationStack {
-        OnboardingPetProfileView(
-            store: Store(
-                initialState: OnboardingPetProfileState(
-                    nickname: "테스트유저",
-                    userProfileImage: nil
-                )
-            ) {
-                OnboardingPetProfileReducer()
-            }
-        )
     }
 }
