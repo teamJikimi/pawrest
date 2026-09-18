@@ -59,7 +59,6 @@ final class CommunityFirestoreService {
             id: document.documentID,
             authorID: authorID,
             authorName: authorName,
-            authorProfileImageURL: nil,
             title: title,
             content: content,
             createdAt: createdAt,
@@ -253,7 +252,6 @@ final class CommunityFirestoreService {
             id: commentID,
             authorID: authorID,
             authorName: authorName,
-            authorProfileImageURL: nil,
             content: content,
             createdAt: createdAt,
             parentCommentID: parentCommentID
