@@ -212,7 +212,7 @@ private extension SelfAssessmentView {
                 .typography(.button)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 42)
+                .padding(.vertical, 16)
                 .background(.pawPrimary)
                 .cornerRadius(14, corners: .allCorners)
         }

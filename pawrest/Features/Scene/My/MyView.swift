@@ -21,16 +21,15 @@ struct MyView: View {
     var onLogoutCompleted: () -> Void = {}
 
     var body: some View {
-        
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             ScrollView {
                 VStack(spacing: 16) {
                     petProfileSection
                     notificationSection
                     accountSection
-                    testSection
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
                 .safeAreaInset(edge: .bottom) {
                     Color.clear.frame(height: 60)
                 }
@@ -131,7 +130,7 @@ struct MyView: View {
 private extension MyView {
     
     var petProfileSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             userHeader
             petProfileCard
         }
@@ -269,17 +268,5 @@ private extension MyView {
             onDeleteAccount: { store.send(.deleteAccountTapped) },
             onLogout: { store.send(.logoutTapped) }
         )
-    }
-
-    var testSection: some View {
-        VStack(spacing: 8) {
-            Button("편지 알림 테스트 (5초)") {
-                NotificationService.shared.scheduleLetterDeliveryTest()
-            }
-            .font(.system(size: 13))
-            .foregroundStyle(.gray60)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
     }
 }
