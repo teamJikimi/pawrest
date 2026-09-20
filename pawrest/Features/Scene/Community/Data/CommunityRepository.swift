@@ -112,55 +112,59 @@ extension CommunityRepository: DependencyKey {
         let service = CommunityFirestoreService()
 
         return CommunityRepository(
+            
             fetchPosts: { userID in
                 let postDTOs = try await service.fetchPosts()
-                return try await withThrowingTaskGroup(
-                    of: Post.self
-                ) { group in
-                    for dto in postDTOs {
-                        group.addTask {
-                            var post = dto.toDomain()
-
-                            post.isLiked = try await service.isPostLiked(
-                                postID: post.id,
-                                userID: userID
-                            )
-
-                            let commentDTOs = try await service.fetchComments(
-                                postID: post.id
-                            )
-
-                            let topLevelDTOs = commentDTOs.filter {
-                                $0.parentCommentID == nil
-                            }
-
-                            post.comments = topLevelDTOs.map { parentDTO in
-                                let replies = commentDTOs
-                                    .filter {
-                                        $0.parentCommentID == parentDTO.id
-                                    }
-                                    .map {
-                                        $0.toDomain()
-                                    }
-
-                                return parentDTO.toDomain(
-                                    replies: replies
-                                )
-                            }
-
-                            return post
-                        }
-                    }
-                    var posts: [Post] = []
-
-                    for try await post in group {
-                        posts.append(post)
-                    }
-                    return posts.sorted {
-                        $0.createdAt > $1.createdAt
+                
+                var allAuthorIDs: Set<String> = []
+                var commentDTOsByPost: [String: [CommunityCommentDTO]] = [:]
+                
+                for dto in postDTOs {
+                    allAuthorIDs.insert(dto.authorID)
+                    
+                    let commentDTOs = try await service.fetchComments(postID: dto.id)
+                    commentDTOsByPost[dto.id] = commentDTOs
+                    
+                    for comment in commentDTOs {
+                        allAuthorIDs.insert(comment.authorID)
                     }
                 }
+                
+                let profileService = UserProfileRemoteService()
+                let profiles = try await profileService.fetchProfiles(
+                    userIDs: Array(allAuthorIDs)
+                )
+                
+                var posts: [Post] = []
+                
+                for dto in postDTOs {
+                    var post = dto.toDomain(profile: profiles[dto.authorID])
+                    
+                    post.isLiked = try await service.isPostLiked(
+                        postID: post.id,
+                        userID: userID
+                    )
+                    
+                    let commentDTOs = commentDTOsByPost[post.id] ?? []
+                    let topLevelDTOs = commentDTOs.filter { $0.parentCommentID == nil }
+                    
+                    post.comments = topLevelDTOs.map { parentDTO in
+                        let replies = commentDTOs
+                            .filter { $0.parentCommentID == parentDTO.id }
+                            .map { $0.toDomain(profile: profiles[$0.authorID]) }
+                        
+                        return parentDTO.toDomain(
+                            replies: replies,
+                            profile: profiles[parentDTO.authorID]
+                        )
+                    }
+                    
+                    posts.append(post)
+                }
+                
+                return posts.sorted { $0.createdAt > $1.createdAt }
             },
+            
             createPost: { postID, authorID, authorName, title, content, imageURLs in
                 let postDTO = try await service.createPost(
                     postID: postID,

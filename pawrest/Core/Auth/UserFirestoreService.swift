@@ -77,20 +77,20 @@ final class UserFirestoreService {
     }
 
     // MARK: - 프로필 업데이트 (닉네임/이미지)
-    func updateUserProfile(
-        nickname: String,
-        profileImageData: Data?
-    ) async throws {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-
-        var updates: [String: Any] = ["nickname": nickname]
-        if let data = profileImageData {
-            let url = try await uploadImage(data: data, path: "users/\(uid)/profile.jpg")
-            updates["profileImageURL"] = url
-        }
-
-        try await db.collection("users").document(uid).setData(updates, merge: true)
-    }
+//    func updateUserProfile(
+//        nickname: String,
+//        profileImageData: Data?
+//    ) async throws {
+//        guard let uid = Auth.auth().currentUser?.uid else { return }
+//
+//        var updates: [String: Any] = ["nickname": nickname]
+//        if let data = profileImageData {
+//            let url = try await uploadImage(data: data, path: "users/\(uid)/profile.jpg")
+//            updates["profileImageURL"] = url
+//        }
+//
+//        try await db.collection("users").document(uid).setData(updates, merge: true)
+//    }
 
     // MARK: - 이미지 업로드
     private func uploadImage(data: Data, path: String) async throws -> String {
