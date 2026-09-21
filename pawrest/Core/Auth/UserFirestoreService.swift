@@ -77,25 +77,9 @@ final class UserFirestoreService {
             .setData(petData, merge: true)
     }
 
-    // MARK: - 프로필 업데이트 (닉네임/이미지)
-//    func updateUserProfile(
-//        nickname: String,
-//        profileImageData: Data?
-//    ) async throws {
-//        guard let uid = Auth.auth().currentUser?.uid else { return }
-//
-//        var updates: [String: Any] = ["nickname": nickname]
-//        if let data = profileImageData {
-//            let url = try await uploadImage(data: data, path: "users/\(uid)/profile.jpg")
-//            updates["profileImageURL"] = url
-//        }
-//
-//        try await db.collection("users").document(uid).setData(updates, merge: true)
-//    }
-
     // MARK: - 이미지 업로드
     private func uploadImage(data: Data, path: String) async throws -> String {
-        let resizedData = UIImage(data: data)?.resizedJPEGData(maxDimension: 512) ?? data
+        let resizedData = UIImage(data: data)?.resizedJPEGData(maxDimension: 160) ?? data
         let ref = Storage.storage().reference().child(path)
         _ = try await ref.putDataAsync(resizedData)
         return try await ref.downloadURL().absoluteString
