@@ -11,10 +11,6 @@ import ComposableArchitecture
 struct CommunityDetailView: View {
     @Bindable var store: StoreOf<CommunityDetailReducer>
     @FocusState private var isInputFocused: Bool
-    @Environment(\.dismiss) private var dismiss
-    
-    var onPostStateUpdated: ((Post) -> Void)? = nil
-    var onPostDeleted: ((String) -> Void)? = nil
     
     var body: some View {
         contentView
@@ -32,17 +28,6 @@ struct CommunityDetailView: View {
                     isInputFocused = true
                 }
             }
-            .onChange(of: store.shouldDismiss) { _, shouldDismiss in
-                if shouldDismiss {
-                    if store.isDeleted {
-                        onPostDeleted?(store.post.id) }
-                    dismiss()
-                }
-            }
-            .onChange(of: store.post) { _, newPost in
-                onPostStateUpdated?(newPost)
-            }
-        
             .onChange(of: store.post.commentCount) { oldCount, newCount in
                 if newCount > oldCount {
                     isInputFocused = false
@@ -58,7 +43,6 @@ struct CommunityDetailView: View {
             ) { editStore in
                 CommunityWriteView(store: editStore)
             }
-        
             .hideTabBar()
     }
 }

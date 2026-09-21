@@ -31,15 +31,16 @@ struct CommunityState: Equatable {
     var sortMode: SortMode = .recent
     var isSortMenuOpen: Bool = false
 
-    var isMyPostPresented: Bool = false
     @Presents var write: CommunityWriteState?
-    var isDetailPresented: Bool = false
+    @Presents var detail: CommunityDetailState?
+    @Presents var myPost: CommunityMyPostState?
 
     var posts: [Post] = []
     var currentUserID: String?
     var authorName: String?
 
     var isLoading: Bool = false
+    var hasLoadedPosts: Bool = false
     var errorMessage: String?
     
     var blockedUserIDs: Set<String> = []
@@ -79,6 +80,7 @@ struct CommunityState: Equatable {
 @CasePathable
 enum CommunityAction: Equatable {
     case onAppear
+    case refreshPulled
     case userProfileLoaded(String?)
     case postsResponse(TaskResult<[Post]>)
     case postCreationResponse(TaskResult<Post>)
@@ -90,6 +92,7 @@ enum CommunityAction: Equatable {
     case sortModeSelected(SortMode)
     case outsideTapped
 
+    case postTapped(postID: String)
     case likeTapped(postID: String)
 
     case likeResponse(
@@ -98,15 +101,9 @@ enum CommunityAction: Equatable {
         success: Bool
     )
 
-    case myPostDismissed
-    case detailPresented
-    case detailDismissed
-
     case write(PresentationAction<CommunityWriteAction>)
-
-    case myPostsUpdated(posts: [Post])
-    case postStateUpdated(Post)
-    case postDeleted(String)
+    case detail(PresentationAction<CommunityDetailAction>)
+    case myPost(PresentationAction<CommunityMyPostAction>)
     
     case blockedUserIDsLoaded(Set<String>)
     case refreshBlockedUsers
@@ -144,6 +141,8 @@ struct CommunityReducer: Reducer {
             // MARK: Load Posts
 
             case .onAppear:
+                guard !state.hasLoadedPosts else { return .none }
+                
                 guard let currentUserID = authSessionClient.currentUserID() else {
                     state.posts = []
                     state.errorMessage = "로그인이 필요합니다."
@@ -154,22 +153,19 @@ struct CommunityReducer: Reducer {
                 state.isLoading = true
                 state.errorMessage = nil
 
-                return .run { send in
-                    async let postsResult = communityRepository.fetchPosts(currentUserID)
-                    async let blockedResult = communityRepository.fetchBlockedUserIDs(currentUserID)
-                    
-                    do {
-                        let posts = try await postsResult
-                        let blockedIDs = try await blockedResult
-                        await send(.postsResponse(.success(posts)))
-                        await send(.blockedUserIDsLoaded(blockedIDs))
-                    } catch {
-                        await send(.postsResponse(.failure(error)))
-                    }
-                }
+                return fetchPosts(userID: currentUserID)
+                
+            case .refreshPulled:
+                guard let currentUserID = state.currentUserID
+                        ?? authSessionClient.currentUserID()
+                else { return .none }
+                
+                state.currentUserID = currentUserID
+                return fetchPosts(userID: currentUserID)
 
             case .postsResponse(.success(let posts)):
                 state.isLoading = false
+                state.hasLoadedPosts = true
                 state.posts = posts
                 return .none
 
@@ -185,7 +181,25 @@ struct CommunityReducer: Reducer {
                 return .none
 
             case .navigationBar(.myPostsTapped):
-                state.isMyPostPresented = true
+                guard let currentUserID = state.currentUserID else { return .none }
+                state.myPost = CommunityMyPostState(
+                    currentUserID: currentUserID,
+                    posts: state.posts,
+                    authorName: state.authorName ?? ""
+                )
+                return .none
+                
+            case .postTapped(let postID):
+                guard
+                    let currentUserID = state.currentUserID,
+                    let post = state.posts.first(where: { $0.id == postID })
+                else { return .none }
+                
+                state.detail = CommunityDetailState(
+                    post: post,
+                    currentUserID: currentUserID,
+                    authorName: state.authorName ?? ""
+                )
                 return .none
 
             case .navigationBar:
@@ -279,17 +293,33 @@ struct CommunityReducer: Reducer {
 
             // MARK: Presentation
 
-            case .myPostDismissed:
-                state.isMyPostPresented = false
+            case let .detail(.presented(.delegate(delegate))):
+                state.detail = nil
+                switch delegate {
+                case .postDeleted(let postID):
+                    state.posts.removeAll { $0.id == postID }
+                case .userBlocked(let userID):
+                    state.blockedUserIDs.insert(userID)
+                }
                 return .none
-
-            case .detailPresented:
-                state.isDetailPresented = true
+                
+            case .detail(.presented):
+                if let post = state.detail?.post {
+                    state.posts.replace(with: post)
+                }
                 return .none
-
-            case .detailDismissed:
-                state.isDetailPresented = false
+                
+            case .detail(.dismiss):
                 return .none
+                
+            case .myPost(.presented):
+                if let myPosts = state.myPost?.posts, myPosts != state.posts {
+                    state.posts = myPosts
+                }
+                return .none
+                
+            case .myPost(.dismiss):
+                return .send(.refreshBlockedUsers)
 
             // MARK: Create Post
 
@@ -375,28 +405,6 @@ struct CommunityReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
 
-            // MARK: Post State
-
-            case .myPostsUpdated(let posts):
-                state.posts = posts
-                return .none
-
-            case .postStateUpdated(let post):
-                if let index = state.posts.firstIndex(
-                    where: { $0.id == post.id }
-                ) {
-                    state.posts[index] = post
-                }
-
-                return .none
-
-            case .postDeleted(let postID):
-                state.posts.removeAll {
-                    $0.id == postID
-                }
-
-                return .none
-                
             case .blockedUserIDsLoaded(let ids):
                 state.blockedUserIDs = ids
                 return .none
@@ -415,6 +423,33 @@ struct CommunityReducer: Reducer {
         }
         .ifLet(\.$write, action: \.write) {
             CommunityWriteReducer()
+        }
+        .ifLet(\.$detail, action: \.detail) {
+            CommunityDetailReducer()
+        }
+        .ifLet(\.$myPost, action: \.myPost) {
+            CommunityMyPostReducer()
+        }
+    }
+}
+
+// MARK: - Effects
+
+private extension CommunityReducer {
+    
+    func fetchPosts(userID: String) -> Effect<CommunityAction> {
+        .run { send in
+            async let postsResult = communityRepository.fetchPosts(userID)
+            async let blockedResult = communityRepository.fetchBlockedUserIDs(userID)
+            
+            do {
+                let posts = try await postsResult
+                let blockedIDs = try await blockedResult
+                await send(.postsResponse(.success(posts)))
+                await send(.blockedUserIDsLoaded(blockedIDs))
+            } catch {
+                await send(.postsResponse(.failure(error)))
+            }
         }
     }
 }

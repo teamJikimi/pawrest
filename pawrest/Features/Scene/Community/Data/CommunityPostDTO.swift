@@ -101,7 +101,8 @@ extension CommunityPostDTO {
             imageURLs: imageURLs,
             likeCount: likeCount,
             isLiked: false,
-            comments: []
+            comments: [],
+            commentCount: commentCount
         )
     }
 }

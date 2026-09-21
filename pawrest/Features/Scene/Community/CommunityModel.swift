@@ -66,10 +66,7 @@ struct Post: Equatable, Identifiable {
     var likeCount: Int
     var isLiked: Bool
     var comments: [Comment]
-
-    var commentCount: Int {
-        comments.reduce(0) { $0 + 1 + $1.replies.count }
-    }
+    var commentCount: Int
 
     init(
         id: String = UUID().uuidString,
@@ -80,7 +77,8 @@ struct Post: Equatable, Identifiable {
         imageURLs: [String],
         likeCount: Int,
         isLiked: Bool,
-        comments: [Comment]
+        comments: [Comment],
+        commentCount: Int = 0
     ) {
         self.id = id
         self.author = author
@@ -91,5 +89,17 @@ struct Post: Equatable, Identifiable {
         self.likeCount = likeCount
         self.isLiked = isLiked
         self.comments = comments
+        self.commentCount = commentCount
+    }
+}
+
+// MARK: - Post Array
+
+extension Array where Element == Post {
+    mutating func replace(with post: Post) {
+        guard let index = firstIndex(where: { $0.id == post.id }),
+              self[index] != post
+        else { return }
+        self[index] = post
     }
 }

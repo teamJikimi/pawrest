@@ -70,6 +70,11 @@ struct CommunityRepository {
         _ postID: String,
         _ commentID: UUID
     ) async throws -> Void
+    
+    var fetchCommentedPostIDs: @Sendable (
+        _ postIDs: [String],
+        _ userID: String
+    ) async throws -> Set<String>
 
     var updateComment: @Sendable (
         _ postID: String,
@@ -239,30 +244,6 @@ extension CommunityRepository: DependencyKey {
             fetchComments: { postID in
                 try await service.fetchComments(postID: postID)
             },
-            
-//            fetchComments: { postID in
-//                let dtos = try await service.fetchComments(
-//                    postID: postID
-//                )
-//
-//                let topLevelDTOs = dtos.filter {
-//                    $0.parentCommentID == nil
-//                }
-//
-//                return topLevelDTOs.map { parentDTO in
-//                    let replies = dtos
-//                        .filter {
-//                            $0.parentCommentID == parentDTO.id
-//                        }
-//                        .map {
-//                            $0.toDomain()
-//                        }
-//
-//                    return parentDTO.toDomain(
-//                        replies: replies
-//                    )
-//                }
-//            },
 
             createComment: {
                 postID,
@@ -287,6 +268,24 @@ extension CommunityRepository: DependencyKey {
                     postID: postID,
                     commentID: commentID
                 )
+            },
+            
+            fetchCommentedPostIDs: { postIDs, userID in
+                try await withThrowingTaskGroup(of: String?.self) { group in
+                    for postID in postIDs {
+                        group.addTask {
+                            try await service.hasComment(postID: postID, authorID: userID)
+                                ? postID
+                                : nil
+                        }
+                    }
+                    
+                    var result: Set<String> = []
+                    for try await postID in group {
+                        if let postID { result.insert(postID) }
+                    }
+                    return result
+                }
             },
 
             updateComment: { postID, commentID, content in

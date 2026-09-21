@@ -267,33 +267,36 @@ final class CommunityFirestoreService {
             .collection("posts")
             .document(postID)
         
-        let commentRef = postRef
-            .collection("comments")
-            .document(commentID.uuidString)
+        let commentsRef = postRef.collection("comments")
         
-        try await firestore.runTransaction { transaction, errorPointer in
-            do {
-                let postSnapshot = try transaction.getDocument(postRef)
-                
-                let currentCommentCount =
-                postSnapshot.data()?["commentCount"] as? Int ?? 0
-                
-                transaction.deleteDocument(commentRef)
-                
-                transaction.updateData(
-                    [
-                        "commentCount": max(0, currentCommentCount - 1)
-                    ],
-                    forDocument: postRef
-                )
-                
-                return nil
-                
-            } catch {
-                errorPointer?.pointee = error as NSError
-                return nil
-            }
-        }
+        let repliesSnapshot = try await commentsRef
+            .whereField("parentCommentID", isEqualTo: commentID.uuidString)
+            .getDocuments()
+        
+        let batch = firestore.batch()
+        batch.deleteDocument(commentsRef.document(commentID.uuidString))
+        repliesSnapshot.documents.forEach { batch.deleteDocument($0.reference) }
+        batch.updateData(
+            ["commentCount": FieldValue.increment(Int64(-(1 + repliesSnapshot.count)))],
+            forDocument: postRef
+        )
+        
+        try await batch.commit()
+    }
+    
+    func hasComment( 
+        postID: String,
+        authorID: String
+    ) async throws -> Bool {
+        let snapshot = try await firestore
+            .collection("posts")
+            .document(postID)
+            .collection("comments")
+            .whereField("authorID", isEqualTo: authorID)
+            .limit(to: 1)
+            .getDocuments()
+        
+        return !snapshot.isEmpty
     }
     
     func updateComment(

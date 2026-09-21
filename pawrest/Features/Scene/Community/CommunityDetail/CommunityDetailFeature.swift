@@ -21,9 +21,6 @@ struct CommunityDetailState: Equatable {
     
     var replyingToCommentID: UUID? = nil
     
-    var shouldDismiss: Bool = false
-    
-    var isDeleted: Bool = false
     var errorMessage: String?
     
     @Presents var edit: CommunityWriteState?
@@ -77,6 +74,14 @@ enum CommunityDetailAction: Equatable {
     case postUpdateResponse(TaskResult<Post>)
     case reportResponse(TaskResult<Bool>)
     case blockResponse(blockedUserID: String, TaskResult<Bool>)
+    
+    case delegate(Delegate)
+    
+    @CasePathable
+    enum Delegate: Equatable {
+        case postDeleted(String)
+        case userBlocked(String)
+    }
 }
 
 // MARK: - Reducer
@@ -94,10 +99,6 @@ struct CommunityDetailReducer: Reducer {
             switch action {
                 
             // MARK: NavigationBar
-                
-            case .navigationBar(.leftButtonTapped):
-                state.shouldDismiss = true
-                return .none
                 
             case .navigationBar(.editTapped):
                 state.edit = CommunityWriteState(editingPost: state.post)
@@ -195,6 +196,7 @@ struct CommunityDetailReducer: Reducer {
 
             case .commentsFetched(.success(let comments)):
                 state.post.comments = comments
+                state.post.commentCount = comments.reduce(0) { $0 + 1 + $1.replies.count }
                 return .none
 
             case .commentsFetched(.failure):
@@ -296,7 +298,7 @@ struct CommunityDetailReducer: Reducer {
                     }))
                 }
                 
-            case .edit: // ✅
+            case .edit:
                 return .none
                 
             // MARK: Responses
@@ -308,6 +310,7 @@ struct CommunityDetailReducer: Reducer {
                 } else {
                     state.post.comments.append(comment)
                 }
+                state.post.commentCount += 1
                 return .none
                 
             case .commentCreationResponse(_, .failure(let error)):
@@ -316,13 +319,15 @@ struct CommunityDetailReducer: Reducer {
                 
             case .commentDeletionResponse(.success(let commentID)):
                 if let index = state.post.comments.firstIndex(where: { $0.id == commentID }) {
-                    state.post.comments.remove(at: index)
+                    let removed = state.post.comments.remove(at: index)
+                    state.post.commentCount = max(0, state.post.commentCount - 1 - removed.replies.count)
                     return .none
                 }
                 for parentIndex in state.post.comments.indices {
                     if let replyIndex = state.post.comments[parentIndex].replies
                         .firstIndex(where: { $0.id == commentID }) {
                         state.post.comments[parentIndex].replies.remove(at: replyIndex)
+                        state.post.commentCount = max(0, state.post.commentCount - 1)
                         break
                     }
                 }
@@ -332,10 +337,8 @@ struct CommunityDetailReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
                 
-            case .postDeletionResponse(.success):
-                state.isDeleted = true
-                state.shouldDismiss = true
-                return .none
+            case .postDeletionResponse(.success(let postID)):
+                return .send(.delegate(.postDeleted(postID)))
                 
             case .postDeletionResponse(.failure(let error)):
                 state.errorMessage = error.localizedDescription
@@ -356,12 +359,14 @@ struct CommunityDetailReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
                 
-            case .blockResponse(_, .success):
-                state.shouldDismiss = true
-                return .none
+            case .blockResponse(let blockedUserID, .success):
+                return .send(.delegate(.userBlocked(blockedUserID)))
                 
             case .blockResponse(_, .failure(let error)):
                 state.errorMessage = error.localizedDescription
+                return .none
+                
+            case .delegate:
                 return .none
             }
         }
