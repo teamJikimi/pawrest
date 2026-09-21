@@ -67,27 +67,9 @@ struct CommunityView: View {
             }
         }
         .navigationDestination(
-            isPresented: Binding(
-                get: { store.isWritePostPresented },
-                set: { if !$0 { store.send(.writePostDismissed) } }
-            )
-        ) {
-            CommunityWriteView(
-                store: Store(
-                    initialState: CommunityWriteState(),
-                    reducer: { CommunityWriteReducer() }
-                ),
-                onSave: { title, content, images, _ in
-                    let imageDatas = images.compactMap {
-                        $0.resizedJPEGData()
-                    }
-                    store.send(.newPostCreated(
-                        title: title,
-                        content: content,
-                        imageDatas: imageDatas
-                    ))
-                }
-            )
+            item: $store.scope(state: \.write, action: \.write)
+        ) { writeStore in
+            CommunityWriteView(store: writeStore)
         }
     }
 }

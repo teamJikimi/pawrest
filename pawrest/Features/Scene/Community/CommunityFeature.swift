@@ -32,7 +32,7 @@ struct CommunityState: Equatable {
     var isSortMenuOpen: Bool = false
 
     var isMyPostPresented: Bool = false
-    var isWritePostPresented: Bool = false
+    @Presents var write: CommunityWriteState?
     var isDetailPresented: Bool = false
 
     var posts: [Post] = []
@@ -99,15 +99,10 @@ enum CommunityAction: Equatable {
     )
 
     case myPostDismissed
-    case writePostDismissed
     case detailPresented
     case detailDismissed
 
-    case newPostCreated(
-        title: String,
-        content: String,
-        imageDatas: [Data]
-    )
+    case write(PresentationAction<CommunityWriteAction>)
 
     case myPostsUpdated(posts: [Post])
     case postStateUpdated(Post)
@@ -186,7 +181,7 @@ struct CommunityReducer: Reducer {
             // MARK: Navigation
 
             case .navigationBar(.writePostTapped):
-                state.isWritePostPresented = true
+                state.write = CommunityWriteState()
                 return .none
 
             case .navigationBar(.myPostsTapped):
@@ -288,10 +283,6 @@ struct CommunityReducer: Reducer {
                 state.isMyPostPresented = false
                 return .none
 
-            case .writePostDismissed:
-                state.isWritePostPresented = false
-                return .none
-
             case .detailPresented:
                 state.isDetailPresented = true
                 return .none
@@ -302,7 +293,9 @@ struct CommunityReducer: Reducer {
 
             // MARK: Create Post
 
-            case .newPostCreated(let title, let content, let imageDatas):
+            case let .write(.presented(.delegate(.save(title, content, images)))):
+                state.write = nil
+                
                 guard let currentUserID = state.currentUserID else {
                     state.errorMessage = "로그인이 필요합니다."
                     return .none
@@ -321,6 +314,10 @@ struct CommunityReducer: Reducer {
                     return .none
                 }
                 
+                let imageDatas = images.compactMap { item -> Data? in
+                    guard case .local(let image) = item.source else { return nil }
+                    return image.resizedJPEGData()
+                }
                 let postID = UUID().uuidString
                 
                 let optimisticPost = Post(
@@ -339,7 +336,6 @@ struct CommunityReducer: Reducer {
                     comments: []
                 )
                 state.posts.insert(optimisticPost, at: 0)
-                state.isWritePostPresented = false
                 
                 return .run { send in
                     await send(
@@ -363,6 +359,9 @@ struct CommunityReducer: Reducer {
                         )
                     )
                 }
+
+            case .write:
+                return .none
 
             case .postCreationResponse(.success(let post)):
                 state.isLoading = false
@@ -413,6 +412,9 @@ struct CommunityReducer: Reducer {
                 }
                 
             }
+        }
+        .ifLet(\.$write, action: \.write) {
+            CommunityWriteReducer()
         }
     }
 }

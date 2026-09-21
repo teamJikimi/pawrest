@@ -26,7 +26,7 @@ struct CommunityDetailState: Equatable {
     var isDeleted: Bool = false
     var errorMessage: String?
     
-    var isEditPresented: Bool = false
+    @Presents var edit: CommunityWriteState?
     
     var inputPlaceholder: String {
         replyingToCommentID == nil
@@ -68,8 +68,7 @@ enum CommunityDetailAction: Equatable {
     case sendTapped
     case outsideTapped
     
-    case editDismissed
-    case postEdited(title: String, content: String, imageDatas: [Data], isImageChanged: Bool)
+    case edit(PresentationAction<CommunityWriteAction>)
     
     case likeResponse(previousIsLiked: Bool, success: Bool)
     case commentCreationResponse(parentCommentID: UUID?, TaskResult<Comment>)
@@ -101,7 +100,7 @@ struct CommunityDetailReducer: Reducer {
                 return .none
                 
             case .navigationBar(.editTapped):
-                state.isEditPresented = true
+                state.edit = CommunityWriteState(editingPost: state.post)
                 return .none
                 
             case .navigationBar(.deleteTapped):
@@ -275,11 +274,9 @@ struct CommunityDetailReducer: Reducer {
                 
             // MARK: Edit
                 
-            case .editDismissed:
-                state.isEditPresented = false
-                return .none
+            case let .edit(.presented(.delegate(.save(title, content, images)))):
+                state.edit = nil
                 
-            case .postEdited(let title, let content, let imageDatas, let isImageChanged):
                 let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
                 let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
                 
@@ -291,12 +288,16 @@ struct CommunityDetailReducer: Reducer {
                 var updatedPost = state.post
                 updatedPost.title = trimmedTitle
                 updatedPost.content = trimmedContent
+                let payloads = images.compactMap(\.uploadPayload)
                 
                 return .run { send in
                     await send(.postUpdateResponse(TaskResult {
-                        try await communityRepository.updatePost(updatedPost, imageDatas, isImageChanged)
+                        try await communityRepository.updatePost(updatedPost, payloads)
                     }))
                 }
+                
+            case .edit: // ✅
+                return .none
                 
             // MARK: Responses
                 
@@ -342,7 +343,6 @@ struct CommunityDetailReducer: Reducer {
                 
             case .postUpdateResponse(.success(let updatedPost)):
                 state.post = updatedPost
-                state.isEditPresented = false
                 return .none
                 
             case .postUpdateResponse(.failure(let error)):
@@ -364,6 +364,9 @@ struct CommunityDetailReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
             }
+        }
+        .ifLet(\.$edit, action: \.edit) {
+            CommunityWriteReducer()
         }
     }
 }

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UIKit
 import ComposableArchitecture
 
 struct CommunityDetailView: View {
@@ -55,17 +54,11 @@ struct CommunityDetailView: View {
             }
         
             .navigationDestination(
-                isPresented: Binding(
-                    get: { store.isEditPresented },
-                    set: { isPresented in
-                        if !isPresented {
-                            store.send(.editDismissed)
-                        }
-                    }
-                )
-            ) {
-                editView
+                item: $store.scope(state: \.edit, action: \.edit)
+            ) { editStore in
+                CommunityWriteView(store: editStore)
             }
+        
             .hideTabBar()
     }
 }
@@ -220,32 +213,5 @@ private extension CommunityDetailView {
             placeholder: store.inputPlaceholder,
             isFocused: $isInputFocused
         )
-    }
-}
-
-//MARK: - EditView
-
-private extension CommunityDetailView {
-    
-    var editView: some View {
-        CommunityWriteView(
-            store: Store(
-                initialState: CommunityWriteState(editingPost: store.post),
-                reducer: { CommunityWriteReducer() }
-            ),
-            onSave: editSave
-        )
-    }
-    
-    func editSave(title: String, content: String, images: [UIImage], isImageChanged: Bool) {
-        let imageDatas = isImageChanged
-            ? images.compactMap { $0.resizedJPEGData() }
-            : []
-        store.send(.postEdited(
-            title: title,
-            content: content,
-            imageDatas: imageDatas,
-            isImageChanged: isImageChanged
-        ))
     }
 }
