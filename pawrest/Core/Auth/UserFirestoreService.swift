@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 import FirebaseStorage
@@ -94,8 +95,9 @@ final class UserFirestoreService {
 
     // MARK: - 이미지 업로드
     private func uploadImage(data: Data, path: String) async throws -> String {
+        let resizedData = UIImage(data: data)?.resizedJPEGData(maxDimension: 512) ?? data
         let ref = Storage.storage().reference().child(path)
-        _ = try await ref.putDataAsync(data)
+        _ = try await ref.putDataAsync(resizedData)
         return try await ref.downloadURL().absoluteString
     }
 }

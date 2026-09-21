@@ -21,7 +21,7 @@ final class UserProfileRemoteService {
     private let storageService: FirebaseStorageServiceProtocol
     
     private let inQueryLimit = 30
-    private let profileImageMaxDimension: CGFloat = 1024
+    private let profileImageMaxDimension: CGFloat = 512
     
     init(
         firestore: Firestore = Firestore.firestore(),

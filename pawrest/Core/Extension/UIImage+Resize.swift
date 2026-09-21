@@ -9,8 +9,8 @@ import UIKit
 
 extension UIImage {
     func resizedJPEGData(
-        maxDimension: CGFloat = 2048,
-        compressionQuality: CGFloat = 0.8
+        maxDimension: CGFloat = 1080,
+        compressionQuality: CGFloat = 0.5
     ) -> Data? {
         let longSide = max(size.width, size.height)
         

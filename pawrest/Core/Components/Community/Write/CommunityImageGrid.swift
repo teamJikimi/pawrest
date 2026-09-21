@@ -88,7 +88,7 @@ extension CommunityImageGrid {
         private var imageContent: some View {
             switch item.source {
             case .remote(let urlString):
-                CachedAsyncImage(url: URL(string: urlString), contentMode: .fill) {
+                CachedAsyncImage(url: URL(string: urlString), contentMode: .fill, maxPixelSize: 400) {
                     Rectangle()
                         .fill(.gray10)
                 }
