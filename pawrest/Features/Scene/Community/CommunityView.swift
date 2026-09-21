@@ -77,7 +77,7 @@ struct CommunityView: View {
                     initialState: CommunityWriteState(),
                     reducer: { CommunityWriteReducer() }
                 ),
-                onSave: { title, content, images in
+                onSave: { title, content, images, _ in
                     let imageDatas = images.compactMap {
                         $0.resizedJPEGData()
                     }

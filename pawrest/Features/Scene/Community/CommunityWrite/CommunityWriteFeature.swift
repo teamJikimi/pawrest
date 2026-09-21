@@ -28,6 +28,8 @@ struct CommunityWriteState: Equatable {
     
     var editingPostID: String? = nil
     var existingImageURLs: [String] = []
+    var isImageChanged: Bool = false
+    var hasLoadedExistingImages: Bool = false
     
     var isEditMode: Bool { editingPostID != nil }
     
@@ -87,6 +89,12 @@ struct CommunityWriteReducer: Reducer {
             case .navigationBar:
                 return .none
                 
+            case .imageGrid(.imagesChanged):
+                if state.hasLoadedExistingImages {
+                    state.isImageChanged = true
+                }
+                return .none
+
             case .imageGrid:
                 return .none
                 
@@ -99,26 +107,43 @@ struct CommunityWriteReducer: Reducer {
                 return .none
                 
             case .saveButtonTapped:
-                state.shouldDismiss = true
                 return .none
                 
             case .loadExistingImages:
                 let urls = state.existingImageURLs
                 guard !urls.isEmpty else { return .none }
                 return .run { send in
-                    var images: [UIImage] = []
-                    for urlString in urls {
-                        guard let url = URL(string: urlString),
-                              let data = try? Data(contentsOf: url),
-                              let image = UIImage(data: data)
-                        else { continue }
-                        images.append(image)
+                    let images: [UIImage] = await withTaskGroup(of: UIImage?.self) { group in
+                        for urlString in urls {
+                            group.addTask {
+                                guard let url = URL(string: urlString) else { return nil }
+                                
+                                if let cached = ImageCacheStore.shared.cache.object(forKey: url as NSURL) {
+                                    return cached
+                                }
+                                
+                                guard let (data, _) = try? await URLSession.shared.data(from: url),
+                                      let image = UIImage(data: data)
+                                else { return nil }
+                                
+                                ImageCacheStore.shared.cache.setObject(image, forKey: url as NSURL)
+                                return image
+                            }
+                        }
+                        
+                        var results: [UIImage] = []
+                        for await image in group {
+                            if let image { results.append(image) }
+                        }
+                        return results
                     }
+                    
                     await send(.existingImagesLoaded(images))
                 }
                 
             case .existingImagesLoaded(let images):
                 state.imageGrid.selectedImages = images
+                state.hasLoadedExistingImages = true
                 return .none
             }
         }

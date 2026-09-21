@@ -321,14 +321,30 @@ struct CommunityReducer: Reducer {
                     return .none
                 }
                 
-                state.isLoading = true
+                let postID = UUID().uuidString
+                
+                let optimisticPost = Post(
+                    id: postID,
+                    author: Author(
+                        id: currentUserID,
+                        name: authorName,
+                        profileImageURL: nil
+                    ),
+                    title: trimmedTitle,
+                    content: trimmedContent,
+                    createdAt: Date(),
+                    imageURLs: [],
+                    likeCount: 0,
+                    isLiked: false,
+                    comments: []
+                )
+                state.posts.insert(optimisticPost, at: 0)
+                state.isWritePostPresented = false
                 
                 return .run { send in
                     await send(
                         .postCreationResponse(
                             TaskResult {
-                                let postID = UUID().uuidString
-                                
                                 let imageURLs = try await communityRepository.uploadImages(
                                     currentUserID,
                                     postID,
@@ -350,8 +366,9 @@ struct CommunityReducer: Reducer {
 
             case .postCreationResponse(.success(let post)):
                 state.isLoading = false
-                state.posts.insert(post, at: 0)
-                state.isWritePostPresented = false
+                if let index = state.posts.firstIndex(where: { $0.id == post.id }) {
+                    state.posts[index] = post
+                }
                 return .none
 
             case .postCreationResponse(.failure(let error)):

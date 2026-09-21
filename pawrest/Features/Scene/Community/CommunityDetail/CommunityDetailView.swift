@@ -49,6 +49,11 @@ struct CommunityDetailView: View {
                     isInputFocused = false
                 }
             }
+    
+            .onAppear {
+                store.send(.onAppear)
+            }
+        
             .navigationDestination(
                 isPresented: Binding(
                     get: { store.isEditPresented },
@@ -127,11 +132,7 @@ private extension CommunityDetailView {
     var imageSection: some View {
         VStack(spacing: 12) {
             ForEach(store.post.imageURLs, id: \.self) { url in
-                AsyncImage(url: URL(string: url)) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                } placeholder: {
+                CachedAsyncImage(url: URL(string: url), contentMode: .fit) {
                     Rectangle()
                         .fill(.gray10)
                         .aspectRatio(1, contentMode: .fit)
@@ -236,14 +237,15 @@ private extension CommunityDetailView {
         )
     }
     
-    func editSave(title: String, content: String, images: [UIImage]) {
-        let imageDatas = images.compactMap {
-            $0.resizedJPEGData()
-        }
+    func editSave(title: String, content: String, images: [UIImage], isImageChanged: Bool) {
+        let imageDatas = isImageChanged
+            ? images.compactMap { $0.resizedJPEGData() }
+            : []
         store.send(.postEdited(
             title: title,
             content: content,
-            imageDatas: imageDatas
+            imageDatas: imageDatas,
+            isImageChanged: isImageChanged
         ))
     }
 }

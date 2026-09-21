@@ -66,17 +66,18 @@ public struct ImagePickerGrid: View {
     
     private func loadImages(from items: [PhotosPickerItem]) {
         Task {
-            var loadedImages: [UIImage] = []
+            var newImages: [UIImage] = []
             
             for item in items {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
-                    loadedImages.append(uiImage)
+                    newImages.append(uiImage)
                 }
             }
             
             await MainActor.run {
-                onImagesChanged(loadedImages)
+                let combined = Array((selectedImages + newImages).prefix(maxCount))
+                onImagesChanged(combined)
             }
         }
     }

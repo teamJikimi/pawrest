@@ -64,16 +64,11 @@ private extension CommunityAuthorHeader {
     var profileImage: some View {
         if let urlString = author.profileImageURL,
            let url = URL(string: urlString) {
-            AsyncImage(url: url) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
+            CachedAsyncImage(url: url, contentMode: .fill) {
                 defaultProfileImage
             }
             .frame(width: profileSize, height: profileSize)
             .clipShape(Circle())
-            
         } else {
             defaultProfileImage
         }

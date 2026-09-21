@@ -61,12 +61,15 @@ enum CommunityDetailAction: Equatable {
     case likeTapped
     case commentAction(commentID: UUID, action: CommunityCommentRow.Action)
     
+    case onAppear
+    case commentsFetched(TaskResult<[Comment]>)
+    
     case textChanged(String)
     case sendTapped
     case outsideTapped
     
     case editDismissed
-    case postEdited(title: String, content: String, imageDatas: [Data])
+    case postEdited(title: String, content: String, imageDatas: [Data], isImageChanged: Bool)
     
     case likeResponse(previousIsLiked: Bool, success: Bool)
     case commentCreationResponse(parentCommentID: UUID?, TaskResult<Comment>)
@@ -163,6 +166,41 @@ struct CommunityDetailReducer: Reducer {
                 state.post.likeCount += previousIsLiked ? 1 : -1
                 return .none
                 
+            case .onAppear:
+                let postID = state.post.id
+                
+                return .run { send in
+                    await send(.commentsFetched(TaskResult {
+                        let commentDTOs = try await communityRepository.fetchComments(postID)
+                        
+                        let authorIDs = Set(commentDTOs.map { $0.authorID })
+                        let profileService = UserProfileRemoteService()
+                        let profiles = try await profileService.fetchProfiles(
+                            userIDs: Array(authorIDs)
+                        )
+                        
+                        let topLevel = commentDTOs.filter { $0.parentCommentID == nil }
+                        
+                        return topLevel.map { parentDTO in
+                            let replies = commentDTOs
+                                .filter { $0.parentCommentID == parentDTO.id }
+                                .map { $0.toDomain(profile: profiles[$0.authorID]) }
+                            
+                            return parentDTO.toDomain(
+                                replies: replies,
+                                profile: profiles[parentDTO.authorID]
+                            )
+                        }
+                    }))
+                }
+
+            case .commentsFetched(.success(let comments)):
+                state.post.comments = comments
+                return .none
+
+            case .commentsFetched(.failure):
+                return .none
+                
             // MARK: Comment Actions
                 
             case .commentAction(let id, .replyTapped):
@@ -241,7 +279,7 @@ struct CommunityDetailReducer: Reducer {
                 state.isEditPresented = false
                 return .none
                 
-            case .postEdited(let title, let content, let imageDatas):
+            case .postEdited(let title, let content, let imageDatas, let isImageChanged):
                 let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
                 let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
                 
@@ -256,7 +294,7 @@ struct CommunityDetailReducer: Reducer {
                 
                 return .run { send in
                     await send(.postUpdateResponse(TaskResult {
-                        try await communityRepository.updatePost(updatedPost, imageDatas)
+                        try await communityRepository.updatePost(updatedPost, imageDatas, isImageChanged)
                     }))
                 }
                 

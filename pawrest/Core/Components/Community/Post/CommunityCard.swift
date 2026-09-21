@@ -84,15 +84,11 @@ private extension CommunityCard {
         Color.clear
             .aspectRatio(1, contentMode: .fit)
             .overlay {
-                AsyncImage(url: URL(string: post.imageURLs[0])) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                } placeholder: {
+                CachedAsyncImage(url: URL(string: post.imageURLs[0]), contentMode: .fill) {
                     Rectangle()
                         .fill(.gray10)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(alignment: .topTrailing) {

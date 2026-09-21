@@ -17,7 +17,7 @@ struct CommunityWriteView: View {
     @FocusState private var isFocused: Bool
     @Environment(\.dismiss) private var dismiss
     
-    var onSave: ((String, String, [UIImage]) -> Void)? = nil
+    var onSave: ((String, String, [UIImage], Bool) -> Void)? = nil
     
     //MARK: - Body
     
@@ -124,8 +124,8 @@ private extension CommunityWriteView {
     
     var saveButton: some View {
         Button {
-            onSave?(store.title, store.content, store.imageGrid.selectedImages)
-            store.send(.saveButtonTapped)
+            onSave?(store.title, store.content, store.imageGrid.selectedImages, store.isImageChanged)
+            dismiss()
         } label: {
             Text("저장하기")
                 .typography(.button)
