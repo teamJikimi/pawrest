@@ -6,16 +6,11 @@
 //
 
 import SwiftUI
-import UIKit
 import ComposableArchitecture
 
 struct CommunityDetailView: View {
     @Bindable var store: StoreOf<CommunityDetailReducer>
     @FocusState private var isInputFocused: Bool
-    @Environment(\.dismiss) private var dismiss
-    
-    var onPostStateUpdated: ((Post) -> Void)? = nil
-    var onPostDeleted: ((String) -> Void)? = nil
     
     var body: some View {
         contentView
@@ -33,35 +28,20 @@ struct CommunityDetailView: View {
                     isInputFocused = true
                 }
             }
-            .onChange(of: store.shouldDismiss) { _, shouldDismiss in
-                if shouldDismiss {
-                    if store.isDeleted {
-                        onPostDeleted?(store.post.id) }
-                    dismiss()
-                }
-            }
-            .onChange(of: store.post) { _, newPost in
-                onPostStateUpdated?(newPost)
-            }
-        
             .onChange(of: store.post.commentCount) { oldCount, newCount in
                 if newCount > oldCount {
                     isInputFocused = false
                 }
             }
-            .sheet(
-                isPresented: Binding(
-                    get: { store.isEditPresented },
-                    set: { isPresented in
-                        if !isPresented {
-                            store.send(.editDismissed)
-                        }
-                    }
-                )
-            ) {
-                NavigationStack {
-                    editView
-                }
+    
+            .onAppear {
+                store.send(.onAppear)
+            }
+        
+            .navigationDestination(
+                item: $store.scope(state: \.edit, action: \.edit)
+            ) { editStore in
+                CommunityWriteView(store: editStore)
             }
             .hideTabBar()
     }
@@ -129,11 +109,7 @@ private extension CommunityDetailView {
     var imageSection: some View {
         VStack(spacing: 12) {
             ForEach(store.post.imageURLs, id: \.self) { url in
-                AsyncImage(url: URL(string: url)) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                } placeholder: {
+                CachedAsyncImage(url: URL(string: url), contentMode: .fit) {
                     Rectangle()
                         .fill(.gray10)
                         .aspectRatio(1, contentMode: .fit)
@@ -221,31 +197,5 @@ private extension CommunityDetailView {
             placeholder: store.inputPlaceholder,
             isFocused: $isInputFocused
         )
-    }
-}
-
-//MARK: - EditView
-
-private extension CommunityDetailView {
-    
-    var editView: some View {
-        CommunityWriteView(
-            store: Store(
-                initialState: CommunityWriteState(editingPost: store.post),
-                reducer: { CommunityWriteReducer() }
-            ),
-            onSave: editSave
-        )
-    }
-    
-    func editSave(title: String, content: String, images: [UIImage]) {
-        let imageDatas = images.compactMap {
-            $0.jpegData(compressionQuality: 0.8)
-        }
-        store.send(.postEdited(
-            title: title,
-            content: content,
-            imageDatas: imageDatas
-        ))
     }
 }

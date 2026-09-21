@@ -9,20 +9,19 @@ import Foundation
 import FirebaseFirestore
 
 struct CommunityPostDTO {
-
+    
     let id: String
-
+    
     let authorID: String
     let authorName: String
-    let authorProfileImageURL: String?
-
+    
     let title: String
     let content: String
-
+    
     let createdAt: Date
-
+    
     let imageURLs: [String]
-
+    
     let likeCount: Int
     let commentCount: Int
     
@@ -30,7 +29,6 @@ struct CommunityPostDTO {
         id: String,
         authorID: String,
         authorName: String,
-        authorProfileImageURL: String?,
         title: String,
         content: String,
         createdAt: Date,
@@ -41,7 +39,6 @@ struct CommunityPostDTO {
         self.id = id
         self.authorID = authorID
         self.authorName = authorName
-        self.authorProfileImageURL = authorProfileImageURL
         self.title = title
         self.content = content
         self.createdAt = createdAt
@@ -54,10 +51,10 @@ struct CommunityPostDTO {
 // MARK: - Firestore Mapping
 
 extension CommunityPostDTO {
-
+    
     init?(document: QueryDocumentSnapshot) {
         let data = document.data()
-
+        
         guard
             let authorID = data["authorID"] as? String,
             let authorName = data["authorName"] as? String,
@@ -66,21 +63,20 @@ extension CommunityPostDTO {
         else {
             return nil
         }
-
+        
         self.id = document.documentID
         self.authorID = authorID
         self.authorName = authorName
-        self.authorProfileImageURL = data["authorProfileImageURL"] as? String
-
+        
         self.title = title
         self.content = content
-
+        
         if let timestamp = data["createdAt"] as? Timestamp {
             self.createdAt = timestamp.dateValue()
         } else {
             self.createdAt = Date()
         }
-
+        
         self.imageURLs = data["imageURLs"] as? [String] ?? []
         self.likeCount = data["likeCount"] as? Int ?? 0
         self.commentCount = data["commentCount"] as? Int ?? 0
@@ -90,14 +86,14 @@ extension CommunityPostDTO {
 // MARK: - Domain Mapping
 
 extension CommunityPostDTO {
-
-    func toDomain() -> Post {
+    
+    func toDomain(profile: RemoteUserProfile? = nil) -> Post {
         Post(
             id: id,
             author: Author(
                 id: authorID,
-                name: authorName,
-                profileImageURL: authorProfileImageURL
+                name: profile?.nickname ?? authorName,
+                profileImageURL: profile?.profileImageURL
             ),
             title: title,
             content: content,
@@ -105,7 +101,8 @@ extension CommunityPostDTO {
             imageURLs: imageURLs,
             likeCount: likeCount,
             isLiked: false,
-            comments: []
+            comments: [],
+            commentCount: commentCount
         )
     }
 }

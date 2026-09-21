@@ -17,22 +17,26 @@ public struct ImageUploadEntity: Identifiable, Sendable {
         self.data = data
         self.fileExtension = fileExtension
     }
+    
+    public var contentType: String {
+        fileExtension == "jpg" ? "image/jpeg" : "image/\(fileExtension)"
+    }
 }
 
 // Firebase Storage 경로 정의
 public enum StoragePath {
     case journal(userId: String, imageId: String)
-    case profile(userId: String)
-    case community(postID: String, imageID: String)
+    case profile(userId: String, imageId: String)
+    case community(userId: String, postID: String, imageID: String)
     
     public var path: String {
         switch self {
         case .journal(let userId, let imageId):
             return "users/\(userId)/journals/\(imageId)"
-        case .profile(let userId):
-            return "users/\(userId)/profile.jpg"
-        case .community(let postID, let imageID):
-                    return "community/\(postID)/\(imageID)"
+        case .profile(let userId, let imageId):
+            return "users/\(userId)/profile/\(imageId)"
+        case .community(let userId, let postID, let imageID):
+            return "community/\(userId)/\(postID)/\(imageID)"
         }
     }
 }

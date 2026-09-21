@@ -5,6 +5,7 @@
 
 import Foundation
 import ComposableArchitecture
+import FirebaseAuth
 
 // MARK: - Tab
 
@@ -224,6 +225,8 @@ struct ProfileEditFeature: Reducer {
                 let petImage = state.petProfileImage
                 let birthday = state.birthday
                 let deathDay = state.deathDay
+                let isImageChanged = state.userProfileImage != state.originalUserProfileImage
+                
                 state.showSavedToast = true
                 state.originalNickname = nickname
                 state.originalUserProfileImage = userImage
@@ -231,11 +234,18 @@ struct ProfileEditFeature: Reducer {
                 state.originalPetProfileImage = petImage
                 state.originalBirthday = birthday
                 state.originalDeathDay = deathDay
+                
                 return .run { _ in
-                    try? await UserFirestoreService.shared.updateUserProfile(
+                    guard let uid = Auth.auth().currentUser?.uid else { return }
+                    
+                    let profileService = UserProfileRemoteService()
+                    try? await profileService.updateProfile(
+                        userID: uid,
                         nickname: nickname,
-                        profileImageData: userImage
+                        imageData: userImage,
+                        isImageChanged: isImageChanged
                     )
+                    
                     try? await UserFirestoreService.shared.savePetProfile(
                         name: petName,
                         profileImageData: petImage,
