@@ -49,7 +49,7 @@ struct CommunityDetailView: View {
                     isInputFocused = false
                 }
             }
-            .sheet(
+            .navigationDestination(
                 isPresented: Binding(
                     get: { store.isEditPresented },
                     set: { isPresented in
@@ -59,9 +59,7 @@ struct CommunityDetailView: View {
                     }
                 )
             ) {
-                NavigationStack {
-                    editView
-                }
+                editView
             }
             .hideTabBar()
     }
