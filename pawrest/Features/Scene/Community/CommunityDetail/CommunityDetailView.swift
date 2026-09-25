@@ -13,6 +13,7 @@ struct CommunityDetailView: View {
     @Bindable var store: StoreOf<CommunityDetailReducer>
     @FocusState private var isInputFocused: Bool
     @Environment(\.dismiss) private var dismiss
+    @State private var openedMenuCommentID: UUID? = nil
     
     var onPostStateUpdated: ((Post) -> Void)? = nil
     var onPostDeleted: ((String) -> Void)? = nil
@@ -176,12 +177,11 @@ private extension CommunityDetailView {
             comment: parent,
             isReply: false,
             isMyComment: parent.author.id == store.currentUserID,
-            opensMenuUpward: isLastGroup && parent.replies.isEmpty,
+            openedMenuCommentID: $openedMenuCommentID,
             onAction: { action in
                 store.send(.commentAction(commentID: parent.id, action: action))
             }
-        )
-        .padding(.horizontal, 20)
+        )        .padding(.horizontal, 20)
         
         if !parent.replies.isEmpty {
             Color.clear.frame(height: 12)
@@ -195,7 +195,7 @@ private extension CommunityDetailView {
                     comment: reply,
                     isReply: true,
                     isMyComment: reply.author.id == store.currentUserID,
-                    opensMenuUpward: isLastGroup && rIdx == parent.replies.count - 1,
+                    openedMenuCommentID: $openedMenuCommentID,
                     onAction: { action in
                         store.send(.commentAction(commentID: reply.id, action: action))
                     }
