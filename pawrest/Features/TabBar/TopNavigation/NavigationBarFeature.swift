@@ -221,13 +221,20 @@ private struct EditMenuButtonWrapper: View {
     let onEdit: () -> Void
     let onDelete: () -> Void
     @State private var isMenuOpen = false
+    @State private var showDeleteAlert = false
 
     var body: some View {
         EditMenuButton(
             icon: .iconEllipsis,
             onEdit: onEdit,
-            onDelete: onDelete,
+            onDelete: { showDeleteAlert = true },
             isShowingMenu: $isMenuOpen
         )
+        .alert("삭제하시겠습니까?", isPresented: $showDeleteAlert) {
+            Button("취소", role: .cancel) {}
+            Button("확인") {
+                onDelete()
+            }
+        }
     }
 }
