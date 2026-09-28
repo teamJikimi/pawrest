@@ -142,10 +142,8 @@ struct NavigationBarView: View {
                     .frame(width: 30, height: 30)
             }
             .frame(width: 44, height: 44)
-            
         case .editMenu:
-            EditMenuButton(
-                icon: .iconEllipsis,
+            EditMenuButtonWrapper(
                 onEdit: { store.send(.editTapped) },
                 onDelete: { store.send(.deleteTapped) }
             )
@@ -216,5 +214,20 @@ extension View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
+    }
+}
+
+private struct EditMenuButtonWrapper: View {
+    let onEdit: () -> Void
+    let onDelete: () -> Void
+    @State private var isMenuOpen = false
+
+    var body: some View {
+        EditMenuButton(
+            icon: .iconEllipsis,
+            onEdit: onEdit,
+            onDelete: onDelete,
+            isShowingMenu: $isMenuOpen
+        )
     }
 }

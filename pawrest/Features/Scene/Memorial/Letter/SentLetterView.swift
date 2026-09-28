@@ -19,6 +19,7 @@ struct SentLetterView: View {
     @State private var isEditing = false
     @State private var editContent = ""
     @State private var now = Date()
+    @State private var isMenuOpen = false
 
     @Query private var petProfiles: [PetProfile]
     
@@ -67,10 +68,13 @@ struct SentLetterView: View {
                 icon: .iconEllipsis,
                 onEdit: { isEditing = true },
                 onDelete: {
+                    let letterId = letter.id.uuidString
                     modelContext.delete(letter)
                     try? modelContext.save()
+                    NotificationService.shared.cancelNotification(id: letterId)
                     dismiss()
-                }
+                },
+                isShowingMenu: $isMenuOpen 
             )
             Button {
                 dismiss()

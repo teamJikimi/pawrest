@@ -21,6 +21,7 @@ struct AlbumDetailCard: View {
 
     @State private var isTextVisible: Bool = false
     @State private var currentIndex: Int = 0
+    @State private var isMenuOpen: Bool = false
     
     var body: some View {
         ZStack {
@@ -108,7 +109,8 @@ extension AlbumDetailCard {
                             isTextVisible = false
                             onEdit()
                         },
-                        onDelete: onDelete
+                        onDelete: onDelete,
+                        isShowingMenu: $isMenuOpen
                     )
                     
                     Button {
@@ -119,7 +121,7 @@ extension AlbumDetailCard {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 24, height: 24)
-                            .foregroundStyle(.white)  // 변경
+                            .foregroundStyle(.white)
                     }
                 }
             }

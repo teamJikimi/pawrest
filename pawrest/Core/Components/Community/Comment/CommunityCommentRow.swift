@@ -9,8 +9,6 @@ import SwiftUI
 
 struct CommunityCommentRow: View {
     
-    //MARK: - Action
-    
     enum Action: Equatable {
         case replyTapped
         case editTapped
@@ -21,18 +19,15 @@ struct CommunityCommentRow: View {
         case blockTapped
     }
     
-    //MARK: - Properties
-    
     let comment: Comment
     var isReply: Bool = false
     var isMyComment: Bool = false
-    var opensMenuUpward: Bool = false
+    var openedMenuCommentID: Binding<UUID?> = .constant(nil)
     
     let onAction: (Action) -> Void
     
     @State private var isMenuOpen = false
-    
-    //MARK: - Body
+    @State private var isEditMenuShowing = false
     
     var body: some View {
         Group {
@@ -40,13 +35,15 @@ struct CommunityCommentRow: View {
             else { topLevelLayout }
         }
         .zIndex(isMenuOpen ? 1000 : 0)
+        .onChange(of: openedMenuCommentID.wrappedValue) { _, newID in
+            if let newID, newID != comment.id {
+                isEditMenuShowing = false
+            }
+        }
     }
 }
 
-//MARK: - Layouts
-
 private extension CommunityCommentRow {
-    
     
     var topLevelLayout: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -58,7 +55,6 @@ private extension CommunityCommentRow {
             commentContent
         }
     }
-    
     
     var replyLayout: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -81,8 +77,6 @@ private extension CommunityCommentRow {
     }
 }
 
-//MARK: - Sub views
-
 private extension CommunityCommentRow {
     
     var authorHeader: some View {
@@ -103,10 +97,7 @@ private extension CommunityCommentRow {
     }
 }
 
-//MARK: - Action Buttons
-
 private extension CommunityCommentRow {
-
     
     var actionButtons: some View {
         HStack(spacing: 0) {
@@ -146,17 +137,25 @@ private extension CommunityCommentRow {
                 size: .comment,
                 iconColor: .gray40,
                 showsEdit: false,
-                opensUpward: opensMenuUpward,
+                opensUpward: true,
                 onEdit: { onAction(.editTapped) },
                 onDelete: { onAction(.deleteTapped) },
-                onMenuVisibilityChanged: { isMenuOpen = $0 }
+                isShowingMenu: $isEditMenuShowing,
+                onMenuVisibilityChanged: { isOpen in
+                    isMenuOpen = isOpen
+                    if isOpen {
+                        openedMenuCommentID.wrappedValue = comment.id
+                    } else if openedMenuCommentID.wrappedValue == comment.id {
+                        openedMenuCommentID.wrappedValue = nil
+                    }
+                }
             )
         } else {
             ReportMenuButton(
                 icon: .iconReplyMore,
                 size: .comment,
                 iconColor: .gray40,
-                opensUpward: opensMenuUpward,
+                opensUpward: true,
                 onBoardSettings: { onAction(.reportBoardSettings) },
                 onReportAbuse: { onAction(.reportAbuse) },
                 onReportSpam: { onAction(.reportSpam) },
