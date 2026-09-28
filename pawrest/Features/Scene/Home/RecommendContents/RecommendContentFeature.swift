@@ -113,7 +113,7 @@ extension [RecommendedContentItem] {
                 introBody: "반려동물과의 이별 후 찾아오는 슬픔은 사람을 잃은 것과 다르지 않은 깊이를 가집니다. 이를 '펫로스 증후군'이라 부르며, 다음과 같은 반응들이 흔히 나타납니다.",
                 sections: [
                     ContentSection(
-                        icon: "bolt.fill",
+                        icon: "icon_recommend_bolt",
                         iconColor: .accent,
                         title: "주요 증상",
                         content: .bullets([
@@ -125,7 +125,7 @@ extension [RecommendedContentItem] {
                         ])
                     ),
                     ContentSection(
-                        icon: "plus",
+                        icon: "icon_recommend_plus",
                         iconColor: .pawPrimary,
                         title: "건강하게 대처하는 방법",
                         content: .numbered([
@@ -172,7 +172,7 @@ extension [RecommendedContentItem] {
                 introBody: "많은 보호자분들이 슬픔이 오래가는 것에 대해 스스로를 자책합니다. 하지만 애도에는 정해진 기간이 없습니다. 반려동물과 함께한 시간이 길고 깊었다면, 그만큼 애도의 시간도 충분히 필요합니다.",
                 sections: [
                     ContentSection(
-                        icon: "checkmark",
+                        icon: "icon_recommend_check",
                         iconColor: .pawPrimary,
                         title: "전문가가 강조하는 세 가지",
                         content: .numbered([
