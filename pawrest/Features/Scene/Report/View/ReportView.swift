@@ -37,7 +37,7 @@ struct ReportView: View {
     private var weeklyAssessmentRecords: [AssessmentRecord] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let weekStart = calendar.date(byAdding: .day, value: -7, to: today)!
+        let weekStart = calendar.date(byAdding: .day, value: -28, to: today)!
         return assessmentRecords.filter { $0.date >= weekStart && $0.date < today }
     }
 
