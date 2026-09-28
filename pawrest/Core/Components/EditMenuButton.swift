@@ -26,6 +26,8 @@ enum MenuButtonStyle {
     }
 }
 
+// MARK: - Edit Menu Button
+
 struct EditMenuButton: View {
     let icon: ImageResource
     var size: MenuButtonStyle = .defaultStyle
@@ -57,12 +59,13 @@ struct EditMenuButton: View {
                 .foregroundStyle(iconColor)
         }
         .frame(width: size.buttonSize, height: size.buttonSize)
+        
         .background(alignment: .topTrailing) {
             if isShowingMenu {
                 ZStack(alignment: .topTrailing) {
+                    
                     Color.clear
-                        .frame(width: UIScreen.main.bounds.width * 2,
-                               height: UIScreen.main.bounds.height * 2)
+                        .frame(width: 2000, height: 2000)
                         .contentShape(Rectangle())
                         .onTapGesture { closeMenu() }
                     

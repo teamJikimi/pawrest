@@ -77,7 +77,7 @@ struct ReportUseCase: ReportUseCaseProtocol {
 
     func fetchAIData(
         emotionSnapshots: [EmotionSnapshot],
-        assessmentRecords: sending [AssessmentRecord],
+        assessmentRecords: [AssessmentRecord],
         container: ModelContainer,
         forceRefresh: Bool,
         petName: String

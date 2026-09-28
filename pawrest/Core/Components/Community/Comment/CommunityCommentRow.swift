@@ -48,7 +48,7 @@ struct CommunityCommentRow: View {
         }
         .alert("삭제하시겠습니까?", isPresented: $showDeleteAlert) {
             Button("취소", role: .cancel) {}
-            Button("확인", role: .destructive) {
+            Button("확인") {
                 onAction(.deleteTapped)
             }
         }
