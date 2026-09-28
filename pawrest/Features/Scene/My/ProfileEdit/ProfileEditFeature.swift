@@ -238,7 +238,7 @@ struct ProfileEditFeature: Reducer {
                 return .run { _ in
                     guard let uid = Auth.auth().currentUser?.uid else { return }
                     
-                    let profileService = UserProfileRemoteService()
+                    let profileService = await UserProfileRemoteService()
                     try? await profileService.updateProfile(
                         userID: uid,
                         nickname: nickname,

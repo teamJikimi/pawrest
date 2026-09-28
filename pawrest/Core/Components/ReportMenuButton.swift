@@ -53,11 +53,9 @@ struct ReportMenuButton: View {
                 ZStack(alignment: .topTrailing) {
                     
                     Color.clear
-                        .frame(width: UIScreen.main.bounds.width * 2,
-                               height: UIScreen.main.bounds.height * 2)
+                        .frame(width: 2000, height: 2000)
                         .contentShape(Rectangle())
                         .onTapGesture { closeMenu() }
-                    
                     
                     VStack(spacing: 0) {
                         Button(action: {

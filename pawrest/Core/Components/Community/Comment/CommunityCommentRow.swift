@@ -9,6 +9,8 @@ import SwiftUI
 
 struct CommunityCommentRow: View {
     
+    //MARK: - Action
+    
     enum Action: Equatable {
         case replyTapped
         case editTapped
@@ -19,6 +21,8 @@ struct CommunityCommentRow: View {
         case blockTapped
     }
     
+    //MARK: - Properties
+    
     let comment: Comment
     var isReply: Bool = false
     var isMyComment: Bool = false
@@ -26,22 +30,32 @@ struct CommunityCommentRow: View {
     
     let onAction: (Action) -> Void
     
-    @State private var isMenuOpen = false
     @State private var isEditMenuShowing = false
+    @State private var showDeleteAlert = false
+    
+    //MARK: - Body
     
     var body: some View {
         Group {
             if isReply { replyLayout }
             else { topLevelLayout }
         }
-        .zIndex(isMenuOpen ? 1000 : 0)
+        .zIndex(isEditMenuShowing ? 1000 : 0)
         .onChange(of: openedMenuCommentID.wrappedValue) { _, newID in
-            if let newID, newID != comment.id {
+            if newID != comment.id {
                 isEditMenuShowing = false
+            }
+        }
+        .alert("삭제하시겠습니까?", isPresented: $showDeleteAlert) {
+            Button("취소", role: .cancel) {}
+            Button("확인") {
+                onAction(.deleteTapped)
             }
         }
     }
 }
+
+//MARK: - Layouts
 
 private extension CommunityCommentRow {
     
@@ -77,6 +91,8 @@ private extension CommunityCommentRow {
     }
 }
 
+//MARK: - Sub views
+
 private extension CommunityCommentRow {
     
     var authorHeader: some View {
@@ -97,8 +113,10 @@ private extension CommunityCommentRow {
     }
 }
 
+//MARK: - Action Buttons
+
 private extension CommunityCommentRow {
-    
+
     var actionButtons: some View {
         HStack(spacing: 0) {
             Button { onAction(.replyTapped) } label: {
@@ -139,11 +157,11 @@ private extension CommunityCommentRow {
                 showsEdit: false,
                 opensUpward: true,
                 onEdit: { onAction(.editTapped) },
-                onDelete: { onAction(.deleteTapped) },
+                onDelete: { showDeleteAlert = true },
                 isShowingMenu: $isEditMenuShowing,
-                onMenuVisibilityChanged: { isOpen in
-                    isMenuOpen = isOpen
-                    if isOpen {
+                onMenuVisibilityChanged: { visible in
+                    isEditMenuShowing = visible
+                    if visible {
                         openedMenuCommentID.wrappedValue = comment.id
                     } else if openedMenuCommentID.wrappedValue == comment.id {
                         openedMenuCommentID.wrappedValue = nil
@@ -160,7 +178,7 @@ private extension CommunityCommentRow {
                 onReportAbuse: { onAction(.reportAbuse) },
                 onReportSpam: { onAction(.reportSpam) },
                 onBlock: { onAction(.blockTapped) },
-                onMenuVisibilityChanged: { isMenuOpen = $0 }
+                onMenuVisibilityChanged: { isEditMenuShowing = $0 }
             )
         }
     }

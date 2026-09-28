@@ -12,7 +12,6 @@ protocol ReportUseCaseProtocol {
     func buildLocalData(snapshots: [EmotionSnapshot]) -> ReportData
     func fetchAIData(
         emotionSnapshots: [EmotionSnapshot],
-        assessmentRecords: [AssessmentRecord],
         container: ModelContainer,
         forceRefresh: Bool,
         petName: String
@@ -77,7 +76,6 @@ struct ReportUseCase: ReportUseCaseProtocol {
 
     func fetchAIData(
         emotionSnapshots: [EmotionSnapshot],
-        assessmentRecords: sending [AssessmentRecord],
         container: ModelContainer,
         forceRefresh: Bool,
         petName: String
@@ -106,12 +104,18 @@ struct ReportUseCase: ReportUseCaseProtocol {
             }
         }
 
+        let assessmentDescriptor = FetchDescriptor<AssessmentRecord>()
+        let assessmentRecords = (try? context.fetch(assessmentDescriptor)) ?? []
+        let dtos = assessmentRecords.map {
+            AssessmentRecordDTO(typeRawValue: $0.typeRawValue, totalScore: $0.totalScore, date: $0.date)
+        }
+
         print("🔥 AI 호출 시작")
         let weeklyEntries = makeWeeklyEntries(snapshots: emotionSnapshots)
         let aiResult = try await AIService.shared.generateReport(
             snapshots: emotionSnapshots,
             weeklyEntries: weeklyEntries,
-            assessmentRecords: assessmentRecords,
+            assessmentRecords: dtos,
             petName: petName
         )
 
