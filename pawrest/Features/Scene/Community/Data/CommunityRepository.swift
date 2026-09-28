@@ -112,6 +112,14 @@ struct CommunityRepository {
     var deleteAllPostsByUser: @Sendable (
         _ authorID: String
     ) async throws -> Void
+    
+    var createNotification: @Sendable (
+        _ targetUserID: String,
+        _ type: String,
+        _ senderName: String,
+        _ postID: String,
+        _ body: String
+    ) async throws -> Void
 }
 
 // MARK: - DependencyKey
@@ -333,6 +341,16 @@ extension CommunityRepository: DependencyKey {
             
             deleteAllPostsByUser: { authorID in
                 try await service.deleteAllPostsByUser(authorID: authorID)
+            },
+            
+            createNotification: { targetUserID, type, senderName, postID, body in
+                try await service.createNotification(
+                    targetUserID: targetUserID,
+                    type: type,
+                    senderName: senderName,
+                    postID: postID,
+                    body: body
+                )
             }
         )
     }()

@@ -435,4 +435,30 @@ final class CommunityFirestoreService {
             try await block.reference.delete()
         }
     }
+    
+    // MARK: - Notification
+
+    func createNotification(
+        targetUserID: String,
+        type: String,
+        senderName: String,
+        postID: String,
+        body: String
+    ) async throws {
+        let notifID = UUID().uuidString
+        
+        try await firestore
+            .collection("users")
+            .document(targetUserID)
+            .collection("notifications")
+            .document(notifID)
+            .setData([
+                "type": type,
+                "senderName": senderName,
+                "postID": postID,
+                "body": body,
+                "createdAt": Timestamp(date: Date()),
+                "isRead": false
+            ])
+    }
 }

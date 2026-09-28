@@ -8,6 +8,9 @@
 import SwiftUI
 import SwiftData
 import FirebaseCore
+import FirebaseAuth
+import FirebaseFirestore
+import FirebaseMessaging
 import UserNotifications
 import ComposableArchitecture
 
@@ -34,9 +37,16 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                      [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         FirebaseApp.configure()
         UNUserNotificationCenter.current().delegate = self
+        Messaging.messaging().delegate = self
         Task {
             let granted = await NotificationService.shared.requestAuthorization()
-           
+            
+            if granted {
+                await MainActor.run {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            }
+            
             if UserDefaults.standard.object(forKey: "emotionReminderEnabled") == nil {
                 UserDefaults.standard.set(granted, forKey: "emotionReminderEnabled")
                 NotificationService.shared.scheduleEmotionReminders(enabled: granted)
@@ -72,6 +82,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
     static func saveNotification(_ content: UNNotificationContent, identifier: String) {
         let typeString = content.userInfo["type"] as? String ?? ""
+        let postID = content.userInfo["postID"] as? String
         let notificationType: NotificationType = {
             switch typeString {
             case "emotionReminder": return .emotionReminder
@@ -96,7 +107,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                 identifier: identifier,
                 type: notificationType,
                 title: content.title,
-                body: content.body
+                body: content.body,
+                postID: postID
             )
             context.insert(record)
             try? context.save()
@@ -105,6 +117,29 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
     private func saveNotification(_ content: UNNotificationContent, identifier: String) {
         AppDelegate.saveNotification(content, identifier: identifier)
+    }
+    
+    // MARK: - APNs Token
+
+    func application(_ application: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        Messaging.messaging().apnsToken = deviceToken
+    }
+}
+
+// MARK: - FCM Token
+
+extension AppDelegate: MessagingDelegate {
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        guard let token = fcmToken else { return }
+        
+        Task {
+            guard let uid = Auth.auth().currentUser?.uid else { return }
+            try? await Firestore.firestore()
+                .collection("users")
+                .document(uid)
+                .setData(["fcmToken": token], merge: true)
+        }
     }
 }
 
