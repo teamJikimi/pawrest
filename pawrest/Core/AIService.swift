@@ -15,6 +15,14 @@ struct AIReportResult: Equatable {
     let suggestion: String?
 }
 
+struct AssessmentRecordDTO: Sendable {
+    let typeRawValue: String
+    let totalScore: Int
+    let date: Date
+    
+    var type: SelfAssessmentType? { SelfAssessmentType(rawValue: typeRawValue) }
+}
+
 final class AIService {
     static let shared = AIService()
 
@@ -25,7 +33,7 @@ final class AIService {
     private init() {}
 
     // MARK: - 통합 리포트 생성
-    func generateReport(snapshots: [EmotionSnapshot], weeklyEntries: [(date: String, level: String?)], assessmentRecords: [AssessmentRecord] = [], petName: String = "") async throws -> AIReportResult {
+    func generateReport(snapshots: [EmotionSnapshot], weeklyEntries: [(date: String, level: String?)], assessmentRecords: [AssessmentRecordDTO] = [], petName: String = "") async throws -> AIReportResult {
         let count = snapshots.count
 
         if count == 0 {
@@ -199,7 +207,7 @@ final class AIService {
         }.joined(separator: "\n")
     }
 
-    private func buildAssessmentText(_ records: [AssessmentRecord]) -> String {
+    private func buildAssessmentText(_ records: [AssessmentRecordDTO]) -> String {
         guard !records.isEmpty else { return "" }
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy.MM.dd"

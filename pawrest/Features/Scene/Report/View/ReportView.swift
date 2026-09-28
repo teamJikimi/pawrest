@@ -146,7 +146,6 @@ struct ReportView: View {
             .map { EmotionSnapshot(type: $0.emotionType, memo: $0.memo, recordedAt: $0.recordedAt) }
         store.send(.onAppear(
             snapshots: snapshots,
-            assessmentRecords: Array(assessmentRecords),
             context: modelContext,
             petName: petProfiles.first?.name ?? ""
         ))
