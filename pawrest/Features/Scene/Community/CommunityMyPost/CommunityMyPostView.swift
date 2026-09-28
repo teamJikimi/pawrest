@@ -17,7 +17,7 @@ struct CommunityMyPostView: View {
     //MARK: - Body
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 8) {
             segmentSection
             postsScrollView
         }

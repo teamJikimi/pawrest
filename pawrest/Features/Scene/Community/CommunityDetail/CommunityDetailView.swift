@@ -70,7 +70,7 @@ private extension CommunityDetailView {
                 commentsSection
             }
         }
-        .scrollDismissesKeyboard(.immediately)
+        .scrollDismissesKeyboard(.never)
         .onTapGesture {
             if isInputFocused {
                 isInputFocused = false
@@ -183,10 +183,10 @@ private extension CommunityDetailView {
             }
         }
         
-        Color.clear.frame(height: 12)
+        Color.clear.frame(height: isLastGroup ? 12 : 20)
         if !isLastGroup {
             CommunityDivider(horizontalPadding: 20)
-            Color.clear.frame(height: 12)
+            Color.clear.frame(height: 20)
         }
     }
     
