@@ -89,7 +89,11 @@ private extension RecommendContentDetailView {
     func sectionView(_ section: ContentSection) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 4) {
-                Image(systemName: section.icon)
+                Image(section.icon)
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
                     .foregroundStyle(section.iconColor)
                 Text(section.title)
                     .typography(.title1)
@@ -183,7 +187,7 @@ private extension RecommendContentDetailView {
         switch detail.closing {
         case .highlightBox(let headline):
             highlightBoxView(headline)
-                .padding(.top, 32)
+                .padding(.top, 24)
             
         case .plainQuote(let headline, let body):
             Divider()

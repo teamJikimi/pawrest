@@ -8,6 +8,11 @@
 import ComposableArchitecture
 import Foundation
 
+enum PostImagePayload: Equatable, Sendable {
+    case remote(url: String)
+    case local(data: Data)
+}
+
 struct CommunityRepository {
     var fetchPosts: @Sendable (
         _ userID: String
@@ -23,6 +28,7 @@ struct CommunityRepository {
     ) async throws -> Post
     
     var uploadImages: @Sendable (
+        _ authorID: String,
         _ postID: String,
         _ imageDatas: [Data]
     ) async throws -> [String]
@@ -34,7 +40,7 @@ struct CommunityRepository {
     
     var updatePost: @Sendable (
         _ post: Post,
-        _ newImageDatas: [Data]
+        _ images: [PostImagePayload]
     ) async throws -> Post
     
     var isPostLiked: @Sendable (
@@ -50,7 +56,7 @@ struct CommunityRepository {
     
     var fetchComments: @Sendable (
         _ postID: String
-    ) async throws -> [Comment]
+    ) async throws -> [CommunityCommentDTO]
 
     var createComment: @Sendable (
         _ postID: String,
@@ -64,6 +70,11 @@ struct CommunityRepository {
         _ postID: String,
         _ commentID: UUID
     ) async throws -> Void
+    
+    var fetchCommentedPostIDs: @Sendable (
+        _ postIDs: [String],
+        _ userID: String
+    ) async throws -> Set<String>
 
     var updateComment: @Sendable (
         _ postID: String,
@@ -111,55 +122,37 @@ extension CommunityRepository: DependencyKey {
         let service = CommunityFirestoreService()
 
         return CommunityRepository(
+            
             fetchPosts: { userID in
                 let postDTOs = try await service.fetchPosts()
-                return try await withThrowingTaskGroup(
-                    of: Post.self
-                ) { group in
+                
+                let profileService = await MainActor.run { UserProfileRemoteService() }
+                let profiles = try await profileService.fetchProfiles(
+                    userIDs: Array(Set(postDTOs.map { $0.authorID }))
+                )
+                
+                let posts = try await withThrowingTaskGroup(of: Post.self) { group in
                     for dto in postDTOs {
                         group.addTask {
-                            var post = dto.toDomain()
-
+                            var post = dto.toDomain(profile: profiles[dto.authorID])
                             post.isLiked = try await service.isPostLiked(
                                 postID: post.id,
                                 userID: userID
                             )
-
-                            let commentDTOs = try await service.fetchComments(
-                                postID: post.id
-                            )
-
-                            let topLevelDTOs = commentDTOs.filter {
-                                $0.parentCommentID == nil
-                            }
-
-                            post.comments = topLevelDTOs.map { parentDTO in
-                                let replies = commentDTOs
-                                    .filter {
-                                        $0.parentCommentID == parentDTO.id
-                                    }
-                                    .map {
-                                        $0.toDomain()
-                                    }
-
-                                return parentDTO.toDomain(
-                                    replies: replies
-                                )
-                            }
-
                             return post
                         }
                     }
-                    var posts: [Post] = []
-
+                    
+                    var results: [Post] = []
                     for try await post in group {
-                        posts.append(post)
+                        results.append(post)
                     }
-                    return posts.sorted {
-                        $0.createdAt > $1.createdAt
-                    }
+                    return results
                 }
+                
+                return posts.sorted { $0.createdAt > $1.createdAt }
             },
+            
             createPost: { postID, authorID, authorName, title, content, imageURLs in
                 let postDTO = try await service.createPost(
                     postID: postID,
@@ -172,62 +165,61 @@ extension CommunityRepository: DependencyKey {
                 return postDTO.toDomain()
             },
             
-            uploadImages: { postID, imageDatas in
-                let storageService = FirebaseStorageService()
-                var urls: [String] = []
-                
-                for imageData in imageDatas {
-                    let entity = ImageUploadEntity(
-                        data: imageData,
-                        fileExtension: "jpg"
-                    )
-                    let url = try await storageService.upload(
-                        image: entity,
-                        to: .community(
-                            postID: postID,
-                            imageID: UUID().uuidString
-                        )
-                    )
-                    urls.append(url)
-                }
-                
-                return urls
+            uploadImages: { authorID, postID, imageDatas in
+                let uploaded = try await uploadCommunityImages(
+                    imageDatas.enumerated().map { (index: $0.offset, data: $0.element) },
+                    authorID: authorID,
+                    postID: postID,
+                    storageService: FirebaseStorageService()
+                )
+                return imageDatas.indices.compactMap { uploaded[$0] }
             },
             
             deletePost: { postID, imageURLs in
                 try await service.deletePost(postID: postID)
-                try? await service.deletePostImages(imageURLs: imageURLs)
+                await FirebaseStorageService().delete(urls: imageURLs)
             },
             
-            updatePost: { post, newImageDatas in
+            updatePost: { post, images in
                 let storageService = FirebaseStorageService()
-                var imageURLs = post.imageURLs
                 
-                if !newImageDatas.isEmpty {
-                    var newURLs: [String] = []
-                    for imageData in newImageDatas {
-                        let entity = ImageUploadEntity(
-                            data: imageData,
-                            fileExtension: "jpg"
-                        )
-                        let url = try await storageService.upload(
-                            image: entity,
-                            to: .community(
-                                postID: post.id,
-                                imageID: UUID().uuidString
-                            )
-                        )
-                        newURLs.append(url)
+                let localItems: [(index: Int, data: Data)] = images
+                    .enumerated()
+                    .compactMap { index, image in
+                        guard case .local(let data) = image else { return nil }
+                        return (index: index, data: data)
                     }
-                    imageURLs = newURLs
+                
+                let uploaded = try await uploadCommunityImages(
+                    localItems,
+                    authorID: post.author.id,
+                    postID: post.id,
+                    storageService: storageService
+                )
+                
+                let imageURLs: [String] = images
+                    .enumerated()
+                    .compactMap { index, image in
+                        switch image {
+                        case .remote(let url): return url
+                        case .local: return uploaded[index]
+                        }
+                    }
+                
+                do {
+                    try await service.updatePost(
+                        postID: post.id,
+                        title: post.title,
+                        content: post.content,
+                        imageURLs: imageURLs
+                    )
+                } catch {
+                    await storageService.delete(urls: Array(uploaded.values))
+                    throw error
                 }
                 
-                try await service.updatePost(
-                    postID: post.id,
-                    title: post.title,
-                    content: post.content,
-                    imageURLs: imageURLs
-                )
+                let removedURLs = post.imageURLs.filter { !imageURLs.contains($0) }
+                await storageService.delete(urls: removedURLs)
                 
                 var updated = post
                 updated.imageURLs = imageURLs
@@ -250,27 +242,7 @@ extension CommunityRepository: DependencyKey {
             },
 
             fetchComments: { postID in
-                let dtos = try await service.fetchComments(
-                    postID: postID
-                )
-
-                let topLevelDTOs = dtos.filter {
-                    $0.parentCommentID == nil
-                }
-
-                return topLevelDTOs.map { parentDTO in
-                    let replies = dtos
-                        .filter {
-                            $0.parentCommentID == parentDTO.id
-                        }
-                        .map {
-                            $0.toDomain()
-                        }
-
-                    return parentDTO.toDomain(
-                        replies: replies
-                    )
-                }
+                try await service.fetchComments(postID: postID)
             },
 
             createComment: {
@@ -296,6 +268,24 @@ extension CommunityRepository: DependencyKey {
                     postID: postID,
                     commentID: commentID
                 )
+            },
+            
+            fetchCommentedPostIDs: { postIDs, userID in
+                try await withThrowingTaskGroup(of: String?.self) { group in
+                    for postID in postIDs {
+                        group.addTask {
+                            try await service.hasComment(postID: postID, authorID: userID)
+                                ? postID
+                                : nil
+                        }
+                    }
+                    
+                    var result: Set<String> = []
+                    for try await postID in group {
+                        if let postID { result.insert(postID) }
+                    }
+                    return result
+                }
             },
 
             updateComment: { postID, commentID, content in
@@ -346,6 +336,44 @@ extension CommunityRepository: DependencyKey {
             }
         )
     }()
+}
+
+// MARK: - Image Upload
+
+private func uploadCommunityImages(
+    _ items: [(index: Int, data: Data)],
+    authorID: String,
+    postID: String,
+    storageService: FirebaseStorageService
+) async throws -> [Int: String] {
+    var uploaded: [Int: String] = [:]
+    
+    do {
+        try await withThrowingTaskGroup(of: (Int, String).self) { group in
+            for item in items {
+                group.addTask {
+                    let url = try await storageService.upload(
+                        image: ImageUploadEntity(data: item.data, fileExtension: "jpg"),
+                        to: .community(
+                            userId: authorID,
+                            postID: postID,
+                            imageID: UUID().uuidString
+                        )
+                    )
+                    return (item.index, url)
+                }
+            }
+            
+            for try await (index, url) in group {
+                uploaded[index] = url
+            }
+        }
+    } catch {
+        await storageService.delete(urls: Array(uploaded.values))
+        throw error
+    }
+    
+    return uploaded
 }
 
 // MARK: - DependencyValues

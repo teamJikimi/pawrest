@@ -15,9 +15,6 @@ struct CommunityWriteView: View {
     
     @Bindable var store: StoreOf<CommunityWriteReducer>
     @FocusState private var isFocused: Bool
-    @Environment(\.dismiss) private var dismiss
-    
-    var onSave: ((String, String, [UIImage]) -> Void)? = nil
     
     //MARK: - Body
     
@@ -50,14 +47,6 @@ struct CommunityWriteView: View {
                 action: \.navigationBar
             )
         )
-        .onAppear {
-            if store.isEditMode {
-                store.send(.loadExistingImages)
-            }
-        }
-        .onChange(of: store.shouldDismiss) { _, shouldDismiss in
-            if shouldDismiss { dismiss() }
-        }
         .hideTabBar()
     }
 }
@@ -67,16 +56,11 @@ struct CommunityWriteView: View {
 private extension CommunityWriteView {
     
     var imageGridSection: some View {
-        ImagePickerGrid(
-            selectedImages: store.imageGrid.selectedImages,
-            pickerItems: store.imageGrid.pickerItems,
-            maxCount: 10,
-            onImagesChanged: { images in
-                store.send(.imageGrid(.imagesChanged(images)))
-            },
-            onPickerItemsChanged: { items in
-                store.send(.imageGrid(.pickerItemsChanged(items)))
-            }
+        CommunityImageGrid(
+            items: store.images,
+            maxCount: CommunityWriteReducer.maxImageCount,
+            onImagesAdded: { store.send(.imagesAdded($0)) },
+            onImageDeleted: { store.send(.imageDeleted($0)) }
         )
         .frame(height: 135)
         .onAppear {
@@ -124,7 +108,6 @@ private extension CommunityWriteView {
     
     var saveButton: some View {
         Button {
-            onSave?(store.title, store.content, store.imageGrid.selectedImages)
             store.send(.saveButtonTapped)
         } label: {
             Text("저장하기")

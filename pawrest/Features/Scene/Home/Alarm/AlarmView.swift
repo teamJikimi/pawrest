@@ -100,10 +100,10 @@ private struct AlarmRow: View {
 
 private extension AlarmView {
     var emptyView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             Image("icon_no_alarm")
             Text("아직 알림이 없어요")
-                .typography(.body3R)
+                .typography(.body2R1)
                 .foregroundStyle(.gray60)
         }
         .frame(maxWidth: .infinity)

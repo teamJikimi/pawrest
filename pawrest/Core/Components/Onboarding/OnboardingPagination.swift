@@ -52,12 +52,22 @@ struct OnboardingPagination: View {
             ForEach(0..<totalSteps, id: \.self) { index in
                 let isActive = index == currentStep
                 RoundedRectangle(cornerRadius: isActive ? style.activeRadius : style.inactiveRadius)
-                    .fill(isActive ? Color.pawPrimary : .gray30)
+                    .fill(color(for: index))
                     .frame(
                         width: isActive ? style.activeWidth : style.inactiveWidth,
                         height: style.height
                     )
             }
+        }
+    }
+
+    private func color(for index: Int) -> Color {
+        if index == currentStep {
+            return .pawPrimary
+        } else if index < currentStep {
+            return .primaryLight
+        } else {
+            return .gray30
         }
     }
 }

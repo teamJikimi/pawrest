@@ -64,30 +64,22 @@ struct HomeView: View {
                 action: \.navigationBar
             )
         )
-        .fullScreenCover(
-            isPresented: Binding(
-                get: { store.selectedSelfAssessmentType != nil },
-                set: { isPresented in
-                    if !isPresented {
+        .overlay {
+            if let selectedType = store.selectedSelfAssessmentType {
+                SelfAssessmentSelectedOverlay(
+                    type: selectedType,
+                    onStart: {
+                        store.send(.selfAssessmentStartTapped)
+                    },
+                    onDismiss: {
                         store.send(.selfAssessmentOverlayDismissed)
                     }
-                }
-            ),
-            content: {
-                if let selectedType = store.selectedSelfAssessmentType {
-                    SelfAssessmentSelectedOverlay(
-                        type: selectedType,
-                        onStart: {
-                            store.send(.selfAssessmentStartTapped)
-                        },
-                        onDismiss: {
-                            store.send(.selfAssessmentOverlayDismissed)
-                        }
-                    )
-                    .presentationBackground(.clear)
-                }
+                )
+                .transition(.opacity)
             }
-        )
+        }
+        .animation(.easeInOut(duration: 0.2), value: store.selectedSelfAssessmentType)
+        .hideTabBar(store.selectedSelfAssessmentType != nil)
         .navigationDestination(isPresented: Binding(
             get: { store.isAlarmPresented },
             set: { _ in store.send(.alarmDismissed) }

@@ -4,6 +4,7 @@
 //
 //  Created by Moon AYoung on 6/4/26.
 //
+
 import ComposableArchitecture
 import Foundation
 
@@ -28,7 +29,8 @@ struct CommunityMyPostState: Equatable {
     let currentUserID: String
     let authorName: String
     
-    var shouldDismiss: Bool = false
+    var commentedPostIDs: Set<String> = []
+    @Presents var detail: CommunityDetailState?
     
     var filteredPosts: [Post] {
         let filtered: [Post]
@@ -36,13 +38,12 @@ struct CommunityMyPostState: Equatable {
         switch selectedTab {
         case .myPosts:
             filtered = posts.filter { $0.author.id == currentUserID }
+            
         case .likedPosts:
             filtered = posts.filter { $0.isLiked }
+            
         case .commentedPosts:
-            filtered = posts.filter { post in
-                post.comments.contains { $0.author.id == currentUserID } ||
-                post.comments.flatMap(\.replies).contains { $0.author.id == currentUserID }
-            }
+            filtered = posts.filter { commentedPostIDs.contains($0.id) }
         }
         
         return filtered.sorted { $0.createdAt > $1.createdAt }
@@ -64,19 +65,18 @@ struct CommunityMyPostState: Equatable {
 @CasePathable
 enum CommunityMyPostAction: Equatable {
     case navigationBar(NavigationBarAction)
+    case onAppear
+    case commentedPostIDsLoaded(Set<String>)
     case tabChanged(MyPostTab)
-    
+    case postTapped(postID: String)
     case likeTapped(postID: String)
     case likeResponse(postID: String, previousIsLiked: Bool, success: Bool)
-    
-    case postUpdatedFromDetail(post: Post)
-    case postDeleted(String)
+    case detail(PresentationAction<CommunityDetailAction>)
 }
 
 // MARK: - Reducer
 
 struct CommunityMyPostReducer: Reducer {
-    
     @Dependency(\.communityRepository) var communityRepository
     
     var body: some Reducer<CommunityMyPostState, CommunityMyPostAction> {
@@ -86,15 +86,35 @@ struct CommunityMyPostReducer: Reducer {
         
         Reduce { state, action in
             switch action {
-            case .navigationBar(.leftButtonTapped):
-                state.shouldDismiss = true
+            case .navigationBar:
                 return .none
                 
-            case .navigationBar:
+            case .onAppear:
+                let postIDs = state.posts.map(\.id)
+                let userID = state.currentUserID
+                
+                return .run { send in
+                    let ids = (try? await communityRepository.fetchCommentedPostIDs(postIDs, userID)) ?? []
+                    await send(.commentedPostIDsLoaded(ids))
+                }
+                
+            case .commentedPostIDsLoaded(let ids):
+                state.commentedPostIDs = ids
                 return .none
                 
             case .tabChanged(let tab):
                 state.selectedTab = tab
+                return .none
+                
+            case .postTapped(let postID):
+                guard let post = state.posts.first(where: { $0.id == postID }) else {
+                    return .none
+                }
+                state.detail = CommunityDetailState(
+                    post: post,
+                    currentUserID: state.currentUserID,
+                    authorName: state.authorName
+                )
                 return .none
                 
             case .likeTapped(let postID):
@@ -127,10 +147,9 @@ struct CommunityMyPostReducer: Reducer {
                         ))
                     }
                 }
-
+                
             case .likeResponse(let postID, let previousIsLiked, let success):
                 guard !success else { return .none }
-                
                 guard let idx = state.posts.firstIndex(where: { $0.id == postID })
                 else { return .none }
                 
@@ -138,16 +157,28 @@ struct CommunityMyPostReducer: Reducer {
                 state.posts[idx].likeCount += previousIsLiked ? 1 : -1
                 return .none
                 
-            case .postUpdatedFromDetail(let post):
-                if let idx = state.posts.firstIndex(where: { $0.id == post.id }) {
-                    state.posts[idx] = post
+            case let .detail(.presented(.delegate(delegate))):
+                state.detail = nil
+                if case .postDeleted(let postID) = delegate {
+                    state.posts.removeAll { $0.id == postID }
+                    state.commentedPostIDs.remove(postID)
                 }
                 return .none
-            
-            case .postDeleted(let postID):
-                state.posts.removeAll { $0.id == postID }
+                
+            case .detail(.presented(let detailAction)):
+                guard let post = state.detail?.post else { return .none }
+                if case .commentCreationResponse(_, .success) = detailAction {
+                    state.commentedPostIDs.insert(post.id)
+                }
+                state.posts.replace(with: post)
+                return .none
+                
+            case .detail(.dismiss):
                 return .none
             }
+        }
+        .ifLet(\.$detail, action: \.detail) {
+            CommunityDetailReducer()
         }
     }
 }

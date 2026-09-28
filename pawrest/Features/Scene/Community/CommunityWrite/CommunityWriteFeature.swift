@@ -9,6 +9,33 @@ import Foundation
 import UIKit
 import ComposableArchitecture
 
+// MARK: - PostImageItem
+
+struct PostImageItem: Equatable, Identifiable {
+    enum Source: Equatable {
+        case remote(String)
+        case local(UIImage)
+    }
+    
+    let id: UUID
+    let source: Source
+    
+    init(source: Source) {
+        self.id = UUID()
+        self.source = source
+    }
+    
+    var uploadPayload: PostImagePayload? {
+        switch source {
+        case .remote(let url):
+            return .remote(url: url)
+        case .local(let image):
+            guard let data = image.resizedJPEGData() else { return nil }
+            return .local(data: data)
+        }
+    }
+}
+
 // MARK: - State
 
 @ObservableState
@@ -19,31 +46,22 @@ struct CommunityWriteState: Equatable {
         rightButton: .none
     )
     
-    var imageGrid = AddImageGridFeature.State()
-    
     var title: String = ""
     var content: String = ""
-    
-    var shouldDismiss: Bool = false
-    
-    var editingPostID: String? = nil
-    var existingImageURLs: [String] = []
-    
-    var isEditMode: Bool { editingPostID != nil }
+    var images: [PostImageItem] = []
     
     var isSaveButtonEnabled: Bool {
-        if isEditMode { return true }
-        return !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     init() {}
     
     init(editingPost: Post) {
-        self.editingPostID = editingPost.id
         self.title = editingPost.title
         self.content = editingPost.content
-        self.existingImageURLs = editingPost.imageURLs
-        self.navigationBar = NavigationBarState (
+        self.images = editingPost.imageURLs.map { PostImageItem(source: .remote($0)) }
+        self.navigationBar = NavigationBarState(
             title: "글 수정",
             leftButton: .back,
             rightButton: .none
@@ -56,38 +74,34 @@ struct CommunityWriteState: Equatable {
 @CasePathable
 enum CommunityWriteAction: Equatable {
     case navigationBar(NavigationBarAction)
-    case imageGrid(AddImageGridFeature.Action)
     
     case titleChanged(String)
     case contentChanged(String)
+    case imagesAdded([UIImage])
+    case imageDeleted(PostImageItem.ID)
     case saveButtonTapped
     
-    case loadExistingImages
-    case existingImagesLoaded([UIImage])
+    case delegate(Delegate)
+    
+    @CasePathable
+    enum Delegate: Equatable {
+        case save(title: String, content: String, images: [PostImageItem])
+    }
 }
 
 // MARK: - Reducer
 
 struct CommunityWriteReducer: Reducer {
+    static let maxImageCount = 10
+    
     var body: some Reducer<CommunityWriteState, CommunityWriteAction> {
         Scope(state: \.navigationBar, action: \.navigationBar) {
             NavigationBarReducer()
         }
         
-        Scope(state: \.imageGrid, action: \.imageGrid) {
-            AddImageGridFeature()
-        }
-        
         Reduce { state, action in
             switch action {
-            case .navigationBar(.leftButtonTapped):
-                state.shouldDismiss = true
-                return .none
-                
             case .navigationBar:
-                return .none
-                
-            case .imageGrid:
                 return .none
                 
             case .titleChanged(let title):
@@ -98,27 +112,27 @@ struct CommunityWriteReducer: Reducer {
                 state.content = content
                 return .none
                 
-            case .saveButtonTapped:
-                state.shouldDismiss = true
+            case .imagesAdded(let images):
+                let remaining = Self.maxImageCount - state.images.count
+                guard remaining > 0 else { return .none }
+                state.images += images
+                    .prefix(remaining)
+                    .map { PostImageItem(source: .local($0)) }
                 return .none
                 
-            case .loadExistingImages:
-                let urls = state.existingImageURLs
-                guard !urls.isEmpty else { return .none }
-                return .run { send in
-                    var images: [UIImage] = []
-                    for urlString in urls {
-                        guard let url = URL(string: urlString),
-                              let data = try? Data(contentsOf: url),
-                              let image = UIImage(data: data)
-                        else { continue }
-                        images.append(image)
-                    }
-                    await send(.existingImagesLoaded(images))
-                }
+            case .imageDeleted(let id):
+                state.images.removeAll { $0.id == id }
+                return .none
                 
-            case .existingImagesLoaded(let images):
-                state.imageGrid.selectedImages = images
+            case .saveButtonTapped:
+                guard state.isSaveButtonEnabled else { return .none }
+                return .send(.delegate(.save(
+                    title: state.title,
+                    content: state.content,
+                    images: state.images
+                )))
+                
+            case .delegate:
                 return .none
             }
         }

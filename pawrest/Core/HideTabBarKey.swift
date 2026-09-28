@@ -15,7 +15,7 @@ struct HideTabBarKey: PreferenceKey {
 }
 
 extension View {
-    func hideTabBar() -> some View {
-        preference(key: HideTabBarKey.self, value: true)
+    func hideTabBar(_ hide: Bool = true) -> some View {
+        preference(key: HideTabBarKey.self, value: hide)
     }
 }

@@ -21,12 +21,9 @@ struct CommunityDetailState: Equatable {
     
     var replyingToCommentID: UUID? = nil
     
-    var shouldDismiss: Bool = false
-    
-    var isDeleted: Bool = false
     var errorMessage: String?
     
-    var isEditPresented: Bool = false
+    @Presents var edit: CommunityWriteState?
     
     var inputPlaceholder: String {
         replyingToCommentID == nil
@@ -61,12 +58,14 @@ enum CommunityDetailAction: Equatable {
     case likeTapped
     case commentAction(commentID: UUID, action: CommunityCommentRow.Action)
     
+    case onAppear
+    case commentsFetched(TaskResult<[Comment]>)
+    
     case textChanged(String)
     case sendTapped
     case outsideTapped
     
-    case editDismissed
-    case postEdited(title: String, content: String, imageDatas: [Data])
+    case edit(PresentationAction<CommunityWriteAction>)
     
     case likeResponse(previousIsLiked: Bool, success: Bool)
     case commentCreationResponse(parentCommentID: UUID?, TaskResult<Comment>)
@@ -75,6 +74,14 @@ enum CommunityDetailAction: Equatable {
     case postUpdateResponse(TaskResult<Post>)
     case reportResponse(TaskResult<Bool>)
     case blockResponse(blockedUserID: String, TaskResult<Bool>)
+    
+    case delegate(Delegate)
+    
+    @CasePathable
+    enum Delegate: Equatable {
+        case postDeleted(String)
+        case userBlocked(String)
+    }
 }
 
 // MARK: - Reducer
@@ -93,12 +100,8 @@ struct CommunityDetailReducer: Reducer {
                 
             // MARK: NavigationBar
                 
-            case .navigationBar(.leftButtonTapped):
-                state.shouldDismiss = true
-                return .none
-                
             case .navigationBar(.editTapped):
-                state.isEditPresented = true
+                state.edit = CommunityWriteState(editingPost: state.post)
                 return .none
                 
             case .navigationBar(.deleteTapped):
@@ -161,6 +164,42 @@ struct CommunityDetailReducer: Reducer {
                 guard !success else { return .none }
                 state.post.isLiked = previousIsLiked
                 state.post.likeCount += previousIsLiked ? 1 : -1
+                return .none
+                
+            case .onAppear:
+                let postID = state.post.id
+                
+                return .run { send in
+                    await send(.commentsFetched(TaskResult {
+                        let commentDTOs = try await communityRepository.fetchComments(postID)
+                        
+                        let authorIDs = Set(commentDTOs.map { $0.authorID })
+                        let profileService = UserProfileRemoteService()
+                        let profiles = try await profileService.fetchProfiles(
+                            userIDs: Array(authorIDs)
+                        )
+                        
+                        let topLevel = commentDTOs.filter { $0.parentCommentID == nil }
+                        
+                        return topLevel.map { parentDTO in
+                            let replies = commentDTOs
+                                .filter { $0.parentCommentID == parentDTO.id }
+                                .map { $0.toDomain(profile: profiles[$0.authorID]) }
+                            
+                            return parentDTO.toDomain(
+                                replies: replies,
+                                profile: profiles[parentDTO.authorID]
+                            )
+                        }
+                    }))
+                }
+
+            case .commentsFetched(.success(let comments)):
+                state.post.comments = comments
+                state.post.commentCount = comments.reduce(0) { $0 + 1 + $1.replies.count }
+                return .none
+
+            case .commentsFetched(.failure):
                 return .none
                 
             // MARK: Comment Actions
@@ -237,11 +276,9 @@ struct CommunityDetailReducer: Reducer {
                 
             // MARK: Edit
                 
-            case .editDismissed:
-                state.isEditPresented = false
-                return .none
+            case let .edit(.presented(.delegate(.save(title, content, images)))):
+                state.edit = nil
                 
-            case .postEdited(let title, let content, let imageDatas):
                 let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
                 let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
                 
@@ -253,12 +290,16 @@ struct CommunityDetailReducer: Reducer {
                 var updatedPost = state.post
                 updatedPost.title = trimmedTitle
                 updatedPost.content = trimmedContent
+                let payloads = images.compactMap(\.uploadPayload)
                 
                 return .run { send in
                     await send(.postUpdateResponse(TaskResult {
-                        try await communityRepository.updatePost(updatedPost, imageDatas)
+                        try await communityRepository.updatePost(updatedPost, payloads)
                     }))
                 }
+                
+            case .edit:
+                return .none
                 
             // MARK: Responses
                 
@@ -269,6 +310,7 @@ struct CommunityDetailReducer: Reducer {
                 } else {
                     state.post.comments.append(comment)
                 }
+                state.post.commentCount += 1
                 return .none
                 
             case .commentCreationResponse(_, .failure(let error)):
@@ -277,13 +319,15 @@ struct CommunityDetailReducer: Reducer {
                 
             case .commentDeletionResponse(.success(let commentID)):
                 if let index = state.post.comments.firstIndex(where: { $0.id == commentID }) {
-                    state.post.comments.remove(at: index)
+                    let removed = state.post.comments.remove(at: index)
+                    state.post.commentCount = max(0, state.post.commentCount - 1 - removed.replies.count)
                     return .none
                 }
                 for parentIndex in state.post.comments.indices {
                     if let replyIndex = state.post.comments[parentIndex].replies
                         .firstIndex(where: { $0.id == commentID }) {
                         state.post.comments[parentIndex].replies.remove(at: replyIndex)
+                        state.post.commentCount = max(0, state.post.commentCount - 1)
                         break
                     }
                 }
@@ -293,10 +337,8 @@ struct CommunityDetailReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
                 
-            case .postDeletionResponse(.success):
-                state.isDeleted = true
-                state.shouldDismiss = true
-                return .none
+            case .postDeletionResponse(.success(let postID)):
+                return .send(.delegate(.postDeleted(postID)))
                 
             case .postDeletionResponse(.failure(let error)):
                 state.errorMessage = error.localizedDescription
@@ -304,7 +346,6 @@ struct CommunityDetailReducer: Reducer {
                 
             case .postUpdateResponse(.success(let updatedPost)):
                 state.post = updatedPost
-                state.isEditPresented = false
                 return .none
                 
             case .postUpdateResponse(.failure(let error)):
@@ -318,14 +359,19 @@ struct CommunityDetailReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
                 
-            case .blockResponse(_, .success):
-                state.shouldDismiss = true
-                return .none
+            case .blockResponse(let blockedUserID, .success):
+                return .send(.delegate(.userBlocked(blockedUserID)))
                 
             case .blockResponse(_, .failure(let error)):
                 state.errorMessage = error.localizedDescription
                 return .none
+                
+            case .delegate:
+                return .none
             }
+        }
+        .ifLet(\.$edit, action: \.edit) {
+            CommunityWriteReducer()
         }
     }
 }

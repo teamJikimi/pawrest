@@ -13,9 +13,6 @@ struct CommunityMyPostView: View {
     //MARK: - Properties
     
     @Bindable var store: StoreOf<CommunityMyPostReducer>
-    @Environment(\.dismiss) private var dismiss
-    
-    var onPostsUpdated: (([Post]) -> Void)? = nil
     
     //MARK: - Body
     
@@ -30,11 +27,13 @@ struct CommunityMyPostView: View {
                 action: \.navigationBar
             )
         )
-        .onChange(of: store.shouldDismiss) { _, shouldDismiss in
-            if shouldDismiss {
-                onPostsUpdated?(store.posts)
-                dismiss()
-            }
+        .task {
+            await store.send(.onAppear).finish()
+        }
+        .navigationDestination(
+            item: $store.scope(state: \.detail, action: \.detail)
+        ) { detailStore in
+            CommunityDetailView(store: detailStore)
         }
         .hideTabBar()
     }
@@ -57,7 +56,7 @@ private extension CommunityMyPostView {
         ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(store.filteredPosts) { post in
-                    postCardLink(for: post)
+                    postCard(for: post)
                 }
             }
             .padding(.horizontal, 20)
@@ -68,24 +67,9 @@ private extension CommunityMyPostView {
         }
     }
     
-    func postCardLink(for post: Post) -> some View {
-        NavigationLink {
-            CommunityDetailView(
-                store: Store(
-                    initialState: CommunityDetailState(
-                        post: post,
-                        currentUserID: store.currentUserID,
-                        authorName: store.authorName
-                    ),
-                    reducer: { CommunityDetailReducer() }
-                ),
-                onPostStateUpdated: { updatedPost in
-                    store.send(.postUpdatedFromDetail(post: updatedPost))
-                },
-                onPostDeleted: { postId in
-                    store.send(.postDeleted(postId))
-                }
-            )
+    func postCard(for post: Post) -> some View {
+        Button {
+            store.send(.postTapped(postID: post.id))
         } label: {
             CommunityCard(
                 post: post,

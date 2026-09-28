@@ -18,7 +18,7 @@ struct CommunityView: View {
         VStack(spacing: 0) {
             searchAndSortSection
 
-            if store.isLoading {
+            if store.isLoading && store.posts.isEmpty {
                 LoadingView()
             } else if store.displayedPosts.isEmpty {
                 emptyStateView
@@ -45,49 +45,19 @@ struct CommunityView: View {
             )
         )
         .navigationDestination(
-            isPresented: Binding(
-                get: { store.isMyPostPresented },
-                set: { if !$0 { store.send(.myPostDismissed) } }
-            )
-        ) {
-            if let currentUserID = store.currentUserID {
-                CommunityMyPostView(
-                    store: Store(
-                        initialState: CommunityMyPostState(
-                            currentUserID: currentUserID,
-                            posts: store.posts,
-                            authorName: store.authorName ?? ""
-                        ),
-                        reducer: { CommunityMyPostReducer() }
-                    ),
-                    onPostsUpdated: { updatedPosts in
-                        store.send(.myPostsUpdated(posts: updatedPosts))
-                    }
-                )
-            }
+            item: $store.scope(state: \.myPost, action: \.myPost)
+        ) { myPostStore in
+            CommunityMyPostView(store: myPostStore)
         }
         .navigationDestination(
-            isPresented: Binding(
-                get: { store.isWritePostPresented },
-                set: { if !$0 { store.send(.writePostDismissed) } }
-            )
-        ) {
-            CommunityWriteView(
-                store: Store(
-                    initialState: CommunityWriteState(),
-                    reducer: { CommunityWriteReducer() }
-                ),
-                onSave: { title, content, images in
-                    let imageDatas = images.compactMap {
-                        $0.jpegData(compressionQuality: 0.8)
-                    }
-                    store.send(.newPostCreated(
-                        title: title,
-                        content: content,
-                        imageDatas: imageDatas
-                    ))
-                }
-            )
+            item: $store.scope(state: \.detail, action: \.detail)
+        ) { detailStore in
+            CommunityDetailView(store: detailStore)
+        }
+        .navigationDestination(
+            item: $store.scope(state: \.write, action: \.write)
+        ) { writeStore in
+            CommunityWriteView(store: writeStore)
         }
     }
 }
@@ -124,13 +94,16 @@ private extension CommunityView {
         ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(store.displayedPosts) { post in
-                    postCardLink(for: post)
+                    postCard(for: post)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
         }
         .scrollDismissesKeyboard(.immediately)
+        .refreshable {
+            await store.send(.refreshPulled).finish()
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             Color.clear.frame(height: 80)
         }
@@ -148,42 +121,18 @@ private extension CommunityView {
         )
     }
 
-    @ViewBuilder
-    func postCardLink(for post: Post) -> some View {
-        if let currentUserID = store.currentUserID {
-            NavigationLink {
-                CommunityDetailView(
-                    store: Store(
-                        initialState: CommunityDetailState(
-                            post: post,
-                            currentUserID: currentUserID,
-                            authorName: store.authorName ?? ""
-                        ),
-                        reducer: { CommunityDetailReducer() }
-                    ),
-                    onPostStateUpdated: { updatedPost in
-                        store.send(.postStateUpdated(updatedPost))
-                    },
-                    onPostDeleted: { postID in
-                        store.send(.postDeleted(postID))
-                    }
-                )
-                .onAppear {
-                    store.send(.detailPresented)
+    func postCard(for post: Post) -> some View {
+        Button {
+            store.send(.postTapped(postID: post.id))
+        } label: {
+            CommunityCard(
+                post: post,
+                onLikeTapped: {
+                    store.send(.likeTapped(postID: post.id))
                 }
-                .onDisappear {
-                    store.send(.detailDismissed)
-                }
-            } label: {
-                CommunityCard(
-                    post: post,
-                    onLikeTapped: {
-                        store.send(.likeTapped(postID: post.id))
-                    }
-                )
-            }
-            .buttonStyle(.plain)
+            )
         }
+        .buttonStyle(.plain)
     }
 
     var emptyStateView: some View {
