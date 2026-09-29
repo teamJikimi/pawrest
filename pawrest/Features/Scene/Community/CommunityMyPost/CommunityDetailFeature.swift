@@ -23,6 +23,8 @@ struct CommunityDetailState: Equatable {
     
     var errorMessage: String?
     
+    var showReportToast: Bool = false
+    
     @Presents var edit: CommunityWriteState?
     
     var inputPlaceholder: String {
@@ -76,6 +78,8 @@ enum CommunityDetailAction: Equatable {
     case blockResponse(blockedUserID: String, TaskResult<Bool>)
     
     case delegate(Delegate)
+    
+    case reportToastDismissed
     
     @CasePathable
     enum Delegate: Equatable {
@@ -353,6 +357,11 @@ struct CommunityDetailReducer: Reducer {
                 return .none
                 
             case .reportResponse(.success):
+                state.showReportToast = true
+                return .none
+                
+            case .reportToastDismissed:   
+                state.showReportToast = false
                 return .none
                 
             case .reportResponse(.failure(let error)):
