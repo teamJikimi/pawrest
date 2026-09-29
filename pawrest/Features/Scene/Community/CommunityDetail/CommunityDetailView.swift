@@ -28,6 +28,14 @@ struct CommunityDetailView: View {
                     action: \.navigationBar
                 )
             )
+            .toast(
+                isPresented: Binding(
+                    get: { store.showReportToast },
+                    set: { if !$0 { store.send(.reportToastDismissed) } }
+                ),
+                message: "신고 처리 되었습니다"
+            )
+        
             .onChange(of: store.replyingToCommentID) { _, newValue in
                 if newValue != nil {
                     isInputFocused = true
