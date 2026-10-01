@@ -400,6 +400,15 @@ final class CommunityFirestoreService {
     // MARK: - Account Deletion
     
     func deleteAllPostsByUser(authorID: String) async throws {
+        
+        let allComments = try await firestore
+            .collectionGroup("comments")
+            .whereField("authorID", isEqualTo: authorID)
+            .getDocuments()
+        for comment in allComments.documents {
+            try await comment.reference.delete()
+        }
+        
         let snapshot = try await firestore
             .collection("posts")
             .whereField("authorID", isEqualTo: authorID)
