@@ -20,9 +20,12 @@ struct ProfileEditView: View {
     @State private var selectedPetItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
-    @State private var localNickname: String = ""
-    @State private var localPetName: String = ""
     @FocusState private var isFocused: Bool
+
+    @State private var showUserImageDialog = false
+    @State private var showUserPhotoPicker = false
+    @State private var showPetImageDialog = false
+    @State private var showPetPhotoPicker = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -60,8 +63,6 @@ struct ProfileEditView: View {
                     birthday: pet.birthday,
                     deathDay: pet.deathDay
                 ))
-                localNickname = user.nickname
-                localPetName = pet.name
                 if let b = pet.birthday { tempBirthday = b }
                 if let d = pet.deathDay { tempDeathDay = d }
             }
@@ -86,6 +87,22 @@ struct ProfileEditView: View {
                 store.send(.pickerDismissed)
             } onCancel: {
                 store.send(.pickerDismissed)
+            }
+        }
+        .photosPicker(isPresented: $showUserPhotoPicker, selection: $selectedUserItem, matching: .images)
+        .onChange(of: selectedUserItem) { _, newItem in
+            Task { @MainActor in
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    store.send(.userImageSelected(data))
+                }
+            }
+        }
+        .photosPicker(isPresented: $showPetPhotoPicker, selection: $selectedPetItem, matching: .images)
+        .onChange(of: selectedPetItem) { _, newItem in
+            Task { @MainActor in
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    store.send(.petImageSelected(data))
+                }
             }
         }
         .hideTabBar()
@@ -138,17 +155,13 @@ private extension ProfileEditView {
                 .padding(.leading, 10)
                 .padding(.trailing, 10)
 
-            TextField("", text: $localNickname)
-                .typography(.body3R)
-                .foregroundStyle(.gray80)
-                .focused($isFocused)
-                .onChange(of: localNickname) { _, newValue in
-                    let clamped = String(newValue.prefix(12))
-                    if clamped != newValue {
-                        localNickname = clamped
-                    }
-                    store.send(.nicknameChanged(clamped))
-                }
+            TextField("", text: Binding(
+                get: { store.nickname },
+                set: { store.send(.nicknameChanged($0)) }
+            ))
+            .typography(.body3R)
+            .foregroundStyle(.gray80)
+            .focused($isFocused)
 
             Button {
                 store.send(.duplicateCheckTapped)
@@ -167,7 +180,7 @@ private extension ProfileEditView {
         .frame(height: 45)
         .background(Color.white)
         .cornerRadius(10, corners: .allCorners)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray20, lineWidth: 1))
     }
 
     // MARK: 펫 프로필 탭
@@ -179,15 +192,11 @@ private extension ProfileEditView {
             VStack(spacing: 8) {
                 editTextField(
                     label: "이름",
-                    text: $localPetName
+                    text: Binding(
+                        get: { store.petName },
+                        set: { store.send(.petNameChanged($0)) }
+                    )
                 )
-                .onChange(of: localPetName) { _, newValue in
-                    let clamped = String(newValue.prefix(12))
-                    if clamped != newValue {
-                        localPetName = clamped
-                    }
-                    store.send(.petNameChanged(clamped))
-                }
 
                 editDateField(
                     label: "생일",
@@ -233,15 +242,21 @@ private extension ProfileEditView {
     }
 
     var userProfileImageSection: some View {
-        PhotosPicker(selection: $selectedUserItem, matching: .images) {
+        Button {
+            showUserImageDialog = true
+        } label: {
             userProfileImageLabel
         }
-        .onChange(of: selectedUserItem) { _, newItem in
-            Task { @MainActor in
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    store.send(.userImageSelected(data))
+        .confirmationDialog("", isPresented: $showUserImageDialog) {
+            Button("사진 선택") {
+                showUserPhotoPicker = true
+            }
+            if store.userProfileImage != nil {
+                Button("삭제", role: .destructive) {
+                    store.send(.userImageDeleted)
                 }
             }
+            Button("취소", role: .cancel) {}
         }
     }
 
@@ -273,15 +288,21 @@ private extension ProfileEditView {
     }
 
     var petProfileImageSection: some View {
-        PhotosPicker(selection: $selectedPetItem, matching: .images) {
+        Button {
+            showPetImageDialog = true
+        } label: {
             petProfileImageLabel
         }
-        .onChange(of: selectedPetItem) { _, newItem in
-            Task { @MainActor in
-                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    store.send(.petImageSelected(data))
+        .confirmationDialog("", isPresented: $showPetImageDialog) {
+            Button("사진 선택") {
+                showPetPhotoPicker = true
+            }
+            if store.petProfileImage != nil {
+                Button("삭제", role: .destructive) {
+                    store.send(.petImageDeleted)
                 }
             }
+            Button("취소", role: .cancel) {}
         }
     }
 
@@ -308,7 +329,7 @@ private extension ProfileEditView {
         .frame(height: 45)
         .background(Color.white)
         .cornerRadius(10, corners: .allCorners)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray20, lineWidth: 1))
     }
 
     // MARK: 날짜 필드
@@ -339,7 +360,7 @@ private extension ProfileEditView {
         .frame(height: 45)
         .background(Color.white)
         .cornerRadius(10, corners: .allCorners)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray20, lineWidth: 1))
         .onTapGesture { onTap() }
     }
 

@@ -5,7 +5,6 @@
 
 import Foundation
 import ComposableArchitecture
-import FirebaseAuth
 
 // MARK: - Tab
 
@@ -67,14 +66,6 @@ struct ProfileEditState: Equatable {
         deathDay != originalDeathDay
     }
 
-    var isSaveEnabled: Bool {
-        guard isChanged else { return false }
-        if nickname != originalNickname {
-            return nicknameStatus == .available
-        }
-        return true
-    }
-
     var birthdayText: String {
         guard let date = birthday else { return "" }
         let f = DateFormatter()
@@ -101,12 +92,14 @@ enum ProfileEditAction: Equatable {
     // 유저
     case nicknameChanged(String)
     case userImageSelected(Data?)
+    case userImageDeleted
     case duplicateCheckTapped
     case duplicateCheckResult(isAvailable: Bool)
 
     // 펫
     case petNameChanged(String)
     case petImageSelected(Data?)
+    case petImageDeleted
     case birthdayFieldTapped
     case deathDayFieldTapped
     case birthdaySelected(Date)
@@ -165,20 +158,19 @@ struct ProfileEditFeature: Reducer {
                 state.userProfileImage = data
                 return .none
 
+            case .userImageDeleted:
+                state.userProfileImage = nil
+                return .none
+
             case .duplicateCheckTapped:
                 guard state.isFormatValid else {
                     state.nicknameStatus = .formatError
                     return .none
                 }
                 state.nicknameStatus = .checking
-                let nickname = state.nickname
                 return .run { send in
-                    do {
-                        let isAvailable = try await UserFirestoreService.shared.isNicknameAvailable(nickname)
-                        await send(.duplicateCheckResult(isAvailable: isAvailable))
-                    } catch {
-                        await send(.duplicateCheckResult(isAvailable: false))
-                    }
+                    try await Task.sleep(for: .milliseconds(500))
+                    await send(.duplicateCheckResult(isAvailable: true))
                 }
 
             case .duplicateCheckResult(let isAvailable):
@@ -191,6 +183,10 @@ struct ProfileEditFeature: Reducer {
 
             case .petImageSelected(let data):
                 state.petProfileImage = data
+                return .none
+
+            case .petImageDeleted:
+                state.petProfileImage = nil
                 return .none
 
             case .birthdayFieldTapped:
@@ -219,40 +215,14 @@ struct ProfileEditFeature: Reducer {
                 return .none
 
             case .saveTapped:
-                let nickname = state.nickname
-                let userImage = state.userProfileImage
-                let petName = state.petName
-                let petImage = state.petProfileImage
-                let birthday = state.birthday
-                let deathDay = state.deathDay
-                let isImageChanged = state.userProfileImage != state.originalUserProfileImage
-                
                 state.showSavedToast = true
-                state.originalNickname = nickname
-                state.originalUserProfileImage = userImage
-                state.originalPetName = petName
-                state.originalPetProfileImage = petImage
-                state.originalBirthday = birthday
-                state.originalDeathDay = deathDay
-                
-                return .run { _ in
-                    guard let uid = Auth.auth().currentUser?.uid else { return }
-                    
-                    let profileService = await UserProfileRemoteService()
-                    try? await profileService.updateProfile(
-                        userID: uid,
-                        nickname: nickname,
-                        imageData: userImage,
-                        isImageChanged: isImageChanged
-                    )
-                    
-                    try? await UserFirestoreService.shared.savePetProfile(
-                        name: petName,
-                        profileImageData: petImage,
-                        birthday: birthday,
-                        deathDay: deathDay
-                    )
-                }
+                state.originalNickname = state.nickname
+                state.originalUserProfileImage = state.userProfileImage
+                state.originalPetName = state.petName
+                state.originalPetProfileImage = state.petProfileImage
+                state.originalBirthday = state.birthday
+                state.originalDeathDay = state.deathDay
+                return .none
 
             case .toastDismissed:
                 state.showSavedToast = false
