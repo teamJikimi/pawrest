@@ -205,15 +205,18 @@ struct MyFeature: Reducer {
 
             case .deleteAccountConfirmed:
                 state.showDeleteAccountAlert = false
-                return .run { _ in
-                    guard let user = Auth.auth().currentUser else { return }
-                    let userID = user.uid
-
-                    let service = await MainActor.run { CommunityFirestoreService() }
-                    try? await service.deleteAllPostsByUser(authorID: userID)
-
-                    try? await user.delete()
-                }
+                    return .run { _ in
+                        guard let user = Auth.auth().currentUser else { return }
+                        let userID = user.uid
+                        let service = await MainActor.run { CommunityFirestoreService() }
+                        do {
+                            try await service.deleteAllPostsByUser(authorID: userID)
+                            print("[탈퇴] 댓글/게시글 삭제 완료") // 임시
+                        } catch {
+                            print("[탈퇴] 삭제 실패: \(error)") // 임시
+                        }
+                        try? await user.delete()
+                    }
 
             case .subPageDismissed:
                 state.isShowingSubPage = false
