@@ -17,7 +17,7 @@ struct CommunityMyPostView: View {
     //MARK: - Body
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
             segmentSection
             postsScrollView
         }
@@ -59,6 +59,7 @@ private extension CommunityMyPostView {
                     postCard(for: post)
                 }
             }
+            .padding(.top, 8)
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
         }
