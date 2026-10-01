@@ -180,7 +180,7 @@ private extension ProfileEditView {
         .frame(height: 45)
         .background(Color.white)
         .cornerRadius(10, corners: .allCorners)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray20, lineWidth: 1))
     }
 
     // MARK: 펫 프로필 탭
@@ -329,7 +329,7 @@ private extension ProfileEditView {
         .frame(height: 45)
         .background(Color.white)
         .cornerRadius(10, corners: .allCorners)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray20, lineWidth: 1))
     }
 
     // MARK: 날짜 필드
@@ -360,7 +360,7 @@ private extension ProfileEditView {
         .frame(height: 45)
         .background(Color.white)
         .cornerRadius(10, corners: .allCorners)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray10, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.gray20, lineWidth: 1))
         .onTapGesture { onTap() }
     }
 
