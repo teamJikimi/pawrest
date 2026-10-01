@@ -10,10 +10,11 @@ import SwiftUI
 struct ReportSummaryBannerView: View {
     let data: ReportData
     let isAILoading: Bool
+    let isAILoadFailed: Bool
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(.systemIconDownChart)
+            Image(data.summaryTitle == "이번 주 기록을 남겨보세요" ? .systemIconNoReport : .systemIconDownChart)
                 .resizable()
                 .frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 4) {
