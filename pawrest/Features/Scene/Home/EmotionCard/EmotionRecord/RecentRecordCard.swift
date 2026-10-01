@@ -140,7 +140,9 @@ private extension RecentRecordCard {
         VStack(spacing: 0) {
             dateNavigator
             
-            Divider()
+            Rectangle()
+                .fill(.gray20)
+                .frame(height: 1)
                 .padding(.horizontal, -16)
                 .padding(.vertical, 10)
             
