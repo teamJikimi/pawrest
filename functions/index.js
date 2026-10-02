@@ -19,7 +19,14 @@ exports.sendCommunityNotification = onDocumentCreated(
       .doc(userId)
       .get();
 
-    const fcmToken = userDoc.data()?.fcmToken;
+    const userData = userDoc.data();
+
+    if (userData?.communityNotificationEnabled === false) {
+      await snapshot.ref.delete();
+      return;
+    }
+
+    const fcmToken = userData?.fcmToken;
     if (!fcmToken) return;
 
     const message = {
