@@ -73,7 +73,7 @@ struct ReportFeature {
                         let (aiResult, weekdayInsight, todayTimeData) = try await useCase.fetchAIData(
                             emotionSnapshots: snapshots,
                             container: container,
-                            forceRefresh: true,
+                            forceRefresh: false,
                             petName: petName
                         )
                         await send(.aiDataLoaded(aiResult, weekdayInsight: weekdayInsight, todayTimeData: todayTimeData))
