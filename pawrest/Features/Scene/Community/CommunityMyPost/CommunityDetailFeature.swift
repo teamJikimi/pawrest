@@ -24,6 +24,7 @@ struct CommunityDetailState: Equatable {
     var errorMessage: String?
     
     var showReportToast: Bool = false
+    var showAlreadyReportedToast: Bool = false
     
     @Presents var edit: CommunityWriteState?
     
@@ -80,6 +81,7 @@ enum CommunityDetailAction: Equatable {
     case delegate(Delegate)
     
     case reportToastDismissed
+    case alreadyReportedToastDismissed
     
     @CasePathable
     enum Delegate: Equatable {
@@ -165,30 +167,7 @@ struct CommunityDetailReducer: Reducer {
                 }
                 
             case .likeResponse(let previousIsLiked, let success):
-                guard !success else {
-                    
-                    if !previousIsLiked {
-                        let currentUserID = state.currentUserID
-                        let authorName = state.authorName
-                        let postID = state.post.id
-                        let postAuthorID = state.post.author.id
-                        
-                        guard postAuthorID != currentUserID else { return .none }
-                        
-                        return .run { _ in
-                            try? await communityRepository.createNotification(
-                                postAuthorID,
-                                "like",
-                                authorName,
-                                postID,
-                                "\(authorName)님이 좋아요를 눌렀습니다."
-                            )
-                        }
-                    }
-                    return .none
-                }
-                
-                // 실패
+                guard !success else { return .none }
                 state.post.isLiked = previousIsLiked
                 state.post.likeCount += previousIsLiked ? 1 : -1
                 return .none
@@ -338,38 +317,7 @@ struct CommunityDetailReducer: Reducer {
                     state.post.comments.append(comment)
                 }
                 state.post.commentCount += 1
-                
-                // 알림 전송
-                let currentUserID = state.currentUserID
-                let authorName = state.authorName
-                let postID = state.post.id
-                let content = comment.content
-                
-                let targetUserID: String?
-                if let parentCommentID,
-                   let parentComment = findComment(commentID: parentCommentID, in: state.post) {
-                    targetUserID = parentComment.author.id != currentUserID
-                        ? parentComment.author.id : nil
-                } else {
-                    targetUserID = state.post.author.id != currentUserID
-                        ? state.post.author.id : nil
-                }
-                
-                guard let targetUserID else { return .none }
-                
-                let preview = content.count > 54
-                    ? String(content.prefix(54)) + "…"
-                    : content
-                
-                return .run { _ in
-                    try? await communityRepository.createNotification(
-                        targetUserID,
-                        "comment",
-                        authorName,
-                        postID,
-                        "새로운 댓글이 달렸습니다:\n\(preview)"
-                    )
-                }
+                return .none
                 
             case .commentCreationResponse(_, .failure(let error)):
                 state.errorMessage = error.localizedDescription
@@ -410,12 +358,20 @@ struct CommunityDetailReducer: Reducer {
                 state.errorMessage = error.localizedDescription
                 return .none
                 
-            case .reportResponse(.success):
-                state.showReportToast = true
+            case .reportResponse(.success(let alreadyReported)):
+                if alreadyReported {
+                    state.showAlreadyReportedToast = true
+                } else {
+                    state.showReportToast = true
+                }
                 return .none
                 
-            case .reportToastDismissed:   
+            case .reportToastDismissed:
                 state.showReportToast = false
+                return .none
+
+            case .alreadyReportedToastDismissed:
+                state.showAlreadyReportedToast = false
                 return .none
                 
             case .reportResponse(.failure(let error)):
@@ -465,10 +421,12 @@ private extension CommunityDetailReducer {
         
         return .run { send in
             await send(.reportResponse(TaskResult {
+                let alreadyReported = try await communityRepository.hasReported(currentUserID, postID)
+                if alreadyReported { return true }
                 try await communityRepository.createReport(
                     currentUserID, "post", postID, targetAuthorID, reason
                 )
-                return true
+                return false
             }))
         }
     }
@@ -480,13 +438,16 @@ private extension CommunityDetailReducer {
     ) -> Effect<CommunityDetailAction> {
         let currentUserID = state.currentUserID
         let targetAuthorID = findComment(commentID: commentID, in: state.post)?.author.id ?? ""
+        let targetID = commentID.uuidString
         
         return .run { send in
             await send(.reportResponse(TaskResult {
+                let alreadyReported = try await communityRepository.hasReported(currentUserID, targetID)
+                if alreadyReported { return true }
                 try await communityRepository.createReport(
-                    currentUserID, "comment", commentID.uuidString, targetAuthorID, reason
+                    currentUserID, "comment", targetID, targetAuthorID, reason
                 )
-                return true
+                return false
             }))
         }
     }
