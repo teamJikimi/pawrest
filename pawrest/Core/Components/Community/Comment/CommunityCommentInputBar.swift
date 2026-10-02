@@ -48,7 +48,6 @@ struct CommunityCommentInputBar: View {
     var placeholder: String = "댓글을 입력하세요."
     @FocusState.Binding var isFocused: Bool
     
-        else { return 0 }
     @State private var safeAreaBottom: CGFloat = 0
     
     //MARK: - Body
