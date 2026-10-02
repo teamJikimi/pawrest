@@ -42,8 +42,6 @@ struct CommunityDetailView: View {
                 ),
                 message: "이미 신고한 게시물입니다."
             )
-
-        
             .onChange(of: store.replyingToCommentID) { _, newValue in
                 if newValue != nil {
                     isInputFocused = true
@@ -72,7 +70,7 @@ private extension CommunityDetailView {
     
     var contentView: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 authorHeaderSection
                 CommunityDivider()
                 contentSection
@@ -88,6 +86,7 @@ private extension CommunityDetailView {
         }
         .scrollDismissesKeyboard(.never)
         .onTapGesture {
+            openedMenuCommentID = nil
             if isInputFocused {
                 isInputFocused = false
                 store.send(.outsideTapped)
