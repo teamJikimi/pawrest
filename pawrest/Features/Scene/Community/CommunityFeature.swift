@@ -273,12 +273,10 @@ struct CommunityReducer: Reducer {
                 previousIsLiked,
                 success
             ):
-                // 성공했으면 optimistic UI 상태 그대로 유지
                 guard !success else {
                     return .none
                 }
 
-                // 실패했으면 원래 상태로 rollback
                 guard let index = state.posts.firstIndex(
                     where: { $0.id == postID }
                 ) else {
@@ -294,14 +292,13 @@ struct CommunityReducer: Reducer {
             // MARK: Presentation
 
             case let .detail(.presented(.delegate(delegate))):
-                state.detail = nil
                 switch delegate {
                 case .postDeleted(let postID):
                     state.posts.removeAll { $0.id == postID }
                 case .userBlocked(let userID):
                     state.blockedUserIDs.insert(userID)
                 }
-                return .none
+                return .send(.detail(.dismiss))
                 
             case .detail(.presented):
                 if let post = state.detail?.post {
