@@ -17,8 +17,9 @@ final class NotificationRecord {
     var body: String
     var receivedAt: Date
     var isRead: Bool
+    var postID: String?
 
-    init(identifier: String, type: NotificationType, title: String, body: String, receivedAt: Date = Date()) {
+    init(identifier: String, type: NotificationType, title: String, body: String, receivedAt: Date = Date(), postID: String? = nil) {
         self.identifier = identifier
         self.id = UUID()
         self.type = type.rawValue
@@ -26,6 +27,7 @@ final class NotificationRecord {
         self.body = body
         self.receivedAt = receivedAt
         self.isRead = false
+        self.postID = postID
     }
 
     var notificationType: NotificationType {
