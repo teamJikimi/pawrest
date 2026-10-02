@@ -142,6 +142,7 @@ struct NavigationBarView: View {
                     .frame(width: 30, height: 30)
             }
             .frame(width: 44, height: 44)
+
         case .editMenu:
             EditMenuButtonWrapper(
                 onEdit: { store.send(.editTapped) },
@@ -150,8 +151,7 @@ struct NavigationBarView: View {
             .frame(width: 44, height: 44)
             
         case .reportMenu:
-            ReportMenuButton(
-                icon: .iconEllipsis,
+            ReportMenuButtonWrapper(
                 onBoardSettings: { store.send(.reportBoardSettings) },
                 onReportAbuse: { store.send(.reportAbuse) },
                 onReportSpam: { store.send(.reportSpam) },
@@ -236,5 +236,24 @@ private struct EditMenuButtonWrapper: View {
                 onDelete()
             }
         }
+    }
+}
+
+private struct ReportMenuButtonWrapper: View {
+    let onBoardSettings: () -> Void
+    let onReportAbuse: () -> Void
+    let onReportSpam: () -> Void
+    let onBlock: () -> Void
+    @State private var isMenuOpen = false
+
+    var body: some View {
+        ReportMenuButton(
+            icon: .iconEllipsis,
+            onBoardSettings: onBoardSettings,
+            onReportAbuse: onReportAbuse,
+            onReportSpam: onReportSpam,
+            onBlock: onBlock,
+            isShowingMenu: $isMenuOpen
+        )
     }
 }

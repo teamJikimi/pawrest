@@ -40,7 +40,6 @@ struct CommunityCommentRow: View {
             if isReply { replyLayout }
             else { topLevelLayout }
         }
-        .zIndex(isEditMenuShowing ? 1000 : 0)
         .onChange(of: openedMenuCommentID.wrappedValue) { _, newID in
             if newID != comment.id {
                 isEditMenuShowing = false
@@ -178,7 +177,15 @@ private extension CommunityCommentRow {
                 onReportAbuse: { onAction(.reportAbuse) },
                 onReportSpam: { onAction(.reportSpam) },
                 onBlock: { onAction(.blockTapped) },
-                onMenuVisibilityChanged: { isEditMenuShowing = $0 }
+                isShowingMenu: $isEditMenuShowing,
+                onMenuVisibilityChanged: { visible in
+                    isEditMenuShowing = visible
+                    if visible {
+                        openedMenuCommentID.wrappedValue = comment.id
+                    } else if openedMenuCommentID.wrappedValue == comment.id {
+                        openedMenuCommentID.wrappedValue = nil
+                    }
+                }
             )
         }
     }
