@@ -400,6 +400,15 @@ final class CommunityFirestoreService {
     // MARK: - Account Deletion
     
     func deleteAllPostsByUser(authorID: String) async throws {
+        
+        let allComments = try await firestore
+            .collectionGroup("comments")
+            .whereField("authorID", isEqualTo: authorID)
+            .getDocuments()
+        for comment in allComments.documents {
+            try await comment.reference.delete()
+        }
+        
         let snapshot = try await firestore
             .collection("posts")
             .whereField("authorID", isEqualTo: authorID)
@@ -434,5 +443,31 @@ final class CommunityFirestoreService {
         for block in blocksSnapshot.documents {
             try await block.reference.delete()
         }
+    }
+    
+    // MARK: - Notification
+
+    func createNotification(
+        targetUserID: String,
+        type: String,
+        senderName: String,
+        postID: String,
+        body: String
+    ) async throws {
+        let notifID = UUID().uuidString
+        
+        try await firestore
+            .collection("users")
+            .document(targetUserID)
+            .collection("notifications")
+            .document(notifID)
+            .setData([
+                "type": type,
+                "senderName": senderName,
+                "postID": postID,
+                "body": body,
+                "createdAt": Timestamp(date: Date()),
+                "isRead": false
+            ])
     }
 }

@@ -8,6 +8,7 @@
 import Foundation
 import ComposableArchitecture
 import FirebaseAuth
+import FirebaseFirestore
 
 struct MyFeature: Reducer {
 
@@ -164,7 +165,13 @@ struct MyFeature: Reducer {
             case .communityReactionToggled(let value):
                 state.isCommunityReactionOn = value
                 UserDefaults.standard.set(value, forKey: "communityReactionEnabled")
-                return .none
+                return .run { _ in
+                    guard let uid = Auth.auth().currentUser?.uid else { return }
+                    try? await Firestore.firestore()
+                        .collection("users")
+                        .document(uid)
+                        .setData(["communityNotificationEnabled": value], merge: true)
+                }
 
             case .blockedListTapped:
                 state.path.append(.blockedList(BlockedListFeature.State()))
