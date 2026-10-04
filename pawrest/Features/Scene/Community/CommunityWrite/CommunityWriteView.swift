@@ -37,9 +37,11 @@ struct CommunityWriteView: View {
                     .padding(.horizontal, 20)
             }
             .scrollDismissesKeyboard(.immediately)
-            .onTapGesture {
-                isFocused = false
-            }
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    isFocused = false
+                }
+            )
         }
         .customNavigationBar(
             store: store.scope(

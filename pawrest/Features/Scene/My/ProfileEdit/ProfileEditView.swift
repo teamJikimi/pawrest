@@ -20,6 +20,8 @@ struct ProfileEditView: View {
     @State private var selectedPetItem: PhotosPickerItem? = nil
     @State private var tempBirthday: Date = Date()
     @State private var tempDeathDay: Date = Date()
+    @State private var localNickname: String = ""
+    @State private var localPetName: String = ""
     @FocusState private var isFocused: Bool
 
     @State private var showUserImageDialog = false
@@ -63,6 +65,8 @@ struct ProfileEditView: View {
                     birthday: pet.birthday,
                     deathDay: pet.deathDay
                 ))
+                localNickname = user.nickname
+                localPetName = pet.name
                 if let b = pet.birthday { tempBirthday = b }
                 if let d = pet.deathDay { tempDeathDay = d }
             }
@@ -155,13 +159,21 @@ private extension ProfileEditView {
                 .padding(.leading, 10)
                 .padding(.trailing, 10)
 
-            TextField("", text: Binding(
-                get: { store.nickname },
-                set: { store.send(.nicknameChanged($0)) }
-            ))
-            .typography(.body3R)
-            .foregroundStyle(.gray80)
-            .focused($isFocused)
+            TextField("", text: $localNickname)
+                .typography(.body3R)
+                .foregroundStyle(.gray80)
+                .focused($isFocused)
+                .onChange(of: localNickname) { _, newValue in
+                    let filtered = newValue.filter { char in
+                        let s = String(char)
+                        return s.range(of: "^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]$", options: .regularExpression) != nil
+                    }
+                    let clamped = String(filtered.prefix(12))
+                    if clamped != newValue {
+                        localNickname = clamped
+                    }
+                    store.send(.nicknameChanged(clamped))
+                }
 
             Button {
                 store.send(.duplicateCheckTapped)
@@ -192,11 +204,19 @@ private extension ProfileEditView {
             VStack(spacing: 8) {
                 editTextField(
                     label: "이름",
-                    text: Binding(
-                        get: { store.petName },
-                        set: { store.send(.petNameChanged($0)) }
-                    )
+                    text: $localPetName
                 )
+                .onChange(of: localPetName) { _, newValue in
+                    let filtered = newValue.filter { char in
+                        let s = String(char)
+                        return s.range(of: "^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]$", options: .regularExpression) != nil
+                    }
+                    let clamped = String(filtered.prefix(12))
+                    if clamped != newValue {
+                        localPetName = clamped
+                    }
+                    store.send(.petNameChanged(clamped))
+                }
 
                 editDateField(
                     label: "생일",

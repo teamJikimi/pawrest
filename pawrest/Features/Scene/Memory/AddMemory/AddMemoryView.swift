@@ -35,9 +35,11 @@ struct AddMemoryView: View {
                     .padding(.horizontal, 20)
             }
             .scrollDismissesKeyboard(.immediately)
-            .onTapGesture {
-                isFocused = false
-            }
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    isFocused = false
+                }
+            )
         }
         .navigationBarBackButtonHidden(true)
         .customNavigationBar(
