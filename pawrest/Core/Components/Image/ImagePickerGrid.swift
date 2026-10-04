@@ -10,33 +10,27 @@ import PhotosUI
 
 public struct ImagePickerGrid: View {
     // MARK: - Properties
-    
+
     let selectedImages: [UIImage]
-    let pickerItems: [PhotosPickerItem]
     let maxCount: Int
     let onImagesChanged: ([UIImage]) -> Void
-    let onPickerItemsChanged: ([PhotosPickerItem]) -> Void
-    
+
     @State private var localPickerItems: [PhotosPickerItem] = []
-    
+
     // MARK: - Initializer
-    
+
     public init(
         selectedImages: [UIImage],
-        pickerItems: [PhotosPickerItem],
         maxCount: Int = 10,
-        onImagesChanged: @escaping ([UIImage]) -> Void,
-        onPickerItemsChanged: @escaping ([PhotosPickerItem]) -> Void
+        onImagesChanged: @escaping ([UIImage]) -> Void
     ) {
         self.selectedImages = selectedImages
-        self.pickerItems = pickerItems
         self.maxCount = maxCount
         self.onImagesChanged = onImagesChanged
-        self.onPickerItemsChanged = onPickerItemsChanged
     }
-    
+
     // MARK: - Body
-    
+
     public var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
@@ -44,10 +38,11 @@ public struct ImagePickerGrid: View {
                     selectedCount: selectedImages.count,
                     maxCount: maxCount,
                     localPickerItems: $localPickerItems,
-                    onPickerItemsChanged: onPickerItemsChanged,
-                    onImagesLoaded: loadImages
+                    onItemsChanged: { oldItems, newItems in
+                        handlePickerChange(from: oldItems, to: newItems)
+                    }
                 )
-                
+
                 ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
                     ImageCard(
                         image: image,
@@ -57,55 +52,54 @@ public struct ImagePickerGrid: View {
             }
             .padding(.horizontal, 20)
         }
-        .onChange(of: pickerItems) { _, newValue in
-            localPickerItems = newValue
-        }
     }
-    
+
     // MARK: - Actions
-    
-    private func loadImages(from items: [PhotosPickerItem]) {
-        Task {
-            var loadedImages: [UIImage] = []
-            
-            for item in items {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data) {
-                    loadedImages.append(uiImage)
+
+    private func handlePickerChange(from oldItems: [PhotosPickerItem], to newItems: [PhotosPickerItem]) {
+        guard oldItems != newItems else { return }
+
+        if newItems.count >= oldItems.count {
+            let addedItems = Array(newItems.suffix(newItems.count - oldItems.count))
+            guard !addedItems.isEmpty else { return }
+            Task {
+                var addedImages: [UIImage] = []
+                for item in addedItems {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        addedImages.append(uiImage)
+                    }
+                }
+                await MainActor.run {
+                    onImagesChanged(selectedImages + addedImages)
                 }
             }
-            
-            await MainActor.run {
-                onImagesChanged(loadedImages)
-            }
+        } else {
+            let removedCount = oldItems.count - newItems.count
+            onImagesChanged(Array(selectedImages.dropLast(removedCount)))
         }
     }
-    
+
     private func removeImage(at index: Int) {
         var newImages = selectedImages
-        var newItems = pickerItems
-        
         newImages.remove(at: index)
-        if index < newItems.count {
-            newItems.remove(at: index)
+        if index < localPickerItems.count {
+            localPickerItems.remove(at: index)
         }
-        
         onImagesChanged(newImages)
-        onPickerItemsChanged(newItems)
     }
 }
 
 // MARK: - Subviews
 
 extension ImagePickerGrid {
-    struct AddButton: View {
+    public struct AddButton: View {
         let selectedCount: Int
         let maxCount: Int
         @Binding var localPickerItems: [PhotosPickerItem]
-        let onPickerItemsChanged: ([PhotosPickerItem]) -> Void
-        let onImagesLoaded: ([PhotosPickerItem]) -> Void
-        
-        var body: some View {
+        let onItemsChanged: ([PhotosPickerItem], [PhotosPickerItem]) -> Void
+
+        public var body: some View {
             PhotosPicker(
                 selection: $localPickerItems,
                 maxSelectionCount: maxCount,
@@ -113,14 +107,13 @@ extension ImagePickerGrid {
             ) {
                 content
             }
-            .onChange(of: localPickerItems) { _, newItems in
-                onPickerItemsChanged(newItems)
-                onImagesLoaded(newItems)
+            .onChange(of: localPickerItems) { oldItems, newItems in
+                onItemsChanged(oldItems, newItems)
             }
             .disabled(isDisabled)
             .opacity(isDisabled ? 0.5 : 1.0)
         }
-        
+
         private var content: some View {
             VStack(spacing: 12) {
                 Image(.iconAdd)
@@ -137,23 +130,23 @@ extension ImagePickerGrid {
             .background(.gray20)
             .cornerRadius(10, corners: .allCorners)
         }
-        
+
         private var isDisabled: Bool {
             selectedCount >= maxCount
         }
     }
-    
+
     struct ImageCard: View {
         let image: UIImage
         let onDelete: () -> Void
-        
+
         var body: some View {
             ZStack(alignment: .topTrailing) {
                 imageContent
                 deleteButton
             }
         }
-        
+
         private var imageContent: some View {
             Image(uiImage: image)
                 .resizable()
@@ -161,7 +154,7 @@ extension ImagePickerGrid {
                 .frame(width: 103, height: 135)
                 .cornerRadius(10, corners: .allCorners)
         }
-        
+
         private var deleteButton: some View {
             Image(.iconImageXmark)
                 .frame(width: 24, height: 24)

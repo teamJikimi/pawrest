@@ -13,16 +13,16 @@ import Photos
 struct AddMemoryView: View {
     @Bindable var store: StoreOf<AddMemoryReducer>
     @FocusState private var isFocused: Bool
-    
+
     @Environment(\.modelContext) private var modelContext
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     imageGridSection
                         .padding(.top, 16)
-                    
+
                     VStack(alignment: .leading, spacing: 12) {
                         titleTextField
                         contentTextField
@@ -30,16 +30,14 @@ struct AddMemoryView: View {
                     .padding(.horizontal, 20)
                 }
                 .padding(.bottom, 12)
-                
+
                 saveButton
                     .padding(.horizontal, 20)
             }
             .scrollDismissesKeyboard(.immediately)
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    isFocused = false
-                }
-            )
+            .onTapGesture {
+                isFocused = false
+            }
         }
         .navigationBarBackButtonHidden(true)
         .customNavigationBar(
@@ -59,13 +57,9 @@ extension AddMemoryView {
     private var imageGridSection: some View {
         ImagePickerGrid(
             selectedImages: store.imageGrid.selectedImages,
-            pickerItems: store.imageGrid.pickerItems,
             maxCount: 10,
             onImagesChanged: { images in
                 store.send(.imageGrid(.imagesChanged(images)))
-            },
-            onPickerItemsChanged: { items in
-                store.send(.imageGrid(.pickerItemsChanged(items)))
             }
         )
         .frame(height: 135)
@@ -73,7 +67,7 @@ extension AddMemoryView {
             requestPhotoLibraryPermission()
         }
     }
-    
+
     private var titleTextField: some View {
         TextField(
             "제목을 입력하세요.",
@@ -102,7 +96,7 @@ extension AddMemoryView {
             }
         }
     }
-    
+
     private var contentTextField: some View {
         LimitedTextField(
             text: $store.content.sending(\.contentChanged),
@@ -111,7 +105,7 @@ extension AddMemoryView {
             maxCharacters: 1000
         )
     }
-    
+
     private var saveButton: some View {
         Button {
             saveMemory()
@@ -127,9 +121,9 @@ extension AddMemoryView {
         .disabled(!store.isSaveButtonEnabled)
         .padding(.bottom, 20)
     }
-    
+
     // MARK: - Actions
-    
+
     private func saveMemory() {
         let album = MemoryModel(
             title: store.title,
@@ -137,9 +131,9 @@ extension AddMemoryView {
             date: Date(),
             images: store.imageGrid.selectedImages
         )
-        
+
         modelContext.insert(album)
-        
+
         do {
             try modelContext.save()
             print("✅ 저장 성공: \(album.title)")
@@ -148,12 +142,12 @@ extension AddMemoryView {
             print("❌ 저장 실패: \(error)")
         }
     }
-    
+
     // MARK: - Photo Library Permission
-    
+
     private func requestPhotoLibraryPermission() {
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-        
+
         switch status {
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in

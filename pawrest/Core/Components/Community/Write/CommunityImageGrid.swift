@@ -9,18 +9,18 @@ import SwiftUI
 import PhotosUI
 
 struct CommunityImageGrid: View {
-    
+
     // MARK: - Properties
-    
+
     let items: [PostImageItem]
     let maxCount: Int
     let onImagesAdded: ([UIImage]) -> Void
     let onImageDeleted: (PostImageItem.ID) -> Void
-    
+
     @State private var pickerItems: [PhotosPickerItem] = []
-    
+
     // MARK: - Body
-    
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
@@ -28,10 +28,13 @@ struct CommunityImageGrid: View {
                     selectedCount: items.count,
                     maxCount: maxCount,
                     localPickerItems: $pickerItems,
-                    onPickerItemsChanged: { _ in },
-                    onImagesLoaded: loadImages
+                    onItemsChanged: { oldItems, newItems in
+                        guard newItems.count > oldItems.count else { return }
+                        let addedItems = Array(newItems.suffix(newItems.count - oldItems.count))
+                        loadImages(from: addedItems)
+                    }
                 )
-                
+
                 ForEach(items) { item in
                     ImageCard(
                         item: item,
@@ -47,21 +50,20 @@ struct CommunityImageGrid: View {
 // MARK: - Actions
 
 private extension CommunityImageGrid {
-    
+
     func loadImages(from selection: [PhotosPickerItem]) {
         guard !selection.isEmpty else { return }
-        pickerItems = []
-        
+
         Task {
             var images: [UIImage] = []
-            
+
             for item in selection {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
                     images.append(image)
                 }
             }
-            
+
             onImagesAdded(images)
         }
     }
@@ -70,11 +72,11 @@ private extension CommunityImageGrid {
 // MARK: - Subviews
 
 extension CommunityImageGrid {
-    
+
     struct ImageCard: View {
         let item: PostImageItem
         let onDelete: () -> Void
-        
+
         var body: some View {
             ZStack(alignment: .topTrailing) {
                 imageContent
@@ -83,7 +85,7 @@ extension CommunityImageGrid {
                 deleteButton
             }
         }
-        
+
         @ViewBuilder
         private var imageContent: some View {
             switch item.source {
@@ -98,7 +100,7 @@ extension CommunityImageGrid {
                     .scaledToFill()
             }
         }
-        
+
         private var deleteButton: some View {
             Image(.iconImageXmark)
                 .frame(width: 24, height: 24)
