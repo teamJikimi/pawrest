@@ -66,8 +66,8 @@ enum AssessmentType: Equatable {
     func scoreLevel(for score: Int) -> AssessmentScoreLevel {
         switch self {
         case .pbq:
-            if score < 16 { return .pbqLow }
-            if score < 32 { return .pbqAverage }
+            if score < 28 { return .pbqLow }
+            if score < 37 { return .pbqAverage }
             return .pbqHigh
         case .cesD:
             if score < 16 { return .cesDNormal }
@@ -116,9 +116,9 @@ enum AssessmentScoreLevel: Equatable {
 
     var rangeText: String {
         switch self {
-        case .pbqLow:               return "0~15점"
-        case .pbqAverage:           return "16~31점"
-        case .pbqHigh:              return "32점 이상"
+        case .pbqLow:               return "28점 미만"
+        case .pbqAverage:           return "28~36점"
+        case .pbqHigh:              return "37점 이상"
         case .cesDNormal:           return "0~15점"
         case .cesDHighRisk:         return "16~24점"
         case .cesDDepression:       return "25점 이상"
@@ -128,7 +128,7 @@ enum AssessmentScoreLevel: Equatable {
         case .pdsSevere:            return "36점 이상"
         }
     }
-    
+
     var icon: ImageResource {
         switch self {
         case .pbqLow, .cesDNormal, .pdsMild:
