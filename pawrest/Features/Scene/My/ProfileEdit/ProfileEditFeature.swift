@@ -59,6 +59,14 @@ struct ProfileEditState: Equatable {
         isFormatValid && nicknameStatus != .checking && nicknameStatus != .available
     }
 
+    var isNicknameChanged: Bool {
+        nickname != originalNickname
+    }
+
+    var isNicknameValid: Bool {
+        !isNicknameChanged || nicknameStatus == .available
+    }
+
     var isChanged: Bool {
         nickname != originalNickname ||
         userProfileImage != originalUserProfileImage ||
@@ -66,6 +74,14 @@ struct ProfileEditState: Equatable {
         petProfileImage != originalPetProfileImage ||
         birthday != originalBirthday ||
         deathDay != originalDeathDay
+    }
+
+    var isSaveEnabled: Bool {
+        guard isChanged else { return false }
+        if isNicknameChanged {
+            return nicknameStatus == .available
+        }
+        return true
     }
 
     var birthdayText: String {
@@ -123,6 +139,7 @@ struct ProfileEditFeature: Reducer {
 
         Reduce { state, action in
             switch action {
+                
             case .navigationBar:
                 return .none
 

@@ -82,6 +82,11 @@ struct CommunityRepository {
         _ content: String
     ) async throws -> Void
 
+    var hasReported: @Sendable (
+        _ reporterID: String,
+        _ targetID: String
+    ) async throws -> Bool
+
     var createReport: @Sendable (
         _ reporterID: String,
         _ targetType: String,
@@ -111,14 +116,6 @@ struct CommunityRepository {
     
     var deleteAllPostsByUser: @Sendable (
         _ authorID: String
-    ) async throws -> Void
-    
-    var createNotification: @Sendable (
-        _ targetUserID: String,
-        _ type: String,
-        _ senderName: String,
-        _ postID: String,
-        _ body: String
     ) async throws -> Void
 }
 
@@ -303,7 +300,14 @@ extension CommunityRepository: DependencyKey {
                     content: content
                 )
             },
-            
+
+            hasReported: { reporterID, targetID in
+                try await service.hasReported(
+                    reporterID: reporterID,
+                    targetID: targetID
+                )
+            },
+
             createReport: { reporterID, targetType, targetID, targetAuthorID, reason in
                 try await service.createReport(
                     reporterID: reporterID,
@@ -341,16 +345,6 @@ extension CommunityRepository: DependencyKey {
             
             deleteAllPostsByUser: { authorID in
                 try await service.deleteAllPostsByUser(authorID: authorID)
-            },
-            
-            createNotification: { targetUserID, type, senderName, postID, body in
-                try await service.createNotification(
-                    targetUserID: targetUserID,
-                    type: type,
-                    senderName: senderName,
-                    postID: postID,
-                    body: body
-                )
             }
         )
     }()

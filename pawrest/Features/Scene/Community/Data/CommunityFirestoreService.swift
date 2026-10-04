@@ -339,6 +339,19 @@ final class CommunityFirestoreService {
             ])
     }
     
+    func hasReported(
+        reporterID: String,
+        targetID: String
+    ) async throws -> Bool {
+        let snapshot = try await firestore
+            .collection("reports")
+            .whereField("reporterID", isEqualTo: reporterID)
+            .whereField("targetID", isEqualTo: targetID)
+            .limit(to: 1)
+            .getDocuments()
+        return !snapshot.isEmpty
+    }
+    
     // MARK: - Block
     
     func blockUser(

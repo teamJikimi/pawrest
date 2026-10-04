@@ -13,11 +13,11 @@ enum RiskLevel: CaseIterable {
     case danger
     case highRisk
 
-    /// PBQ: 0~15 안정 / 16~31 주의 / 32~ 고위험
+    /// PBQ: 0~27 안정 / 28~36 주의 / 37~ 고위험
     static func fromPBQ(score: Int) -> RiskLevel {
         switch score {
-        case ..<16: return .stable
-        case ..<32: return .caution
+        case ..<28: return .stable
+        case ..<37: return .caution
         default:    return .highRisk
         }
     }

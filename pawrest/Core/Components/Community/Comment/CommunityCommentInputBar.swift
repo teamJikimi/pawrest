@@ -48,12 +48,7 @@ struct CommunityCommentInputBar: View {
     var placeholder: String = "댓글을 입력하세요."
     @FocusState.Binding var isFocused: Bool
     
-    private var safeAreaBottom: CGFloat {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = scene.windows.first
-        else { return 0 }
-        return window.safeAreaInsets.bottom
-    }
+    @State private var safeAreaBottom: CGFloat = 0
     
     //MARK: - Body
     
@@ -62,7 +57,6 @@ struct CommunityCommentInputBar: View {
             .padding(.horizontal, 20)
             .padding(.top, isFocused ? 8 : 18)
             .padding(.bottom, isFocused ? 8 : max(36 - safeAreaBottom, 0))
-        
             .frame(maxWidth: .infinity)
             .background(.gray0)
             .cornerRadius(isFocused ? 0 : 20, corners: [.topRight, .topLeft])
@@ -74,6 +68,12 @@ struct CommunityCommentInputBar: View {
                 Color.gray0.ignoresSafeArea(.container, edges: .bottom)
             )
             .animation(.easeInOut(duration: 0.25), value: isFocused)
+            .onAppear {
+                guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let window = scene.windows.first
+                else { return }
+                safeAreaBottom = window.safeAreaInsets.bottom
+            }
     }
 }
 
@@ -121,25 +121,5 @@ private extension CommunityCommentInputBar {
         }
         .buttonStyle(.plain)
         .disabled(text.isEmpty)
-    }
-}
-
-// MARK: - Preview
-
-private struct PreviewWrapper: View {
-    @State private var text: String = ""
-    @FocusState private var isFocused: Bool
-    
-    var body: some View {
-        VStack {
-            Spacer()
-            CommunityCommentInputBar(
-                text: $text,
-                onSend: {},
-                placeholder: "댓글을 입력하세요.",
-                isFocused: $isFocused
-            )
-        }
-        .background(.gray10)
     }
 }
