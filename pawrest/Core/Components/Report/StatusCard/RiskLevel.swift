@@ -22,12 +22,12 @@ enum RiskLevel: CaseIterable {
         }
     }
 
-    /// CES-D: 0~15 안정 / 16~24 주의 / 25~27 위험 / 28~ 고위험
+    /// CES-D: 0~20 안정 / 16~24 주의 / 25~27 위험 / 28~ 고위험
     static func fromCESD(score: Int) -> RiskLevel {
         switch score {
-        case ..<16: return .stable
-        case ..<25: return .caution
-        case ..<28: return .danger
+        case ..<21: return .stable
+        case ..<41: return .caution
+        case ..<61: return .danger
         default:    return .highRisk
         }
     }

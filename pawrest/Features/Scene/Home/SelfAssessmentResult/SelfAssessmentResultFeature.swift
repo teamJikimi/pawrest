@@ -70,8 +70,8 @@ enum AssessmentType: Equatable {
             if score < 37 { return .pbqAverage }
             return .pbqHigh
         case .cesD:
-            if score < 16 { return .cesDNormal }
-            if score < 25 { return .cesDHighRisk }
+            if score < 21 { return .cesDNormal }
+            if score < 41 { return .cesDHighRisk }
             return .cesDDepression
         case .pds:
             if score < 11 { return .pdsMild }
@@ -105,7 +105,7 @@ enum AssessmentScoreLevel: Equatable {
         case .pbqAverage:           return "평균 이상"
         case .pbqHigh:              return "상위 30% 펫로스 증후군"
         case .cesDNormal:           return "정상"
-        case .cesDHighRisk:         return "우울 고위험군"
+        case .cesDHighRisk:         return "우울 위험군"
         case .cesDDepression:       return "우울증 고위험군"
         case .pdsMild:              return "경도 수준"
         case .pdsModerate:          return "중등도 수준"
@@ -119,9 +119,9 @@ enum AssessmentScoreLevel: Equatable {
         case .pbqLow:               return "28점 미만"
         case .pbqAverage:           return "28~36점"
         case .pbqHigh:              return "37점 이상"
-        case .cesDNormal:           return "0~15점"
-        case .cesDHighRisk:         return "16~24점"
-        case .cesDDepression:       return "25점 이상"
+        case .cesDNormal:           return "0~20점"
+        case .cesDHighRisk:         return "21~40점"
+        case .cesDDepression:       return "41~60점"
         case .pdsMild:              return "11점 미만"
         case .pdsModerate:          return "11~20점"
         case .pdsModerateToSevere:  return "21~35점"
@@ -165,7 +165,9 @@ enum AssessmentScoreLevel: Equatable {
         switch self {
         case .pbqLow, .cesDNormal, .pdsMild:
             return .iconBackgroundLow
-        case .pbqAverage, .pdsModerate:
+        case .pbqAverage:
+            return .iconBackgroundHigh
+        case .pdsModerate:
             return .iconBackgroundModerate
         case .cesDHighRisk, .pdsModerateToSevere:
             return .iconBackgroundHigh
