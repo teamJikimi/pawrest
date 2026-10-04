@@ -38,6 +38,7 @@ struct OnboardingTextField: View {
     let placeholder: String
     @Binding var text: String
     @State private var localText: String = ""
+    @State private var isRestoringFromStore: Bool = false
     var helper: OnboardingTextFieldHelper = .none
     var trailingContent: AnyView? = nil
     var isEditable: Bool = true
@@ -80,8 +81,22 @@ private extension OnboardingTextField {
                 }
                 .typography(.body2M)
                 .foregroundColor(.gray80)
+                .onAppear {
+                    if localText != text {
+                        isRestoringFromStore = true
+                        localText = text
+                    }
+                }
                 .onChange(of: localText) { _, newValue in
-                    let clamped = String(newValue.prefix(maxLength))
+                    if isRestoringFromStore {
+                        isRestoringFromStore = false
+                        return
+                    }
+                    let filtered = newValue.filter { char in
+                        let s = String(char)
+                        return s.range(of: "^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]$", options: .regularExpression) != nil
+                    }
+                    let clamped = String(filtered.prefix(maxLength))
                     if clamped != newValue {
                         localText = clamped
                     }

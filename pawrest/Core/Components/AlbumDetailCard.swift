@@ -151,22 +151,29 @@ extension AlbumDetailCard {
             Spacer()
                 .frame(height: 12)
             
-            if content.count > 92 {
+            if content.count > 92 || contentLineCount > 4 {
                 ScrollView(showsIndicators: false) {
                     Text(content)
                         .typography(.body2R2)
                         .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(width: cardTextWidth, alignment: .leading)
                 }
-                .frame(maxHeight: 92)
+                .frame(width: cardTextWidth, height: 92)
             } else {
                 Text(content)
                     .typography(.body1R)
                     .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(width: cardTextWidth, alignment: .leading)
             }
         }
+        .frame(width: cardTextWidth, alignment: .leading)
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
+    }
+
+    private var cardTextWidth: CGFloat { 335 - 40 }
+
+    private var contentLineCount: Int {
+        content.components(separatedBy: "\n").count
     }
 }
