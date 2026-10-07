@@ -67,6 +67,8 @@ struct Post: Equatable, Identifiable {
     var isLiked: Bool
     var comments: [Comment]
     var commentCount: Int
+    
+    var isBlinded: Bool = false
 
     init(
         id: String = UUID().uuidString,
