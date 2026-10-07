@@ -25,6 +25,8 @@ struct CommunityPostDTO {
     let likeCount: Int
     let commentCount: Int
     
+    let isBlinded: Bool
+    
     init(
         id: String,
         authorID: String,
@@ -45,6 +47,7 @@ struct CommunityPostDTO {
         self.imageURLs = imageURLs
         self.likeCount = likeCount
         self.commentCount = commentCount
+        self.isBlinded = false
     }
 }
 
@@ -80,6 +83,7 @@ extension CommunityPostDTO {
         self.imageURLs = data["imageURLs"] as? [String] ?? []
         self.likeCount = data["likeCount"] as? Int ?? 0
         self.commentCount = data["commentCount"] as? Int ?? 0
+        self.isBlinded = data["isBlinded"] as? Bool ?? false
     }
 }
 
@@ -88,7 +92,7 @@ extension CommunityPostDTO {
 extension CommunityPostDTO {
     
     func toDomain(profile: RemoteUserProfile? = nil) -> Post {
-        Post(
+        var post = Post(
             id: id,
             author: Author(
                 id: authorID,
@@ -104,5 +108,8 @@ extension CommunityPostDTO {
             comments: [],
             commentCount: commentCount
         )
+        
+        post.isBlinded = isBlinded
+        return post
     }
 }

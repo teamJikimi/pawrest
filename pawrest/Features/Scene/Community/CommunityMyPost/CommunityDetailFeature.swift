@@ -23,6 +23,8 @@ struct CommunityDetailState: Equatable {
     
     var errorMessage: String?
     
+    var blockedUserIDs: Set<String> = []
+    
     var showReportToast: Bool = false
     var showAlreadyReportedToast: Bool = false
     
@@ -38,7 +40,7 @@ struct CommunityDetailState: Equatable {
         post.author.id == currentUserID
     }
     
-    init(post: Post, currentUserID: String, authorName: String) {
+    init(post: Post, currentUserID: String, authorName: String, blockedUserIDs: Set<String> = []) {
         self.post = post
         self.currentUserID = currentUserID
         self.authorName = authorName
@@ -49,6 +51,7 @@ struct CommunityDetailState: Equatable {
                 ? .editMenu
                 : .reportMenu
         )
+        self.blockedUserIDs = blockedUserIDs
     }
 }
 
