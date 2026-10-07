@@ -198,7 +198,8 @@ struct CommunityReducer: Reducer {
                 state.detail = CommunityDetailState(
                     post: post,
                     currentUserID: currentUserID,
-                    authorName: state.authorName ?? ""
+                    authorName: state.authorName ?? "",
+                    blockedUserIDs: state.blockedUserIDs
                 )
                 return .none
 

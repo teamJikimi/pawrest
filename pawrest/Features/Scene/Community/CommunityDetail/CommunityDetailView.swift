@@ -154,7 +154,7 @@ private extension CommunityDetailView {
     
     var commentsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(store.post.comments.enumerated()), id: \.element.id) { idx, parent in
+            ForEach(Array(store.post.comments.filter { !store.blockedUserIDs.contains($0.author.id) }.enumerated()), id: \.element.id) { idx, parent in
                 commentGroup(
                     parent: parent,
                     isLastGroup: idx == store.post.comments.count - 1
@@ -180,7 +180,7 @@ private extension CommunityDetailView {
         if !parent.replies.isEmpty {
             Color.clear.frame(height: 12)
             
-            ForEach(Array(parent.replies.enumerated()), id: \.element.id) { rIdx, reply in
+            ForEach(Array(parent.replies.filter { !store.blockedUserIDs.contains($0.author.id) }.enumerated()), id: \.element.id) { rIdx, reply in
                 if rIdx > 0 {
                     Color.clear.frame(height: 6)
                 }
