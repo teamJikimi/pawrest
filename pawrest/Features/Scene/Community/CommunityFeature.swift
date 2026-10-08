@@ -141,20 +141,26 @@ struct CommunityReducer: Reducer {
             // MARK: Load Posts
 
             case .onAppear:
-                guard !state.hasLoadedPosts else { return .none }
-                
                 guard let currentUserID = authSessionClient.currentUserID() else {
                     state.posts = []
                     state.errorMessage = "로그인이 필요합니다."
                     return .none
                 }
 
+                if state.currentUserID != currentUserID {
+                    state.currentUserID = currentUserID
+                    state.authorName = nil
+                    state.hasLoadedPosts = false
+                    state.posts = []
+                }
+
+                guard !state.hasLoadedPosts else { return .none }
+
                 state.currentUserID = currentUserID
                 state.isLoading = true
                 state.errorMessage = nil
 
                 return fetchPosts(userID: currentUserID)
-                
             case .refreshPulled:
                 guard let currentUserID = state.currentUserID
                         ?? authSessionClient.currentUserID()
