@@ -9,6 +9,7 @@ import Foundation
 import ComposableArchitecture
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseStorage
 
 struct MyFeature: Reducer {
 
@@ -215,10 +216,15 @@ struct MyFeature: Reducer {
                 return .run { _ in
                     guard let user = Auth.auth().currentUser else { return }
                     let userID = user.uid
-
+                    let db = Firestore.firestore()
+                    let storage = Storage.storage().reference()
                     let service = await MainActor.run { CommunityFirestoreService() }
                     try? await service.deleteAllPostsByUser(authorID: userID)
-
+                    try? await db.collection("users").document(userID)
+                        .collection("pet").document("profile").delete()
+                    try? await db.collection("users").document(userID).delete()
+                    try? await storage.child("users/\(userID)/profile.jpg").delete()
+                    try? await storage.child("users/\(userID)/pet_profile.jpg").delete()
                     try? await user.delete()
                 }
 
