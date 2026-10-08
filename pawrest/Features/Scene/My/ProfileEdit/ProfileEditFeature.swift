@@ -237,17 +237,38 @@ struct ProfileEditFeature: Reducer {
                 state.showBirthdayPicker = false
                 state.showDeathDayPicker = false
                 return .none
-
+            
             case .saveTapped:
                 state.showSavedToast = true
+                let nickname = state.nickname
+                let userImageData = state.userProfileImage
+                let isUserImageChanged = state.userProfileImage != state.originalUserProfileImage
+                let isPetImageChanged = state.petProfileImage != state.originalPetProfileImage  // ← 여기로
+                let petName = state.petName
+                let petImageData = state.petProfileImage
+                let birthday = state.birthday
+                let deathDay = state.deathDay
+
                 state.originalNickname = state.nickname
                 state.originalUserProfileImage = state.userProfileImage
                 state.originalPetName = state.petName
-                state.originalPetProfileImage = state.petProfileImage
+                state.originalPetProfileImage = state.petProfileImage  // ← 이 줄 이전에 계산해야 함
                 state.originalBirthday = state.birthday
                 state.originalDeathDay = state.deathDay
-                return .none
 
+                return .run { _ in
+                    try? await UserFirestoreService.shared.saveUserProfile(
+                        nickname: nickname,
+                        profileImageData: isUserImageChanged ? userImageData : nil
+                    )
+                    try? await UserFirestoreService.shared.savePetProfile(
+                        name: petName,
+                        profileImageData: isPetImageChanged ? petImageData : nil,
+                        birthday: birthday,
+                        deathDay: deathDay
+                    )
+                }
+                
             case .toastDismissed:
                 state.showSavedToast = false
                 return .none

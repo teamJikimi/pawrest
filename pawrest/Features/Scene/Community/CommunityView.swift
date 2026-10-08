@@ -14,6 +14,13 @@ struct CommunityView: View {
     @FocusState private var isSearchFocused: Bool
     @Query private var userProfiles: [UserProfile]
 
+    private var currentNickname: String? {
+        userProfiles
+            .sorted { $0.createdAt > $1.createdAt }
+            .first?
+            .nickname
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             searchAndSortSection
@@ -27,13 +34,11 @@ struct CommunityView: View {
             }
         }
         .task {
-            let nickname = userProfiles
-                .sorted { $0.createdAt > $1.createdAt }
-                .first?
-                .nickname
-
-            store.send(.userProfileLoaded(nickname))
+            store.send(.userProfileLoaded(currentNickname))
             store.send(.onAppear)
+        }
+        .onChange(of: currentNickname) { _, newNickname in
+            store.send(.userProfileLoaded(newNickname))
         }
         .onAppear {
             store.send(.refreshBlockedUsers)
