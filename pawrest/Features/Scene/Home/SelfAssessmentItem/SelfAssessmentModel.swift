@@ -219,4 +219,13 @@ extension SelfAssessmentType {
         case .pds:  return .pds
         }
     }
+    
+    var citation: String {
+        switch self {
+        case .pbq:  return "Hunt & Padilla (2006)"
+        case .cesD: return "Radloff (1977)"
+        case .pds:  return "Foa et al. (1997)"
+        }
+    }
 }
+

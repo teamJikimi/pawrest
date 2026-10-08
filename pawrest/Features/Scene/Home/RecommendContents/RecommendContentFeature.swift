@@ -39,6 +39,25 @@ struct RecommendedContentDetail: Equatable {
     let introBody: String
     let sections: [ContentSection]
     let closing: ClosingBlock
+    let citation: String?
+
+    init(
+        headerImageName: String,
+        pageTitle: String,
+        introHeadline: String,
+        introBody: String,
+        sections: [ContentSection],
+        closing: ClosingBlock,
+        citation: String? = nil
+    ) {
+        self.headerImageName = headerImageName
+        self.pageTitle = pageTitle
+        self.introHeadline = introHeadline
+        self.introBody = introBody
+        self.sections = sections
+        self.closing = closing
+        self.citation = citation
+    }
 }
 
 struct ContentSection: Equatable, Identifiable {
@@ -159,7 +178,8 @@ extension [RecommendedContentItem] {
                 ],
                 closing: .highlightBox(
                     headline: "펫로스는 '극복해야 할 문제'가 아니라,\n'함께 지나가야 할 애도의 여정'입니다."
-                )
+                ),
+                citation: "Kübler-Ross, E. (1969). On Death and Dying. Macmillan."
             )
         ),
         RecommendedContentItem(
@@ -202,7 +222,8 @@ extension [RecommendedContentItem] {
                 closing: .plainQuote(
                     headline: "\"반려동물을 잃은 슬픔은 작은 슬픔이 아닙니다.\"",
                     body: "그 존재가 내 삶에 남긴 자리만큼, 슬픔도 정직하게 크다는 것을 기억해주세요. 혼자 견디지 않으셔도 됩니다."
-                )
+                ),
+                citation: "American Psychiatric Association (2013). Diagnostic and Statistical Manual of Mental Disorders (5th ed.). APA."
             )
         )
     ]

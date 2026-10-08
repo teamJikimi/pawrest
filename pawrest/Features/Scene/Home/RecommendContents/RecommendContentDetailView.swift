@@ -40,6 +40,11 @@ struct RecommendContentDetailView: View {
                     }
                     
                     closingSection
+
+                    if let citation = detail.citation {
+                        citationSection(citation)
+                            .padding(.top, 24)
+                    }
                 }
                 .padding(.horizontal, 20)
             }
@@ -198,6 +203,23 @@ private extension RecommendContentDetailView {
         }
     }
     
+    func citationSection(_ citation: String) -> some View {
+        HStack(alignment: .top) {
+            Text("출처")
+                .typography(.body3M)
+                .foregroundStyle(.gray60)
+            Spacer()
+            Text(citation)
+                .typography(.body4R)
+                .foregroundStyle(.gray60)
+                .multilineTextAlignment(.trailing)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.gray10)
+        .cornerRadius(12, corners: .allCorners)
+    }
+    
     func highlightBoxView(_ headline: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Rectangle()
@@ -246,19 +268,5 @@ private extension RecommendContentDetailView {
             result = Text("\(result)\(segment)")
         }
         return result
-    }
-}
-
-// MARK: - Preview
-
-#Preview("펫로스 증후군의 증상과 대처") {
-    NavigationStack {
-        RecommendContentDetailView(detail: [RecommendedContentItem].mock[0].detail)
-    }
-}
-
-#Preview("정신과 전문의가 드리는 조언") {
-    NavigationStack {
-        RecommendContentDetailView(detail: [RecommendedContentItem].mock[1].detail)
     }
 }

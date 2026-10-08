@@ -183,6 +183,22 @@ private extension SelfAssessmentView {
                 .background(.gray20)
                 .cornerRadius(20, corners: .allCorners)
                 .padding(.top, 10)
+
+            HStack {
+                Text("출처")
+                    .typography(.body3M)
+                    .foregroundStyle(.gray60)
+                Spacer()
+                Text(store.type.citation)
+                    .typography(.body4R)
+                    .foregroundStyle(.gray60)
+                    .multilineTextAlignment(.trailing)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.gray10)
+            .cornerRadius(12, corners: .allCorners)
+            .padding(.top, 10)
         }
     }
 
