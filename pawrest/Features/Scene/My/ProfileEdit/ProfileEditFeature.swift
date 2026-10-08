@@ -7,6 +7,7 @@
 
 import Foundation
 import ComposableArchitecture
+import FirebaseAuth
 
 // MARK: - Tab
 
@@ -237,13 +238,12 @@ struct ProfileEditFeature: Reducer {
                 state.showBirthdayPicker = false
                 state.showDeathDayPicker = false
                 return .none
-            
             case .saveTapped:
                 state.showSavedToast = true
                 let nickname = state.nickname
                 let userImageData = state.userProfileImage
                 let isUserImageChanged = state.userProfileImage != state.originalUserProfileImage
-                let isPetImageChanged = state.petProfileImage != state.originalPetProfileImage  // ← 여기로
+                let isPetImageChanged = state.petProfileImage != state.originalPetProfileImage
                 let petName = state.petName
                 let petImageData = state.petProfileImage
                 let birthday = state.birthday
@@ -252,14 +252,18 @@ struct ProfileEditFeature: Reducer {
                 state.originalNickname = state.nickname
                 state.originalUserProfileImage = state.userProfileImage
                 state.originalPetName = state.petName
-                state.originalPetProfileImage = state.petProfileImage  // ← 이 줄 이전에 계산해야 함
+                state.originalPetProfileImage = state.petProfileImage
                 state.originalBirthday = state.birthday
                 state.originalDeathDay = state.deathDay
 
                 return .run { _ in
-                    try? await UserFirestoreService.shared.saveUserProfile(
+                    guard let uid = Auth.auth().currentUser?.uid else { return }
+                    let remoteService = await MainActor.run { UserProfileRemoteService() }
+                    try? await remoteService.updateProfile(
+                        userID: uid,
                         nickname: nickname,
-                        profileImageData: isUserImageChanged ? userImageData : nil
+                        imageData: isUserImageChanged ? userImageData : nil,
+                        isImageChanged: isUserImageChanged
                     )
                     try? await UserFirestoreService.shared.savePetProfile(
                         name: petName,
@@ -268,7 +272,7 @@ struct ProfileEditFeature: Reducer {
                         deathDay: deathDay
                     )
                 }
-                
+
             case .toastDismissed:
                 state.showSavedToast = false
                 return .none
