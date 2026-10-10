@@ -305,7 +305,8 @@ struct CommunityReducer: Reducer {
                 case .userBlocked(let userID):
                     state.blockedUserIDs.insert(userID)
                 }
-                return .send(.detail(.dismiss))
+                state.detail = nil
+                return .none
                 
             case .detail(.presented):
                 if let post = state.detail?.post {
