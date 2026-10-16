@@ -284,7 +284,7 @@ final class CommunityFirestoreService {
         try await batch.commit()
     }
     
-    func hasComment( 
+    func hasComment(
         postID: String,
         authorID: String
     ) async throws -> Bool {
@@ -479,7 +479,7 @@ final class CommunityFirestoreService {
                 "senderName": senderName,
                 "postID": postID,
                 "body": body,
-                "createdAt": Timestamp(date: Date()),
+                "receivedAt": Timestamp(date: Date()),  // ← createdAt → receivedAt
                 "isRead": false
             ])
     }
