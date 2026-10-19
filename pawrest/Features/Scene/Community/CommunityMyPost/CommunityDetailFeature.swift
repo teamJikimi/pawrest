@@ -7,7 +7,6 @@
 
 import Foundation
 import ComposableArchitecture
-import FirebaseFirestore
 
 // MARK: - State
 
@@ -152,7 +151,7 @@ struct CommunityDetailReducer: Reducer {
                 let userID = state.currentUserID
                 let previousIsLiked = state.post.isLiked
                 let postAuthorID = state.post.author.id
-                let senderName = state.authorName
+                let senderName = state.authorName.isEmpty ? "누군가" : state.authorName
                 let postTitle = state.post.title
                 
                 state.post.isLiked.toggle()
@@ -166,15 +165,14 @@ struct CommunityDetailReducer: Reducer {
                         await send(.likeResponse(
                             previousIsLiked: previousIsLiked, success: true
                         ))
-                        
-                        // 본인 게시글 좋아요는 알림 안 보냄
-                        if !previousIsLiked && postAuthorID != userID {
-                            try? await createNotification(
-                                targetUserID: postAuthorID,
-                                type: "like",
-                                senderName: senderName,
-                                postID: postID,
-                                body: "\(senderName)님이 회원님의 게시글을 좋아합니다."
+                        // 본인 게시물 좋아요 시 알림 제외
+                        if postAuthorID != userID && !previousIsLiked {
+                            try? await communityRepository.createNotification(
+                                postAuthorID,
+                                "like",
+                                senderName,
+                                postID,
+                                "\(senderName)님이 회원님의 게시물을 좋아합니다: \(postTitle)"
                             )
                         }
                     } catch {
@@ -278,13 +276,11 @@ struct CommunityDetailReducer: Reducer {
                 let postID = state.post.id
                 let currentUserID = state.currentUserID
                 let authorName = state.authorName
+                let senderName = authorName.isEmpty ? "" : authorName
                 let parentCommentID = state.replyingToCommentID
                 let postAuthorID = state.post.author.id
-                let postTitle = state.post.title
-                
-                // 대댓글이면 부모 댓글 작성자 ID
-                let parentCommentAuthorID: String? = parentCommentID.flatMap { id in
-                    findComment(commentID: id, in: state.post)?.author.id
+                let parentCommentAuthorID = parentCommentID.flatMap { pid in
+                    findComment(commentID: pid, in: state.post)?.author.id
                 }
                 
                 state.text = ""
@@ -299,28 +295,26 @@ struct CommunityDetailReducer: Reducer {
                             )
                         }
                     ))
-                    
-                    // 게시글 작성자에게 댓글 알림 (본인 제외)
+                    // 게시글 작성자에게 알림 (본인 제외)
                     if postAuthorID != currentUserID {
-                        try? await createNotification(
-                            targetUserID: postAuthorID,
-                            type: "comment",
-                            senderName: authorName,
-                            postID: postID,
-                            body: "\(authorName)님이 댓글을 남겼어요: \(trimmed)"
+                        try? await communityRepository.createNotification(
+                            postAuthorID,
+                            "comment",
+                            senderName,
+                            postID,
+                            "\(senderName)님이 댓글을 남겼어요: \(trimmed)"
                         )
                     }
-                    
-                    // 대댓글이면 부모 댓글 작성자에게도 알림 (본인 제외)
+                    // 대댓글인 경우 부모 댓글 작성자에게도 알림 (본인, 게시글 작성자 제외)
                     if let parentAuthorID = parentCommentAuthorID,
                        parentAuthorID != currentUserID,
                        parentAuthorID != postAuthorID {
-                        try? await createNotification(
-                            targetUserID: parentAuthorID,
-                            type: "comment",
-                            senderName: authorName,
-                            postID: postID,
-                            body: "\(authorName)님이 대댓글을 남겼어요: \(trimmed)"
+                        try? await communityRepository.createNotification(
+                            parentAuthorID,
+                            "comment",
+                            senderName,
+                            postID,
+                            "\(senderName)님이 대댓글을 남겼어요: \(trimmed)"
                         )
                     }
                 }
@@ -458,31 +452,6 @@ private extension CommunityDetailReducer {
             }
         }
         return nil
-    }
-    
-    func createNotification(
-        targetUserID: String,
-        type: String,
-        senderName: String,
-        postID: String,
-        body: String
-    ) async throws {
-        let notifID = UUID().uuidString
-        let firestore = Firestore.firestore()
-        
-        try await firestore
-            .collection("users")
-            .document(targetUserID)
-            .collection("notifications")
-            .document(notifID)
-            .setData([
-                "type": type,
-                "senderName": senderName,
-                "postID": postID,
-                "body": body,
-                "receivedAt": Timestamp(date: Date()),
-                "isRead": false
-            ])
     }
     
     func reportPost(
