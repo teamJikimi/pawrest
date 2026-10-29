@@ -57,6 +57,16 @@ struct MyView: View {
                     store.send(.logoutAlertDismissed)
                 }
                 Button("로그아웃", role: .destructive) {
+                    try? modelContext.delete(model: UserProfile.self)
+                    try? modelContext.delete(model: PetProfile.self)
+                    try? modelContext.delete(model: EmotionRecordModel.self)
+                    try? modelContext.delete(model: AssessmentRecord.self)
+                    try? modelContext.delete(model: MemoryModel.self)
+                    try? modelContext.delete(model: LetterModel.self)
+                    try? modelContext.delete(model: NotificationRecord.self)
+                    UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                    UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+                    UserDefaults.standard.removeObject(forKey: "isOnboardingComplete")
                     store.send(.logoutConfirmed)
                     onLogoutCompleted()
                 }

@@ -151,13 +151,22 @@ struct CommunityDetailReducer: Reducer {
                 let userID = state.currentUserID
                 let previousIsLiked = state.post.isLiked
                 let postAuthorID = state.post.author.id
-                let senderName = state.authorName.isEmpty ? "누군가" : state.authorName
+                let authorName = state.authorName
                 let postTitle = state.post.title
                 
                 state.post.isLiked.toggle()
                 state.post.likeCount += state.post.isLiked ? 1 : -1
                 
                 return .run { send in
+                    var senderName = authorName
+                    if senderName.isEmpty {
+                        let profileService = UserProfileRemoteService()
+                        if let profile = try? await profileService.fetchProfiles(userIDs: [userID])[userID] {
+                            senderName = profile.nickname
+                        }
+                    }
+                    if senderName.isEmpty { senderName = "누군가" }
+                    
                     do {
                         try await communityRepository.toggleLike(
                             postID, userID, previousIsLiked
@@ -165,7 +174,6 @@ struct CommunityDetailReducer: Reducer {
                         await send(.likeResponse(
                             previousIsLiked: previousIsLiked, success: true
                         ))
-                        // 본인 게시물 좋아요 시 알림 제외
                         if postAuthorID != userID && !previousIsLiked {
                             try? await communityRepository.createNotification(
                                 postAuthorID,
@@ -276,7 +284,6 @@ struct CommunityDetailReducer: Reducer {
                 let postID = state.post.id
                 let currentUserID = state.currentUserID
                 let authorName = state.authorName
-                let senderName = authorName.isEmpty ? "" : authorName
                 let parentCommentID = state.replyingToCommentID
                 let postAuthorID = state.post.author.id
                 let parentCommentAuthorID = parentCommentID.flatMap { pid in
@@ -287,6 +294,15 @@ struct CommunityDetailReducer: Reducer {
                 state.replyingToCommentID = nil
                 
                 return .run { send in
+                    var senderName = authorName
+                    if senderName.isEmpty {
+                        let profileService = UserProfileRemoteService()
+                        if let profile = try? await profileService.fetchProfiles(userIDs: [currentUserID])[currentUserID] {
+                            senderName = profile.nickname
+                        }
+                    }
+                    if senderName.isEmpty { senderName = "누군가" }
+                    
                     await send(.commentCreationResponse(
                         parentCommentID: parentCommentID,
                         TaskResult {
@@ -295,7 +311,6 @@ struct CommunityDetailReducer: Reducer {
                             )
                         }
                     ))
-                    // 게시글 작성자에게 알림 (본인 제외)
                     if postAuthorID != currentUserID {
                         try? await communityRepository.createNotification(
                             postAuthorID,
@@ -305,7 +320,6 @@ struct CommunityDetailReducer: Reducer {
                             "\(senderName)님이 댓글을 남겼어요: \(trimmed)"
                         )
                     }
-                    // 대댓글인 경우 부모 댓글 작성자에게도 알림 (본인, 게시글 작성자 제외)
                     if let parentAuthorID = parentCommentAuthorID,
                        parentAuthorID != currentUserID,
                        parentAuthorID != postAuthorID {
