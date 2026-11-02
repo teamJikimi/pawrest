@@ -172,8 +172,9 @@ struct CommunityDetailReducer: Reducer {
                 
             case .commentsLoaded(let comments):
                 state.post.comments = comments
+                state.post.commentCount = comments.count + comments.reduce(0) { $0 + $1.replies.count }
                 return .none
-
+                
             // MARK: Post
 
             case .likeTapped:
