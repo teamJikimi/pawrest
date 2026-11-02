@@ -7,6 +7,7 @@
 
 import ComposableArchitecture
 import Foundation
+import Kingfisher
 
 enum SortMode: String, CaseIterable, Equatable {
     case recent = "최신순"
@@ -73,7 +74,9 @@ struct CommunityState: Equatable {
 enum CommunityAction: Equatable {
     case onAppear
     case refreshPulled
-    case userProfileLoaded(String?)
+    case userProfileLoaded(String?, String?)
+    case authorProfileImageURLLoaded(String?)
+    case remoteProfileLoaded(nickname: String?, profileImageURL: String?)
     case postsResponse(TaskResult<[Post]>)
     case postCreationResponse(TaskResult<Post>)
     
@@ -109,12 +112,29 @@ struct CommunityReducer: Reducer {
         
         Reduce<CommunityState, CommunityAction> { state, action in
             switch action {
-                
-            case .userProfileLoaded(let nickname):
+
+            case .userProfileLoaded(let nickname, let profileImageURL):
                 let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines)
                 state.authorName = trimmed?.isEmpty == false ? trimmed : nil
+                if let profileImageURL {
+                    state.authorProfileImageURL = profileImageURL
+                }
                 return .none
-                
+
+            case .authorProfileImageURLLoaded(let url):
+                state.authorProfileImageURL = url
+                return .none
+
+            case .remoteProfileLoaded(let nickname, let profileImageURL):
+                if let nickname {
+                    let trimmed = nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty {
+                        state.authorName = trimmed
+                    }
+                }
+                state.authorProfileImageURL = profileImageURL
+                return .none
+
             case .onAppear:
                 guard let currentUserID = authSessionClient.currentUserID() else {
                     state.posts = []
@@ -127,33 +147,51 @@ struct CommunityReducer: Reducer {
                     state.hasLoadedPosts = false
                     state.posts = []
                 }
-                guard !state.hasLoadedPosts else { return .none }
                 state.currentUserID = currentUserID
-                state.isLoading = true
                 state.errorMessage = nil
-                return fetchPosts(userID: currentUserID)
-                
+
+                // Firestore에서 프로필 항상 fetch (nickname + profileImageURL 둘 다)
+                let fetchProfileEffect = Effect<CommunityAction>.run { send in
+                    let remoteService = await MainActor.run { UserProfileRemoteService() }
+                    let profiles = try? await remoteService.fetchProfiles(userIDs: [currentUserID])
+                    let profile = profiles?[currentUserID]
+                    await send(.remoteProfileLoaded(
+                        nickname: profile?.nickname,
+                        profileImageURL: profile?.profileImageURL
+                    ))
+                }
+
+                guard !state.hasLoadedPosts else {
+                    return fetchProfileEffect
+                }
+
+                state.isLoading = true
+                return .merge(fetchPosts(userID: currentUserID), fetchProfileEffect)
+
             case .refreshPulled:
                 guard let currentUserID = state.currentUserID ?? authSessionClient.currentUserID()
                 else { return .none }
                 state.currentUserID = currentUserID
                 return fetchPosts(userID: currentUserID)
-                
+
             case .postsResponse(.success(let posts)):
                 state.isLoading = false
                 state.hasLoadedPosts = true
                 state.posts = posts
+                let imageURLs = posts.compactMap { $0.imageURLs.first }.compactMap { URL(string: $0) }
+                let profileURLs = posts.compactMap { $0.author.profileImageURL }.compactMap { URL(string: $0) }
+                ImagePrefetcher(urls: imageURLs + profileURLs).start()
                 return .none
-                
+
             case .postsResponse(.failure(let error)):
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
                 return .none
-                
+
             case .navigationBar(.writePostTapped):
                 state.write = CommunityWriteState()
                 return .none
-                
+
             case .navigationBar(.myPostsTapped):
                 guard let currentUserID = state.currentUserID else { return .none }
                 state.myPost = CommunityMyPostState(
@@ -162,7 +200,7 @@ struct CommunityReducer: Reducer {
                     authorName: state.authorName ?? ""
                 )
                 return .none
-                
+
             case .postTapped(let postID):
                 guard
                     let currentUserID = state.currentUserID,
@@ -175,26 +213,26 @@ struct CommunityReducer: Reducer {
                     authorProfileImageURL: state.authorProfileImageURL
                 )
                 return .none
-                
+
             case .navigationBar:
                 return .none
-                
+
             case .textChanged(let newText):
                 state.text = newText
                 return .none
-                
+
             case .sortMenuOpenChanged(let isOpen):
                 state.isSortMenuOpen = isOpen
                 return .none
-                
+
             case .sortModeSelected(let mode):
                 state.sortMode = mode
                 return .none
-                
+
             case .outsideTapped:
                 state.isSortMenuOpen = false
                 return .none
-                
+
             case .likeTapped(let postID):
                 guard
                     let userID = state.currentUserID,
@@ -211,20 +249,18 @@ struct CommunityReducer: Reducer {
                         await send(.likeResponse(postID: postID, previousIsLiked: previousIsLiked, success: false))
                     }
                 }
-                
+
             case let .likeResponse(postID, previousIsLiked, success):
                 guard !success else { return .none }
                 guard let index = state.posts.firstIndex(where: { $0.id == postID }) else { return .none }
                 state.posts[index].isLiked = previousIsLiked
                 state.posts[index].likeCount += previousIsLiked ? 1 : -1
                 return .none
-                
+
             case let .detail(.presented(.delegate(delegate))):
                 switch delegate {
                 case .postDeleted(let postID):
                     state.posts.removeAll { $0.id == postID }
-                    // state.detail = nil 제거 → SwiftUI dismiss가 자동으로 처리
-                    // deletePost도 제거 → CommunityDetailReducer에서 이미 호출함
                     return .none
                 case .postUpdated(let post):
                     if let idx = state.posts.firstIndex(where: { $0.id == post.id }) {
@@ -235,26 +271,26 @@ struct CommunityReducer: Reducer {
                     state.blockedUserIDs.insert(userID)
                     return .none
                 }
-                
+
             case .detail(.presented):
                 if let post = state.detail?.post,
                    let idx = state.posts.firstIndex(where: { $0.id == post.id }) {
                     state.posts[idx] = post
                 }
                 return .none
-                
+
             case .detail(.dismiss):
                 return .none
-                
+
             case .myPost(.presented):
                 if let myPosts = state.myPost?.posts, myPosts != state.posts {
                     state.posts = myPosts
                 }
                 return .none
-                
+
             case .myPost(.dismiss):
                 return .send(.refreshBlockedUsers)
-                
+
             case let .write(.presented(.delegate(.save(title, content, images)))):
                 state.write = nil
                 guard let currentUserID = state.currentUserID else {
@@ -296,26 +332,31 @@ struct CommunityReducer: Reducer {
                         )
                     }))
                 }
-                
+
             case .write:
                 return .none
-                
+
             case .postCreationResponse(.success(let post)):
                 state.isLoading = false
                 if let index = state.posts.firstIndex(where: { $0.id == post.id }) {
-                    state.posts[index] = post
+                    var updatedPosts = state.posts
+                    updatedPosts[index] = post
+                    state.posts = updatedPosts
                 }
-                return .none
+                let urls = post.imageURLs.compactMap { URL(string: $0) }
+                if !urls.isEmpty { ImagePrefetcher(urls: urls).start() }
+                guard let currentUserID = state.currentUserID else { return .none }
+                return fetchPosts(userID: currentUserID)
                 
             case .postCreationResponse(.failure(let error)):
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
                 return .none
-                
+
             case .blockedUserIDsLoaded(let ids):
                 state.blockedUserIDs = ids
                 return .none
-                
+
             case .refreshBlockedUsers:
                 guard let currentUserID = state.currentUserID else { return .none }
                 return .run { send in

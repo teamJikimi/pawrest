@@ -65,6 +65,14 @@ private extension CommunityAuthorHeader {
         if let urlString = author.profileImageURL,
            let url = URL(string: urlString) {
             KFImage(url)
+                .placeholder {
+                    Image(.profileLarge)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: profileSize, height: profileSize)
+                        .clipShape(Circle())
+                }
+                .fade(duration: 0.2)
                 .resizable()
                 .scaledToFill()
                 .frame(width: profileSize, height: profileSize)

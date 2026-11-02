@@ -21,7 +21,14 @@ struct CommunityView: View {
             .first?
             .nickname
     }
-
+    
+    private var currentProfileImageURL: String? {
+        userProfiles
+            .sorted { $0.createdAt > $1.createdAt }
+            .first?
+            .profileImageURL  // UserProfile 모델에 이 필드 있어야 해요
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             searchAndSortSection
@@ -35,11 +42,11 @@ struct CommunityView: View {
             }
         }
         .task {
-            store.send(.userProfileLoaded(currentNickname))
+            store.send(.userProfileLoaded(currentNickname, currentProfileImageURL))
             store.send(.onAppear)
         }
         .onChange(of: currentNickname) { _, newNickname in
-            store.send(.userProfileLoaded(newNickname))
+            store.send(.userProfileLoaded(newNickname, currentProfileImageURL))  
         }
         .onAppear {
             store.send(.refreshBlockedUsers)

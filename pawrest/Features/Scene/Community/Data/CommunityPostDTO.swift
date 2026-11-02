@@ -57,29 +57,46 @@ extension CommunityPostDTO {
     
     init?(document: QueryDocumentSnapshot) {
         let data = document.data()
-        
         guard
             let authorID = data["authorID"] as? String,
             let authorName = data["authorName"] as? String,
             let title = data["title"] as? String,
             let content = data["content"] as? String
-        else {
-            return nil
-        }
-        
+        else { return nil }
         self.id = document.documentID
         self.authorID = authorID
         self.authorName = authorName
-        
         self.title = title
         self.content = content
-        
         if let timestamp = data["createdAt"] as? Timestamp {
             self.createdAt = timestamp.dateValue()
         } else {
             self.createdAt = Date()
         }
-        
+        self.imageURLs = data["imageURLs"] as? [String] ?? []
+        self.likeCount = data["likeCount"] as? Int ?? 0
+        self.commentCount = data["commentCount"] as? Int ?? 0
+        self.isBlinded = data["isBlinded"] as? Bool ?? false
+    }
+
+    init?(documentSnapshot: DocumentSnapshot) {
+        guard
+            let data = documentSnapshot.data(),
+            let authorID = data["authorID"] as? String,
+            let authorName = data["authorName"] as? String,
+            let title = data["title"] as? String,
+            let content = data["content"] as? String
+        else { return nil }
+        self.id = documentSnapshot.documentID
+        self.authorID = authorID
+        self.authorName = authorName
+        self.title = title
+        self.content = content
+        if let timestamp = data["createdAt"] as? Timestamp {
+            self.createdAt = timestamp.dateValue()
+        } else {
+            self.createdAt = Date()
+        }
         self.imageURLs = data["imageURLs"] as? [String] ?? []
         self.likeCount = data["likeCount"] as? Int ?? 0
         self.commentCount = data["commentCount"] as? Int ?? 0

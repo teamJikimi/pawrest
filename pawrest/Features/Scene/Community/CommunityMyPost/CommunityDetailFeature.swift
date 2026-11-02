@@ -67,7 +67,7 @@ enum CommunityDetailAction: Equatable {
     case outsideTapped
 
     case delegate(Delegate)
-
+    case postRefreshed(Post)
     @CasePathable
     enum Delegate: Equatable {
         case postDeleted(postID: String)
@@ -102,7 +102,6 @@ struct CommunityDetailReducer: Reducer {
                 let postID = state.post.id
                 let imageURLs = state.post.imageURLs
                 state.isDeleted = true
-                state.shouldDismiss = true
                 return .run { [communityRepository] send in
                     try? await communityRepository.deletePost(postID, imageURLs)
                     await send(.delegate(.postDeleted(postID: postID)))
@@ -148,15 +147,29 @@ struct CommunityDetailReducer: Reducer {
 
             case .onAppear:
                 let postID = state.post.id
-                return .run { [communityRepository] send in
-                    let stream = communityRepository.observeComments(postID)
-                    for await dtos in stream {
-                        let comments = await MainActor.run { buildCommentTree(from: dtos) }
-                        await send(.commentsLoaded(comments))
+                let currentUserID = state.currentUserID
+                return .merge(
+                    .run { [communityRepository] send in
+                        if let post = try? await communityRepository.fetchPost(postID, currentUserID) {
+                            await send(.postRefreshed(post))
+                        }
+                    },
+                    .run { [communityRepository] send in
+                        let stream = communityRepository.observeComments(postID)
+                        for await dtos in stream {
+                            let comments = await MainActor.run { buildCommentTree(from: dtos) }
+                            await send(.commentsLoaded(comments))
+                        }
                     }
-                }
-                .cancellable(id: "communityDetail.observeComments", cancelInFlight: true)
+                    .cancellable(id: "communityDetail.observeComments", cancelInFlight: true)
+                )
 
+            case .postRefreshed(let post):
+                state.post.imageURLs = post.imageURLs
+                state.post.likeCount = post.likeCount
+                state.post.isLiked = post.isLiked
+                return .none
+                
             case .commentsLoaded(let comments):
                 state.post.comments = comments
                 return .none
@@ -190,7 +203,12 @@ struct CommunityDetailReducer: Reducer {
                     }
                 }
                 return .run { [communityRepository] _ in
-                    try? await communityRepository.deleteComment(postID, id)
+                    do {
+                        try await communityRepository.deleteComment(postID, id)
+                        print("[DeleteComment] 성공")
+                    } catch {
+                        print("[DeleteComment] 실패: \(error)")
+                    }
                 }
 
             case .commentAction(_, .reportBoardSettings),
@@ -232,6 +250,12 @@ struct CommunityDetailReducer: Reducer {
 
             case .outsideTapped:
                 state.replyingToCommentID = nil
+                return .none
+
+            // MARK: Delegate
+
+            case .delegate(.postDeleted):
+                state.shouldDismiss = true
                 return .none
 
             case .delegate:

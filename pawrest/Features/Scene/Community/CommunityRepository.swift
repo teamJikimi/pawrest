@@ -18,6 +18,11 @@ struct CommunityRepository {
         _ userID: String
     ) async throws -> [Post]
 
+    var fetchPost: @Sendable (
+        _ postID: String,
+        _ userID: String
+    ) async throws -> Post?
+    
     var createPost: @Sendable (
         _ postID: String,
         _ authorID: String,
@@ -169,6 +174,15 @@ extension CommunityRepository: DependencyKey {
                 }
 
                 return posts.sorted { $0.createdAt > $1.createdAt }
+            },
+            
+            fetchPost: { postID, userID in
+                guard let dto = try await service.fetchPost(postID: postID) else { return nil }
+                let profileService = await MainActor.run { UserProfileRemoteService() }
+                let profiles = try await profileService.fetchProfiles(userIDs: [dto.authorID])
+                var post = await MainActor.run { dto.toDomain(profile: profiles[dto.authorID]) }
+                post.isLiked = try await service.isPostLiked(postID: postID, userID: userID)
+                return post
             },
 
             createPost: { postID, authorID, authorName, title, content, imageURLs in
