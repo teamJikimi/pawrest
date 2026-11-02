@@ -8,13 +8,6 @@
 import Foundation
 import ComposableArchitecture
 
-// MARK: - CommentCreationResult
-
-enum CommentCreationResult: Equatable {
-    case success
-    case failure(String)
-}
-
 // MARK: - State
 
 @ObservableState
@@ -24,8 +17,7 @@ struct CommunityDetailState: Equatable {
     var navigationBar: NavigationBarState
 
     let currentUserID: String
-    let authorName: String
-    var blockedUserIDs: Set<String> = []
+    var authorName: String = "나"
 
     var replyingToCommentID: UUID? = nil
 
@@ -42,11 +34,10 @@ struct CommunityDetailState: Equatable {
         post.author.id == currentUserID
     }
 
-    init(post: Post, currentUserID: String, authorName: String = "나", blockedUserIDs: Set<String> = []) {
+    init(post: Post, currentUserID: String, authorName: String = "나") {
         self.post = post
         self.currentUserID = currentUserID
         self.authorName = authorName
-        self.blockedUserIDs = blockedUserIDs
         self.navigationBar = NavigationBarState(
             title: "커뮤니티",
             leftButton: .back,
@@ -60,30 +51,33 @@ struct CommunityDetailState: Equatable {
 @CasePathable
 enum CommunityDetailAction: Equatable {
     case navigationBar(NavigationBarAction)
+    case write(PresentationAction<CommunityWriteAction>)
+
+    case onAppear
+    case commentsLoaded([Comment])
 
     case likeTapped
     case commentAction(commentID: UUID, action: CommunityCommentRow.Action)
 
     case textChanged(String)
     case sendTapped
-    case commentCreationResponse(String, CommentCreationResult)
 
     case outsideTapped
-
-    case write(PresentationAction<CommunityWriteAction>)
 
     case delegate(Delegate)
 
     @CasePathable
     enum Delegate: Equatable {
-        case postDeleted(String)
-        case userBlocked(String)
+        case postDeleted(postID: String)
+        case postUpdated(Post)
+        case userBlocked(userID: String)
     }
 }
 
 // MARK: - Reducer
 
 struct CommunityDetailReducer: Reducer {
+
     @Dependency(\.communityRepository) var communityRepository
 
     var body: some Reducer<CommunityDetailState, CommunityDetailAction> {
@@ -96,36 +90,83 @@ struct CommunityDetailReducer: Reducer {
 
             case .navigationBar(.leftButtonTapped):
                 state.shouldDismiss = true
-                return .none
+                return .cancel(id: "communityDetail.observeComments")
 
             case .navigationBar(.editTapped):
                 state.write = CommunityWriteState(editingPost: state.post)
                 return .none
 
             case .navigationBar(.deleteTapped):
+                let postID = state.post.id
+                let imageURLs = state.post.imageURLs
                 state.isDeleted = true
                 state.shouldDismiss = true
-                return .send(.delegate(.postDeleted(state.post.id)))
+                return .run { [communityRepository] send in
+                    try? await communityRepository.deletePost(postID, imageURLs)
+                    await send(.delegate(.postDeleted(postID: postID)))
+                }
+                .concatenate(with: .cancel(id: "communityDetail.observeComments"))
 
-            case .navigationBar(.reportBoardSettings):
+            case .navigationBar(.reportBoardSettings),
+                 .navigationBar(.reportAbuse),
+                 .navigationBar(.reportSpam),
+                 .navigationBar(.blockTapped),
+                 .navigationBar:
                 return .none
 
-            case .navigationBar(.reportAbuse):
+            // MARK: Write (edit)
+
+            case .write(.presented(.delegate(.save(let title, let content, let images)))):
+                let post = state.post
+                let payloads = images.compactMap { $0.uploadPayload }
+                state.write = nil
+                return .run { [communityRepository] send in
+                    if let updated = try? await communityRepository.updatePost(
+                        Post(
+                            id: post.id,
+                            author: post.author,
+                            title: title,
+                            content: content,
+                            createdAt: post.createdAt,
+                            imageURLs: post.imageURLs,
+                            likeCount: post.likeCount,
+                            isLiked: post.isLiked,
+                            comments: post.comments
+                        ),
+                        payloads
+                    ) {
+                        await send(.delegate(.postUpdated(updated)))
+                    }
+                }
+
+            case .write:
                 return .none
 
-            case .navigationBar(.reportSpam):
+            // MARK: Comments
+
+            case .onAppear:
+                let postID = state.post.id
+                return .run { [communityRepository] send in
+                    let stream = communityRepository.observeComments(postID)
+                    for await dtos in stream {
+                        let comments = await MainActor.run { buildCommentTree(from: dtos) }
+                        await send(.commentsLoaded(comments))
+                    }
+                }
+                .cancellable(id: "communityDetail.observeComments", cancelInFlight: true)
+
+            case .commentsLoaded(let comments):
+                state.post.comments = comments
                 return .none
 
-            case .navigationBar(.blockTapped):
-                return .send(.delegate(.userBlocked(state.post.author.id)))
-
-            case .navigationBar:
-                return .none
+            // MARK: Post
 
             case .likeTapped:
                 state.post.isLiked.toggle()
                 state.post.likeCount += state.post.isLiked ? 1 : -1
                 return .none
+
+            // MARK: Comment actions
 
             case .commentAction(let id, .replyTapped):
                 state.replyingToCommentID = id
@@ -135,29 +176,28 @@ struct CommunityDetailReducer: Reducer {
                 return .none
 
             case .commentAction(let id, .deleteTapped):
+                let postID = state.post.id
                 if let idx = state.post.comments.firstIndex(where: { $0.id == id }) {
                     state.post.comments.remove(at: idx)
-                    return .none
-                }
-                for parentIdx in state.post.comments.indices {
-                    if let replyIdx = state.post.comments[parentIdx].replies.firstIndex(where: { $0.id == id }) {
-                        state.post.comments[parentIdx].replies.remove(at: replyIdx)
-                        return .none
+                } else {
+                    for parentIdx in state.post.comments.indices {
+                        if let replyIdx = state.post.comments[parentIdx].replies.firstIndex(where: { $0.id == id }) {
+                            state.post.comments[parentIdx].replies.remove(at: replyIdx)
+                            break
+                        }
                     }
                 }
+                return .run { [communityRepository] _ in
+                    try? await communityRepository.deleteComment(postID, id)
+                }
+
+            case .commentAction(_, .reportBoardSettings),
+                 .commentAction(_, .reportAbuse),
+                 .commentAction(_, .reportSpam),
+                 .commentAction(_, .blockTapped):
                 return .none
 
-            case .commentAction(_, .reportBoardSettings):
-                return .none
-
-            case .commentAction(_, .reportAbuse):
-                return .none
-
-            case .commentAction(_, .reportSpam):
-                return .none
-
-            case .commentAction(_, .blockTapped):
-                return .none
+            // MARK: Input bar
 
             case .textChanged(let text):
                 state.text = text
@@ -166,45 +206,29 @@ struct CommunityDetailReducer: Reducer {
             case .sendTapped:
                 let trimmed = state.text.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty else { return .none }
-
-                let newComment = Comment(
-                    content: trimmed,
-                    author: Author(id: state.currentUserID, name: state.authorName, profileImageURL: nil),
-                    createdAt: Date()
-                )
-
-                if let parentID = state.replyingToCommentID,
-                   let parentIdx = state.post.comments.firstIndex(where: { $0.id == parentID }) {
-                    state.post.comments[parentIdx].replies.append(newComment)
-                } else {
-                    state.post.comments.append(newComment)
-                }
-
                 state.text = ""
+                let replyingTo = state.replyingToCommentID
                 state.replyingToCommentID = nil
-                return .none
-
-            case .commentCreationResponse:
-                return .none
+                let postID = state.post.id
+                let authorID = state.currentUserID
+                let authorName = state.authorName
+                return .run { [communityRepository] _ in
+                    let start = Date()
+                    print("[Comment] createComment 시작")
+                    do {
+                        _ = try await communityRepository.createComment(
+                            postID, authorID, authorName, trimmed, replyingTo
+                        )
+                        let elapsed = Date().timeIntervalSince(start)
+                        print("[Comment] createComment 성공 - \(String(format: "%.2f", elapsed))초")
+                    } catch {
+                        let elapsed = Date().timeIntervalSince(start)
+                        print("[Comment] createComment 실패 - \(elapsed)초 - \(error)")
+                    }
+                }
 
             case .outsideTapped:
                 state.replyingToCommentID = nil
-                return .none
-
-            case .write(.presented(.delegate(.save(let title, let content, let images)))):
-                let imageURLs = images.compactMap { item -> String? in
-                    if case .remote(let url) = item.source { return url }
-                    return nil
-                }
-                state.post.title = title
-                state.post.content = content
-                state.write = nil
-                return .run { [post = state.post, images] send in
-                    let payload = images.compactMap { $0.uploadPayload }
-                    let _ = try? await communityRepository.updatePost(post, payload)
-                }
-
-            case .write:
                 return .none
 
             case .delegate:
@@ -214,5 +238,29 @@ struct CommunityDetailReducer: Reducer {
         .ifLet(\.$write, action: \.write) {
             CommunityWriteReducer()
         }
+    }
+}
+
+// MARK: - Comment tree builder
+
+@MainActor
+private func buildCommentTree(from dtos: [CommunityCommentDTO]) -> [Comment] {
+    var parents: [Comment] = []
+    var replyMap: [UUID: [Comment]] = [:]
+
+    for dto in dtos {
+        let author = Author(id: dto.authorID, name: dto.authorName, profileImageURL: nil)
+        let comment = Comment(id: dto.id, content: dto.content, author: author, createdAt: dto.createdAt)
+        if let parentID = dto.parentCommentID {
+            replyMap[parentID, default: []].append(comment)
+        } else {
+            parents.append(comment)
+        }
+    }
+
+    return parents.map { parent in
+        var p = parent
+        p.replies = replyMap[parent.id] ?? []
+        return p
     }
 }

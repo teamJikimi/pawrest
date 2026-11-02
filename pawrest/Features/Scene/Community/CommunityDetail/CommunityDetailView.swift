@@ -14,13 +14,13 @@ struct CommunityDetailView: View {
     @Bindable var store: StoreOf<CommunityDetailReducer>
     @FocusState private var isInputFocused: Bool
     @Environment(\.dismiss) private var dismiss
-    
+
     var onPostStateUpdated: ((Post) -> Void)? = nil
     var onPostDeleted: ((String) -> Void)? = nil
-    
+
     var body: some View {
         contentView
-            .safeAreaInset(edge: .bottom, spacing: 0){
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 inputBar
             }
             .customNavigationBar(
@@ -29,7 +29,7 @@ struct CommunityDetailView: View {
                     action: \.navigationBar
                 )
             )
-            .hideTabBar()  // 추가
+            .hideTabBar()
             .onChange(of: store.replyingToCommentID) { _, newValue in
                 if newValue != nil {
                     isInputFocused = true
@@ -37,6 +37,7 @@ struct CommunityDetailView: View {
             }
             .onChange(of: store.shouldDismiss) { _, shouldDismiss in
                 if shouldDismiss {
+                    isInputFocused = false  
                     if store.isDeleted {
                         onPostDeleted?(store.post.id)
                     }
@@ -60,10 +61,10 @@ struct CommunityDetailView: View {
     }
 }
 
-//MARK: - ContentView
+// MARK: - ContentView
 
 private extension CommunityDetailView {
-    
+
     var contentView: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
@@ -81,6 +82,9 @@ private extension CommunityDetailView {
             }
         }
         .scrollDismissesKeyboard(.immediately)
+        .onAppear {
+            store.send(.onAppear)
+        }
         .onTapGesture {
             if isInputFocused {
                 isInputFocused = false
@@ -93,7 +97,7 @@ private extension CommunityDetailView {
 // MARK: - SubView
 
 private extension CommunityDetailView {
-    
+
     var authorHeaderSection: some View {
         CommunityAuthorHeader(
             author: store.post.author,
@@ -102,14 +106,14 @@ private extension CommunityDetailView {
         .padding(.vertical, 18)
         .padding(.horizontal, 20)
     }
-    
+
     var contentSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(store.post.title)
                 .typography(.title2)
                 .foregroundColor(.gray80)
                 .padding(.top, 18)
-            
+
             Text(store.post.content)
                 .typography(.body2R2)
                 .foregroundColor(.gray80)
@@ -118,7 +122,7 @@ private extension CommunityDetailView {
         }
         .padding(.horizontal, 20)
     }
-    
+
     var imageSection: some View {
         VStack(spacing: 12) {
             ForEach(store.post.imageURLs, id: \.self) { url in
@@ -137,7 +141,7 @@ private extension CommunityDetailView {
         .padding(.top, 12)
         .padding(.horizontal, 20)
     }
-    
+
     var likeCommentBarSection: some View {
         CommunityLikeCommentBar(
             likeCount: store.post.likeCount,
@@ -149,7 +153,7 @@ private extension CommunityDetailView {
         .padding(.vertical, 15)
         .padding(.horizontal, 20)
     }
-    
+
     var commentsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(store.post.comments.enumerated()), id: \.element.id) { idx, parent in
@@ -161,7 +165,7 @@ private extension CommunityDetailView {
         }
         .padding(.top, 20)
     }
-    
+
     @ViewBuilder
     func commentGroup(parent: Comment, isLastGroup: Bool) -> some View {
         CommunityCommentRow(
@@ -173,15 +177,15 @@ private extension CommunityDetailView {
             }
         )
         .padding(.horizontal, 20)
-        
+
         if !parent.replies.isEmpty {
             Color.clear.frame(height: 18)
-            
+
             ForEach(Array(parent.replies.enumerated()), id: \.element.id) { rIdx, reply in
                 if rIdx > 0 {
                     Color.clear.frame(height: 6)
                 }
-                
+
                 CommunityCommentRow(
                     comment: reply,
                     isReply: true,
@@ -193,7 +197,7 @@ private extension CommunityDetailView {
                 .padding(.horizontal, 20)
             }
         }
-        
+
         if !isLastGroup {
             Color.clear.frame(height: 20)
             CommunityDivider(horizontalPadding: 20)
@@ -202,7 +206,7 @@ private extension CommunityDetailView {
             Color.clear.frame(height: parent.replies.isEmpty ? 20 : 16)
         }
     }
-    
+
     var inputBar: some View {
         CommunityCommentInputBar(
             text: Binding(

@@ -2,33 +2,28 @@
 //  CommunityFirestoreService.swift
 //  pawrest
 //
-//  Created by Moon AYoung on 8/6/26.
+//  Created by 소은 on 11/2/26.
 //
 
 import Foundation
 import FirebaseFirestore
 
 final class CommunityFirestoreService {
-    
+
     private let firestore: Firestore
-    
-    init(
-        firestore: Firestore = Firestore.firestore()
-    ) {
+
+    init(firestore: Firestore = Firestore.firestore()) {
         self.firestore = firestore
     }
-    
+
     func fetchPosts() async throws -> [CommunityPostDTO] {
         let snapshot = try await firestore
             .collection("posts")
             .order(by: "createdAt", descending: true)
             .getDocuments()
-        
-        return snapshot.documents.compactMap {
-            CommunityPostDTO(document: $0)
-        }
+        return snapshot.documents.compactMap { CommunityPostDTO(document: $0) }
     }
-    
+
     func createPost(
         postID: String,
         authorID: String,
@@ -36,14 +31,9 @@ final class CommunityFirestoreService {
         title: String,
         content: String,
         imageURLs: [String]
-    )
-    async throws -> CommunityPostDTO {
-        let document = firestore
-            .collection("posts")
-            .document(postID)
-        
+    ) async throws -> CommunityPostDTO {
+        let document = firestore.collection("posts").document(postID)
         let createdAt = Date()
-        
         try await document.setData([
             "authorID": authorID,
             "authorName": authorName,
@@ -54,7 +44,6 @@ final class CommunityFirestoreService {
             "likeCount": 0,
             "commentCount": 0
         ])
-        
         return CommunityPostDTO(
             id: document.documentID,
             authorID: authorID,
@@ -67,7 +56,7 @@ final class CommunityFirestoreService {
             commentCount: 0
         )
     }
-    
+
     func updatePost(
         postID: String,
         title: String,
@@ -83,113 +72,79 @@ final class CommunityFirestoreService {
                 "imageURLs": imageURLs
             ])
     }
-    
+
     func deletePost(postID: String) async throws {
-        try await firestore
-            .collection("posts")
-            .document(postID)
-            .delete()
+        try await firestore.collection("posts").document(postID).delete()
     }
-    
+
     func fetchLikedPostIDs(userID: String) async throws -> Set<String> {
         let snapshot = try await firestore
             .collectionGroup("likes")
             .whereField(FieldPath.documentID(), isEqualTo: userID)
             .getDocuments()
-        
-        return Set(
-            snapshot.documents.compactMap {
-                $0.reference.parent.parent?.documentID
-            }
-        )
+        return Set(snapshot.documents.compactMap {
+            $0.reference.parent.parent?.documentID
+        })
     }
-    
-    func isPostLiked(
-        postID: String,
-        userID: String
-    ) async throws -> Bool {
+
+    func isPostLiked(postID: String, userID: String) async throws -> Bool {
         let document = try await firestore
             .collection("posts")
             .document(postID)
             .collection("likes")
             .document(userID)
             .getDocument()
-        
         return document.exists
     }
-    
-    func toggleLike(
-        postID: String,
-        userID: String,
-        isLiked: Bool
-    ) async throws {
-        
-        let postRef = firestore
-            .collection("posts")
-            .document(postID)
-        
-        let likeRef = postRef
-            .collection("likes")
-            .document(userID)
-        
+
+    func toggleLike(postID: String, userID: String, isLiked: Bool) async throws {
+        let postRef = firestore.collection("posts").document(postID)
+        let likeRef = postRef.collection("likes").document(userID)
         try await firestore.runTransaction { transaction, errorPointer in
-            
             do {
                 let postSnapshot = try transaction.getDocument(postRef)
-                
-                let currentLikeCount =
-                postSnapshot.data()?["likeCount"] as? Int ?? 0
-                
+                let currentLikeCount = postSnapshot.data()?["likeCount"] as? Int ?? 0
                 if isLiked {
                     transaction.deleteDocument(likeRef)
-                    
-                    transaction.updateData(
-                        [
-                            "likeCount": max(0, currentLikeCount - 1)
-                        ],
-                        forDocument: postRef
-                    )
+                    transaction.updateData(["likeCount": max(0, currentLikeCount - 1)], forDocument: postRef)
                 } else {
-                    transaction.setData(
-                        [
-                            "createdAt": Timestamp(date: Date())
-                        ],
-                        forDocument: likeRef
-                    )
-                    
-                    transaction.updateData(
-                        [
-                            "likeCount": currentLikeCount + 1
-                        ],
-                        forDocument: postRef
-                    )
+                    transaction.setData(["createdAt": Timestamp(date: Date())], forDocument: likeRef)
+                    transaction.updateData(["likeCount": currentLikeCount + 1], forDocument: postRef)
                 }
-                
                 return nil
-                
             } catch {
                 errorPointer?.pointee = error as NSError
                 return nil
             }
         }
     }
-    
-    func fetchComments(
-        postID: String
-    ) async throws -> [CommunityCommentDTO] {
-        
+
+    func fetchComments(postID: String) async throws -> [CommunityCommentDTO] {
         let snapshot = try await firestore
             .collection("posts")
             .document(postID)
             .collection("comments")
             .order(by: "createdAt", descending: false)
             .getDocuments()
-        
-        return snapshot.documents.compactMap {
-            CommunityCommentDTO(document: $0)
+        return snapshot.documents.compactMap { CommunityCommentDTO(document: $0) }
+    }
+
+    func observeComments(postID: String) -> AsyncStream<[CommunityCommentDTO]> {
+        AsyncStream { continuation in
+            let listener = firestore
+                .collection("posts")
+                .document(postID)
+                .collection("comments")
+                .order(by: "createdAt", descending: false)
+                .addSnapshotListener { snapshot, _ in
+                    guard let snapshot else { return }
+                    let dtos = snapshot.documents.compactMap { CommunityCommentDTO(document: $0) }
+                    continuation.yield(dtos)
+                }
+            continuation.onTermination = { _ in listener.remove() }
         }
     }
-    
+
     func createComment(
         postID: String,
         authorID: String,
@@ -197,57 +152,31 @@ final class CommunityFirestoreService {
         content: String,
         parentCommentID: UUID?
     ) async throws -> CommunityCommentDTO {
-        
         let commentID = UUID()
-        
-        let postRef = firestore
-            .collection("posts")
-            .document(postID)
-        
-        let commentRef = postRef
-            .collection("comments")
-            .document(commentID.uuidString)
-        
+        let postRef = firestore.collection("posts").document(postID)
+        let commentRef = postRef.collection("comments").document(commentID.uuidString)
         let createdAt = Date()
-        
         var data: [String: Any] = [
             "authorID": authorID,
             "authorName": authorName,
             "content": content,
             "createdAt": Timestamp(date: createdAt)
         ]
-        
         if let parentCommentID {
             data["parentCommentID"] = parentCommentID.uuidString
         }
-        
         try await firestore.runTransaction { transaction, errorPointer in
             do {
                 let postSnapshot = try transaction.getDocument(postRef)
-                
-                let currentCommentCount =
-                postSnapshot.data()?["commentCount"] as? Int ?? 0
-                
-                transaction.setData(
-                    data,
-                    forDocument: commentRef
-                )
-                
-                transaction.updateData(
-                    [
-                        "commentCount": currentCommentCount + 1
-                    ],
-                    forDocument: postRef
-                )
-                
+                let currentCommentCount = postSnapshot.data()?["commentCount"] as? Int ?? 0
+                transaction.setData(data, forDocument: commentRef)
+                transaction.updateData(["commentCount": currentCommentCount + 1], forDocument: postRef)
                 return nil
-                
             } catch {
                 errorPointer?.pointee = error as NSError
                 return nil
             }
         }
-        
         return CommunityCommentDTO(
             id: commentID,
             authorID: authorID,
@@ -257,22 +186,13 @@ final class CommunityFirestoreService {
             parentCommentID: parentCommentID
         )
     }
-    
-    func deleteComment(
-        postID: String,
-        commentID: UUID
-    ) async throws {
-        
-        let postRef = firestore
-            .collection("posts")
-            .document(postID)
-        
+
+    func deleteComment(postID: String, commentID: UUID) async throws {
+        let postRef = firestore.collection("posts").document(postID)
         let commentsRef = postRef.collection("comments")
-        
         let repliesSnapshot = try await commentsRef
             .whereField("parentCommentID", isEqualTo: commentID.uuidString)
             .getDocuments()
-        
         let batch = firestore.batch()
         batch.deleteDocument(commentsRef.document(commentID.uuidString))
         repliesSnapshot.documents.forEach { batch.deleteDocument($0.reference) }
@@ -280,14 +200,10 @@ final class CommunityFirestoreService {
             ["commentCount": FieldValue.increment(Int64(-(1 + repliesSnapshot.count)))],
             forDocument: postRef
         )
-        
         try await batch.commit()
     }
-    
-    func hasComment(
-        postID: String,
-        authorID: String
-    ) async throws -> Bool {
+
+    func hasComment(postID: String, authorID: String) async throws -> Bool {
         let snapshot = try await firestore
             .collection("posts")
             .document(postID)
@@ -295,28 +211,20 @@ final class CommunityFirestoreService {
             .whereField("authorID", isEqualTo: authorID)
             .limit(to: 1)
             .getDocuments()
-        
         return !snapshot.isEmpty
     }
-    
-    func updateComment(
-        postID: String,
-        commentID: UUID,
-        content: String
-    ) async throws {
-        
+
+    func updateComment(postID: String, commentID: UUID, content: String) async throws {
         try await firestore
             .collection("posts")
             .document(postID)
             .collection("comments")
             .document(commentID.uuidString)
-            .updateData([
-                "content": content
-            ])
+            .updateData(["content": content])
     }
-    
+
     // MARK: - Report
-    
+
     func createReport(
         reporterID: String,
         targetType: String,
@@ -324,11 +232,9 @@ final class CommunityFirestoreService {
         targetAuthorID: String,
         reason: String
     ) async throws {
-        let reportID = UUID().uuidString
-        
         try await firestore
             .collection("reports")
-            .document(reportID)
+            .document(UUID().uuidString)
             .setData([
                 "reporterID": reporterID,
                 "targetType": targetType,
@@ -338,11 +244,8 @@ final class CommunityFirestoreService {
                 "createdAt": Timestamp(date: Date())
             ])
     }
-    
-    func hasReported(
-        reporterID: String,
-        targetID: String
-    ) async throws -> Bool {
+
+    func hasReported(reporterID: String, targetID: String) async throws -> Bool {
         let snapshot = try await firestore
             .collection("reports")
             .whereField("reporterID", isEqualTo: reporterID)
@@ -351,29 +254,19 @@ final class CommunityFirestoreService {
             .getDocuments()
         return !snapshot.isEmpty
     }
-    
+
     // MARK: - Block
-    
-    func blockUser(
-        currentUserID: String,
-        blockedUserID: String,
-        blockedUserName: String
-    ) async throws {
+
+    func blockUser(currentUserID: String, blockedUserID: String, blockedUserName: String) async throws {
         try await firestore
             .collection("users")
             .document(currentUserID)
             .collection("blocks")
             .document(blockedUserID)
-            .setData([
-                "blockedUserName": blockedUserName,
-                "createdAt": Timestamp(date: Date())
-            ])
+            .setData(["blockedUserName": blockedUserName, "createdAt": Timestamp(date: Date())])
     }
-    
-    func unblockUser(
-        currentUserID: String,
-        blockedUserID: String
-    ) async throws {
+
+    func unblockUser(currentUserID: String, blockedUserID: String) async throws {
         try await firestore
             .collection("users")
             .document(currentUserID)
@@ -381,39 +274,32 @@ final class CommunityFirestoreService {
             .document(blockedUserID)
             .delete()
     }
-    
-    func fetchBlockedUsers(
-        currentUserID: String
-    ) async throws -> [(id: String, name: String)] {
+
+    func fetchBlockedUsers(currentUserID: String) async throws -> [(id: String, name: String)] {
         let snapshot = try await firestore
             .collection("users")
             .document(currentUserID)
             .collection("blocks")
             .order(by: "createdAt", descending: true)
             .getDocuments()
-        
         return snapshot.documents.compactMap { doc in
             let name = doc.data()["blockedUserName"] as? String ?? ""
             return (id: doc.documentID, name: name)
         }
     }
-    
-    func fetchBlockedUserIDs(
-        currentUserID: String
-    ) async throws -> Set<String> {
+
+    func fetchBlockedUserIDs(currentUserID: String) async throws -> Set<String> {
         let snapshot = try await firestore
             .collection("users")
             .document(currentUserID)
             .collection("blocks")
             .getDocuments()
-        
         return Set(snapshot.documents.map { $0.documentID })
     }
-    
+
     // MARK: - Account Deletion
-    
+
     func deleteAllPostsByUser(authorID: String) async throws {
-        
         let allComments = try await firestore
             .collectionGroup("comments")
             .whereField("authorID", isEqualTo: authorID)
@@ -421,43 +307,27 @@ final class CommunityFirestoreService {
         for comment in allComments.documents {
             try await comment.reference.delete()
         }
-        
         let snapshot = try await firestore
             .collection("posts")
             .whereField("authorID", isEqualTo: authorID)
             .getDocuments()
-        
         for document in snapshot.documents {
             let imageURLs = document.data()["imageURLs"] as? [String] ?? []
-            
-            let commentsSnapshot = try await document.reference
-                .collection("comments").getDocuments()
-            for comment in commentsSnapshot.documents {
-                try await comment.reference.delete()
-            }
-            
-            let likesSnapshot = try await document.reference
-                .collection("likes").getDocuments()
-            for like in likesSnapshot.documents {
-                try await like.reference.delete()
-            }
-            
+            let commentsSnapshot = try await document.reference.collection("comments").getDocuments()
+            for comment in commentsSnapshot.documents { try await comment.reference.delete() }
+            let likesSnapshot = try await document.reference.collection("likes").getDocuments()
+            for like in likesSnapshot.documents { try await like.reference.delete() }
             try await document.reference.delete()
-            
             await FirebaseStorageService().delete(urls: imageURLs)
         }
-        
         let blocksSnapshot = try await firestore
             .collection("users")
             .document(authorID)
             .collection("blocks")
             .getDocuments()
-        
-        for block in blocksSnapshot.documents {
-            try await block.reference.delete()
-        }
+        for block in blocksSnapshot.documents { try await block.reference.delete() }
     }
-    
+
     // MARK: - Notification
 
     func createNotification(
@@ -467,19 +337,17 @@ final class CommunityFirestoreService {
         postID: String,
         body: String
     ) async throws {
-        let notifID = UUID().uuidString
-        
         try await firestore
             .collection("users")
             .document(targetUserID)
             .collection("notifications")
-            .document(notifID)
+            .document(UUID().uuidString)
             .setData([
                 "type": type,
                 "senderName": senderName,
                 "postID": postID,
                 "body": body,
-                "receivedAt": Timestamp(date: Date()),  // ← createdAt → receivedAt
+                "receivedAt": Timestamp(date: Date()),
                 "isRead": false
             ])
     }
