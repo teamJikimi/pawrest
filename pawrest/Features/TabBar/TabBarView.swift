@@ -10,6 +10,7 @@ import ComposableArchitecture
 
 struct TabBarView: View {
     @Bindable var store: StoreOf<TabBarFeature>
+
     @State private var communityStore = Store(initialState: CommunityState()) { CommunityReducer() }
     @State private var homeStore = Store(initialState: HomeFeature.State()) {
         HomeFeature()
@@ -66,7 +67,7 @@ struct TabBarView: View {
 
         case .community:
             NavigationStack {
-                CommunityView(store: communityStore)
+                CommunityView(store: communityStore, isTabBarHidden: $isTabBarHidden)
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 CustomTabBar(selectedTab: store.selectedTab, onTabSelected: { _ in })
@@ -136,6 +137,7 @@ struct TabBarButton: View {
                 Image(isSelected ? tab.iconNameFill : tab.iconName)
                     .renderingMode(.original)
                     .frame(width: 24, height: 24)
+
                 Text(tab.title)
                     .typography(.date)
             }

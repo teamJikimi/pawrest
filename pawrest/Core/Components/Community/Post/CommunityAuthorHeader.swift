@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 enum CommunityAuthorNameStyle {
     case card
@@ -18,11 +19,11 @@ struct CommunityAuthorHeader: View {
     
     let author: Author
     let date: Date
-    var profileSize: CGFloat = 36
+    var profileSize: CGFloat = 32
     var nameStyle: CommunityAuthorNameStyle = .card
     
     
-    //MARK: - Bbody
+    //MARK: - Body
     
     var body: some View {
         HStack(spacing: 8) {
@@ -30,7 +31,6 @@ struct CommunityAuthorHeader: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 authorName
-                    .typography(.body2Accent)
                 
                 Text(date.formattedAuthorHeader)
                     .typography(.date)
@@ -64,11 +64,11 @@ private extension CommunityAuthorHeader {
     var profileImage: some View {
         if let urlString = author.profileImageURL,
            let url = URL(string: urlString) {
-            CachedAsyncImage(url: url, contentMode: .fill, maxPixelSize: 160) {
-                defaultProfileImage
-            }
-            .frame(width: profileSize, height: profileSize)
-            .clipShape(Circle())
+            KFImage(url)
+                .resizable()
+                .scaledToFill()
+                .frame(width: profileSize, height: profileSize)
+                .clipShape(Circle())
         } else {
             defaultProfileImage
         }

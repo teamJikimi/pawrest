@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct CommunityCard: View {
     
@@ -14,6 +15,7 @@ struct CommunityCard: View {
     let post: Post
     var showsCount: Bool = true
     var onLikeTapped: () -> Void = {}
+ //   var onCardTapped: () -> Void = {}
     
     //MARK: - Body
     
@@ -54,6 +56,8 @@ struct CommunityCard: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.gray20, lineWidth: 1)
         }
+//        .contentShape(Rectangle())
+//        .onTapGesture { onCardTapped() }
     }
 }
 
@@ -81,15 +85,11 @@ private extension CommunityCard {
         Color.clear
             .aspectRatio(1, contentMode: .fit)
             .overlay {
-                CachedAsyncImage(
-                    url: URL(string: post.imageURLs[0]),
-                    contentMode: .fill,
-                    maxPixelSize: 800
-                ) {
-                    Rectangle()
-                        .fill(.gray10)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                KFImage(URL(string: post.imageURLs[0]))
+                    .placeholder { Rectangle().fill(.gray10) }
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(alignment: .topTrailing) {

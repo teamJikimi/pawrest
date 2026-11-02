@@ -6,13 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
+import Kingfisher
 import ComposableArchitecture
 
 struct CommunityDetailView: View {
     @Bindable var store: StoreOf<CommunityDetailReducer>
     @FocusState private var isInputFocused: Bool
     @Environment(\.dismiss) private var dismiss
-    @State private var openedMenuCommentID: UUID? = nil
     
     var onPostStateUpdated: ((Post) -> Void)? = nil
     var onPostDeleted: ((String) -> Void)? = nil
@@ -28,39 +29,34 @@ struct CommunityDetailView: View {
                     action: \.navigationBar
                 )
             )
-            .toast(
-                isPresented: Binding(
-                    get: { store.showReportToast },
-                    set: { if !$0 { store.send(.reportToastDismissed) } }
-                ),
-                message: "신고 처리 되었습니다"
-            )
-            .toast(
-                isPresented: Binding(
-                    get: { store.showAlreadyReportedToast },
-                    set: { if !$0 { store.send(.alreadyReportedToastDismissed) } }
-                ),
-                message: "이미 신고한 게시물입니다."
-            )
+            .hideTabBar()  // 추가
             .onChange(of: store.replyingToCommentID) { _, newValue in
                 if newValue != nil {
                     isInputFocused = true
                 }
+            }
+            .onChange(of: store.shouldDismiss) { _, shouldDismiss in
+                if shouldDismiss {
+                    if store.isDeleted {
+                        onPostDeleted?(store.post.id)
+                    }
+                    dismiss()
+                }
+            }
+            .onChange(of: store.post) { _, newPost in
+                onPostStateUpdated?(newPost)
             }
             .onChange(of: store.post.commentCount) { oldCount, newCount in
                 if newCount > oldCount {
                     isInputFocused = false
                 }
             }
-            .onAppear {
-                store.send(.onAppear)
-            }
             .navigationDestination(
-                item: $store.scope(state: \.edit, action: \.edit)
-            ) { editStore in
-                CommunityWriteView(store: editStore)
+                item: $store.scope(state: \.write, action: \.write)
+            ) { writeStore in
+                CommunityWriteView(store: writeStore)
+                    .toolbar(.hidden, for: .navigationBar)
             }
-            .hideTabBar()
     }
 }
 
@@ -70,7 +66,7 @@ private extension CommunityDetailView {
     
     var contentView: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
+            LazyVStack(alignment: .leading, spacing: 0) {
                 authorHeaderSection
                 CommunityDivider()
                 contentSection
@@ -78,15 +74,14 @@ private extension CommunityDetailView {
                     imageSection
                 }
                 CommunityDivider()
-                    .padding(.top, 16)
+                    .padding(.top, 18)
                 likeCommentBarSection
                 CommunityDivider()
                 commentsSection
             }
         }
-        .scrollDismissesKeyboard(.never)
+        .scrollDismissesKeyboard(.immediately)
         .onTapGesture {
-            openedMenuCommentID = nil
             if isInputFocused {
                 isInputFocused = false
                 store.send(.outsideTapped)
@@ -104,16 +99,16 @@ private extension CommunityDetailView {
             author: store.post.author,
             date: store.post.createdAt
         )
-        .padding(.vertical, 12)
+        .padding(.vertical, 18)
         .padding(.horizontal, 20)
     }
     
     var contentSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(store.post.title)
-                .typography(.body1Accent)
+                .typography(.title2)
                 .foregroundColor(.gray80)
-                .padding(.top, 16)
+                .padding(.top, 18)
             
             Text(store.post.content)
                 .typography(.body2R2)
@@ -127,13 +122,16 @@ private extension CommunityDetailView {
     var imageSection: some View {
         VStack(spacing: 12) {
             ForEach(store.post.imageURLs, id: \.self) { url in
-                CachedAsyncImage(url: URL(string: url), contentMode: .fit) {
-                    Rectangle()
-                        .fill(.gray10)
-                        .aspectRatio(1, contentMode: .fit)
-                }
-                .frame(maxWidth: .infinity)
-                .cornerRadius(12, corners: .allCorners)
+                KFImage(URL(string: url))
+                    .placeholder {
+                        Rectangle()
+                            .fill(.gray10)
+                            .aspectRatio(1, contentMode: .fit)
+                    }
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .cornerRadius(12, corners: .allCorners)
             }
         }
         .padding(.top, 12)
@@ -148,20 +146,20 @@ private extension CommunityDetailView {
             isLiked: store.post.isLiked,
             onLikeTapped: { store.send(.likeTapped) }
         )
-        .padding(.vertical, 12)
+        .padding(.vertical, 15)
         .padding(.horizontal, 20)
     }
     
     var commentsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(store.post.comments.filter { !store.blockedUserIDs.contains($0.author.id) }.enumerated()), id: \.element.id) { idx, parent in
+            ForEach(Array(store.post.comments.enumerated()), id: \.element.id) { idx, parent in
                 commentGroup(
                     parent: parent,
                     isLastGroup: idx == store.post.comments.count - 1
                 )
             }
         }
-        .padding(.top, 18)
+        .padding(.top, 20)
     }
     
     @ViewBuilder
@@ -170,7 +168,6 @@ private extension CommunityDetailView {
             comment: parent,
             isReply: false,
             isMyComment: parent.author.id == store.currentUserID,
-            openedMenuCommentID: $openedMenuCommentID,
             onAction: { action in
                 store.send(.commentAction(commentID: parent.id, action: action))
             }
@@ -178,9 +175,9 @@ private extension CommunityDetailView {
         .padding(.horizontal, 20)
         
         if !parent.replies.isEmpty {
-            Color.clear.frame(height: 12)
+            Color.clear.frame(height: 18)
             
-            ForEach(Array(parent.replies.filter { !store.blockedUserIDs.contains($0.author.id) }.enumerated()), id: \.element.id) { rIdx, reply in
+            ForEach(Array(parent.replies.enumerated()), id: \.element.id) { rIdx, reply in
                 if rIdx > 0 {
                     Color.clear.frame(height: 6)
                 }
@@ -189,7 +186,6 @@ private extension CommunityDetailView {
                     comment: reply,
                     isReply: true,
                     isMyComment: reply.author.id == store.currentUserID,
-                    openedMenuCommentID: $openedMenuCommentID,
                     onAction: { action in
                         store.send(.commentAction(commentID: reply.id, action: action))
                     }
@@ -198,10 +194,12 @@ private extension CommunityDetailView {
             }
         }
         
-        Color.clear.frame(height: isLastGroup ? 12 : 20)
         if !isLastGroup {
+            Color.clear.frame(height: 20)
             CommunityDivider(horizontalPadding: 20)
             Color.clear.frame(height: 20)
+        } else {
+            Color.clear.frame(height: parent.replies.isEmpty ? 20 : 16)
         }
     }
     

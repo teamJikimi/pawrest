@@ -13,6 +13,7 @@ struct CommunityView: View {
     @Bindable var store: StoreOf<CommunityReducer>
     @FocusState private var isSearchFocused: Bool
     @Query private var userProfiles: [UserProfile]
+    @Binding var isTabBarHidden: Bool
 
     private var currentNickname: String? {
         userProfiles
@@ -53,16 +54,26 @@ struct CommunityView: View {
             item: $store.scope(state: \.myPost, action: \.myPost)
         ) { myPostStore in
             CommunityMyPostView(store: myPostStore)
+                .onAppear { isTabBarHidden = true }
+                .onDisappear { isTabBarHidden = false }
         }
         .navigationDestination(
             item: $store.scope(state: \.detail, action: \.detail)
         ) { detailStore in
             CommunityDetailView(store: detailStore)
+                .onAppear { isTabBarHidden = true }
+                .onDisappear {
+                    if store.detail == nil {
+                        isTabBarHidden = false
+                    }
+                }
         }
         .navigationDestination(
             item: $store.scope(state: \.write, action: \.write)
         ) { writeStore in
             CommunityWriteView(store: writeStore)
+                .onAppear { isTabBarHidden = true }
+                .onDisappear { isTabBarHidden = false }
         }
     }
 }
@@ -115,13 +126,8 @@ private extension CommunityView {
         .simultaneousGesture(
             TapGesture()
                 .onEnded { _ in
-                    if isSearchFocused {
-                        isSearchFocused = false
-                    }
-
-                    if store.isSortMenuOpen {
-                        store.send(.outsideTapped)
-                    }
+                    if isSearchFocused { isSearchFocused = false }
+                    if store.isSortMenuOpen { store.send(.outsideTapped) }
                 }
         )
     }
@@ -157,13 +163,8 @@ private extension CommunityView {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            if isSearchFocused {
-                isSearchFocused = false
-            }
-
-            if store.isSortMenuOpen {
-                store.send(.outsideTapped)
-            }
+            if isSearchFocused { isSearchFocused = false }
+            if store.isSortMenuOpen { store.send(.outsideTapped) }
         }
     }
 }

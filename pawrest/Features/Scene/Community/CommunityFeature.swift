@@ -123,7 +123,7 @@ struct CommunityReducer: Reducer {
             NavigationBarReducer()
         }
 
-        Reduce { state, action in
+        Reduce<CommunityState, CommunityAction> { state, action in
             switch action {
 
             // MARK: User Profile
@@ -131,11 +131,7 @@ struct CommunityReducer: Reducer {
             case .userProfileLoaded(let nickname):
                 let trimmedNickname = nickname?
                     .trimmingCharacters(in: .whitespacesAndNewlines)
-
-                state.authorName = trimmedNickname?.isEmpty == false
-                    ? trimmedNickname
-                    : nil
-
+                state.authorName = trimmedNickname?.isEmpty == false ? trimmedNickname : nil
                 return .none
 
             // MARK: Load Posts
@@ -161,11 +157,11 @@ struct CommunityReducer: Reducer {
                 state.errorMessage = nil
 
                 return fetchPosts(userID: currentUserID)
+
             case .refreshPulled:
                 guard let currentUserID = state.currentUserID
                         ?? authSessionClient.currentUserID()
                 else { return .none }
-                
                 state.currentUserID = currentUserID
                 return fetchPosts(userID: currentUserID)
 
@@ -194,13 +190,12 @@ struct CommunityReducer: Reducer {
                     authorName: state.authorName ?? ""
                 )
                 return .none
-                
+
             case .postTapped(let postID):
                 guard
                     let currentUserID = state.currentUserID,
                     let post = state.posts.first(where: { $0.id == postID })
                 else { return .none }
-                
                 state.detail = CommunityDetailState(
                     post: post,
                     currentUserID: currentUserID,
@@ -235,65 +230,27 @@ struct CommunityReducer: Reducer {
             case .likeTapped(let postID):
                 guard
                     let userID = state.currentUserID,
-                    let index = state.posts.firstIndex(
-                        where: { $0.id == postID }
-                    )
-                else {
-                    return .none
-                }
+                    let index = state.posts.firstIndex(where: { $0.id == postID })
+                else { return .none }
 
                 let previousIsLiked = state.posts[index].isLiked
-
-                // Optimistic UI
                 state.posts[index].isLiked.toggle()
-                state.posts[index].likeCount +=
-                    state.posts[index].isLiked ? 1 : -1
+                state.posts[index].likeCount += state.posts[index].isLiked ? 1 : -1
 
                 return .run { send in
                     do {
-                        try await communityRepository.toggleLike(
-                            postID,
-                            userID,
-                            previousIsLiked
-                        )
-
-                        await send(
-                            .likeResponse(
-                                postID: postID,
-                                previousIsLiked: previousIsLiked,
-                                success: true
-                            )
-                        )
+                        try await communityRepository.toggleLike(postID, userID, previousIsLiked)
+                        await send(.likeResponse(postID: postID, previousIsLiked: previousIsLiked, success: true))
                     } catch {
-                        await send(
-                            .likeResponse(
-                                postID: postID,
-                                previousIsLiked: previousIsLiked,
-                                success: false
-                            )
-                        )
+                        await send(.likeResponse(postID: postID, previousIsLiked: previousIsLiked, success: false))
                     }
                 }
 
-            case let .likeResponse(
-                postID,
-                previousIsLiked,
-                success
-            ):
-                guard !success else {
-                    return .none
-                }
-
-                guard let index = state.posts.firstIndex(
-                    where: { $0.id == postID }
-                ) else {
-                    return .none
-                }
-
+            case let .likeResponse(postID, previousIsLiked, success):
+                guard !success else { return .none }
+                guard let index = state.posts.firstIndex(where: { $0.id == postID }) else { return .none }
                 state.posts[index].isLiked = previousIsLiked
-                state.posts[index].likeCount +=
-                    previousIsLiked ? 1 : -1
-
+                state.posts[index].likeCount += previousIsLiked ? 1 : -1
                 return .none
 
             // MARK: Presentation
@@ -301,28 +258,33 @@ struct CommunityReducer: Reducer {
             case let .detail(.presented(.delegate(delegate))):
                 switch delegate {
                 case .postDeleted(let postID):
+                    let imageURLs = state.posts.first(where: { $0.id == postID })?.imageURLs ?? []
                     state.posts.removeAll { $0.id == postID }
+                    state.detail = nil
+                    return .run { _ in
+                        try? await communityRepository.deletePost(postID, imageURLs)
+                    }
                 case .userBlocked(let userID):
                     state.blockedUserIDs.insert(userID)
+                    state.detail = nil
+                    return .none
                 }
-                state.detail = nil
-                return .none
-                
+
             case .detail(.presented):
                 if let post = state.detail?.post {
                     state.posts.replace(with: post)
                 }
                 return .none
-                
+
             case .detail(.dismiss):
                 return .none
-                
+
             case .myPost(.presented):
                 if let myPosts = state.myPost?.posts, myPosts != state.posts {
                     state.posts = myPosts
                 }
                 return .none
-                
+
             case .myPost(.dismiss):
                 return .send(.refreshBlockedUsers)
 
@@ -330,31 +292,31 @@ struct CommunityReducer: Reducer {
 
             case let .write(.presented(.delegate(.save(title, content, images)))):
                 state.write = nil
-                
+
                 guard let currentUserID = state.currentUserID else {
                     state.errorMessage = "로그인이 필요합니다."
                     return .none
                 }
-                
+
                 guard let authorName = state.authorName else {
                     state.errorMessage = "프로필 닉네임을 찾을 수 없습니다."
                     return .none
                 }
-                
+
                 let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
                 let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                
+
                 guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else {
                     state.errorMessage = "제목과 내용을 입력해주세요."
                     return .none
                 }
-                
+
                 let imageDatas = images.compactMap { item -> Data? in
                     guard case .local(let image) = item.source else { return nil }
                     return image.resizedJPEGData()
                 }
                 let postID = UUID().uuidString
-                
+
                 let optimisticPost = Post(
                     id: postID,
                     author: Author(
@@ -371,24 +333,17 @@ struct CommunityReducer: Reducer {
                     comments: []
                 )
                 state.posts.insert(optimisticPost, at: 0)
-                
+
                 return .run { send in
                     await send(
                         .postCreationResponse(
                             TaskResult {
                                 let imageURLs = try await communityRepository.uploadImages(
-                                    currentUserID,
-                                    postID,
-                                    imageDatas
+                                    currentUserID, postID, imageDatas
                                 )
-                                
                                 return try await communityRepository.createPost(
-                                    postID,
-                                    currentUserID,
-                                    authorName,
-                                    trimmedTitle,
-                                    trimmedContent,
-                                    imageURLs
+                                    postID, currentUserID, authorName,
+                                    trimmedTitle, trimmedContent, imageURLs
                                 )
                             }
                         )
@@ -413,17 +368,13 @@ struct CommunityReducer: Reducer {
             case .blockedUserIDsLoaded(let ids):
                 state.blockedUserIDs = ids
                 return .none
-                
+
             case .refreshBlockedUsers:
-                guard let currentUserID = state.currentUserID else {
-                    return .none
-                }
-                
+                guard let currentUserID = state.currentUserID else { return .none }
                 return .run { send in
                     let blockedIDs = try await communityRepository.fetchBlockedUserIDs(currentUserID)
                     await send(.blockedUserIDsLoaded(blockedIDs))
                 }
-                
             }
         }
         .ifLet(\.$write, action: \.write) {

@@ -8,6 +8,13 @@
 import Foundation
 import ComposableArchitecture
 
+// MARK: - CommentCreationResult
+
+enum CommentCreationResult: Equatable {
+    case success
+    case failure(String)
+}
+
 // MARK: - State
 
 @ObservableState
@@ -15,43 +22,36 @@ struct CommunityDetailState: Equatable {
     var post: Post
     var text: String = ""
     var navigationBar: NavigationBarState
-    
+
     let currentUserID: String
     let authorName: String
-    
-    var replyingToCommentID: UUID? = nil
-    
-    var errorMessage: String?
-    
     var blockedUserIDs: Set<String> = []
-    
-    var showReportToast: Bool = false
-    var showAlreadyReportedToast: Bool = false
-    
-    @Presents var edit: CommunityWriteState?
-    
+
+    var replyingToCommentID: UUID? = nil
+
+    var shouldDismiss: Bool = false
+    var isDeleted: Bool = false
+
+    @Presents var write: CommunityWriteState?
+
     var inputPlaceholder: String {
-        replyingToCommentID == nil
-            ? "댓글을 입력하세요."
-            : "대댓글을 입력하세요."
+        replyingToCommentID == nil ? "댓글을 입력하세요." : "대댓글을 입력하세요."
     }
-    
+
     var isOwnPost: Bool {
         post.author.id == currentUserID
     }
-    
-    init(post: Post, currentUserID: String, authorName: String, blockedUserIDs: Set<String> = []) {
+
+    init(post: Post, currentUserID: String, authorName: String = "나", blockedUserIDs: Set<String> = []) {
         self.post = post
         self.currentUserID = currentUserID
         self.authorName = authorName
+        self.blockedUserIDs = blockedUserIDs
         self.navigationBar = NavigationBarState(
             title: "커뮤니티",
             leftButton: .back,
-            rightButton: post.author.id == currentUserID
-                ? .editMenu
-                : .reportMenu
+            rightButton: post.author.id == currentUserID ? .editMenu : .reportMenu
         )
-        self.blockedUserIDs = blockedUserIDs
     }
 }
 
@@ -60,32 +60,20 @@ struct CommunityDetailState: Equatable {
 @CasePathable
 enum CommunityDetailAction: Equatable {
     case navigationBar(NavigationBarAction)
-    
+
     case likeTapped
     case commentAction(commentID: UUID, action: CommunityCommentRow.Action)
-    
-    case onAppear
-    case commentsFetched(TaskResult<[Comment]>)
-    
+
     case textChanged(String)
     case sendTapped
+    case commentCreationResponse(String, CommentCreationResult)
+
     case outsideTapped
-    
-    case edit(PresentationAction<CommunityWriteAction>)
-    
-    case likeResponse(previousIsLiked: Bool, success: Bool)
-    case commentCreationResponse(parentCommentID: UUID?, TaskResult<Comment>)
-    case commentDeletionResponse(TaskResult<UUID>)
-    case postDeletionResponse(TaskResult<String>)
-    case postUpdateResponse(TaskResult<Post>)
-    case reportResponse(TaskResult<Bool>)
-    case blockResponse(blockedUserID: String, TaskResult<Bool>)
-    
+
+    case write(PresentationAction<CommunityWriteAction>)
+
     case delegate(Delegate)
-    
-    case reportToastDismissed
-    case alreadyReportedToastDismissed
-    
+
     @CasePathable
     enum Delegate: Equatable {
         case postDeleted(String)
@@ -96,436 +84,135 @@ enum CommunityDetailAction: Equatable {
 // MARK: - Reducer
 
 struct CommunityDetailReducer: Reducer {
-    
     @Dependency(\.communityRepository) var communityRepository
-    
+
     var body: some Reducer<CommunityDetailState, CommunityDetailAction> {
         Scope(state: \.navigationBar, action: \.navigationBar) {
             NavigationBarReducer()
         }
-        
+
         Reduce { state, action in
             switch action {
-                
-            // MARK: NavigationBar
-                
-            case .navigationBar(.editTapped):
-                state.edit = CommunityWriteState(editingPost: state.post)
+
+            case .navigationBar(.leftButtonTapped):
+                state.shouldDismiss = true
                 return .none
-                
+
+            case .navigationBar(.editTapped):
+                state.write = CommunityWriteState(editingPost: state.post)
+                return .none
+
             case .navigationBar(.deleteTapped):
-                let postID = state.post.id
-                let imageURLs = state.post.imageURLs
-                
-                return .run { send in
-                    await send(.postDeletionResponse(TaskResult {
-                        try await communityRepository.deletePost(postID, imageURLs)
-                        return postID
-                    }))
-                }
-                
-            // MARK: NavigationBar — Report / Block
-                
+                state.isDeleted = true
+                state.shouldDismiss = true
+                return .send(.delegate(.postDeleted(state.post.id)))
+
             case .navigationBar(.reportBoardSettings):
-                return reportPost(state: state, reason: "boardSettings")
-                
+                return .none
+
             case .navigationBar(.reportAbuse):
-                return reportPost(state: state, reason: "abuse")
-                
+                return .none
+
             case .navigationBar(.reportSpam):
-                return reportPost(state: state, reason: "spam")
-                
+                return .none
+
             case .navigationBar(.blockTapped):
-                return blockUser(
-                    currentUserID: state.currentUserID,
-                    targetUser: state.post.author
-                )
-                
+                return .send(.delegate(.userBlocked(state.post.author.id)))
+
             case .navigationBar:
                 return .none
-                
-            // MARK: Like
-                
+
             case .likeTapped:
-                let postID = state.post.id
-                let userID = state.currentUserID
-                let previousIsLiked = state.post.isLiked
-                let postAuthorID = state.post.author.id
-                let authorName = state.authorName
-                let postTitle = state.post.title
-                
                 state.post.isLiked.toggle()
                 state.post.likeCount += state.post.isLiked ? 1 : -1
-                
-                return .run { send in
-                    var senderName = authorName
-                    if senderName.isEmpty {
-                        let profileService = UserProfileRemoteService()
-                        if let profile = try? await profileService.fetchProfiles(userIDs: [userID])[userID] {
-                            senderName = profile.nickname
-                        }
-                    }
-                    if senderName.isEmpty { senderName = "누군가" }
-                    
-                    do {
-                        try await communityRepository.toggleLike(
-                            postID, userID, previousIsLiked
-                        )
-                        await send(.likeResponse(
-                            previousIsLiked: previousIsLiked, success: true
-                        ))
-                        if postAuthorID != userID && !previousIsLiked {
-                            try? await communityRepository.createNotification(
-                                postAuthorID,
-                                "like",
-                                senderName,
-                                postID,
-                                "\(senderName)님이 회원님의 게시물을 좋아합니다: \(postTitle)"
-                            )
-                        }
-                    } catch {
-                        await send(.likeResponse(
-                            previousIsLiked: previousIsLiked, success: false
-                        ))
-                    }
-                }
-                
-            case .likeResponse(let previousIsLiked, let success):
-                guard !success else { return .none }
-                state.post.isLiked = previousIsLiked
-                state.post.likeCount += previousIsLiked ? 1 : -1
-                return .none
-                
-            case .onAppear:
-                let postID = state.post.id
-                
-                return .run { send in
-                    await send(.commentsFetched(TaskResult {
-                        let commentDTOs = try await communityRepository.fetchComments(postID)
-                        
-                        let authorIDs = Set(commentDTOs.map { $0.authorID })
-                        let profileService = UserProfileRemoteService()
-                        let profiles = try await profileService.fetchProfiles(
-                            userIDs: Array(authorIDs)
-                        )
-                        
-                        let topLevel = commentDTOs.filter { $0.parentCommentID == nil }
-                        
-                        return topLevel.map { parentDTO in
-                            let replies = commentDTOs
-                                .filter { $0.parentCommentID == parentDTO.id }
-                                .map { $0.toDomain(profile: profiles[$0.authorID]) }
-                            
-                            return parentDTO.toDomain(
-                                replies: replies,
-                                profile: profiles[parentDTO.authorID]
-                            )
-                        }
-                    }))
-                }
-
-            case .commentsFetched(.success(let comments)):
-                state.post.comments = comments
-                state.post.commentCount = comments.reduce(0) { $0 + 1 + $1.replies.count }
                 return .none
 
-            case .commentsFetched(.failure):
-                return .none
-                
-            // MARK: Comment Actions
-                
             case .commentAction(let id, .replyTapped):
                 state.replyingToCommentID = id
                 return .none
-                
+
             case .commentAction(_, .editTapped):
                 return .none
-                
+
             case .commentAction(let id, .deleteTapped):
-                let postID = state.post.id
-                
-                return .run { send in
-                    await send(.commentDeletionResponse(TaskResult {
-                        try await communityRepository.deleteComment(postID, id)
-                        return id
-                    }))
+                if let idx = state.post.comments.firstIndex(where: { $0.id == id }) {
+                    state.post.comments.remove(at: idx)
+                    return .none
                 }
-                
-            // MARK: Comment Actions — Report / Block
-                
-            case .commentAction(let commentID, .reportBoardSettings):
-                return reportComment(state: state, commentID: commentID, reason: "boardSettings")
-                
-            case .commentAction(let commentID, .reportAbuse):
-                return reportComment(state: state, commentID: commentID, reason: "abuse")
-                
-            case .commentAction(let commentID, .reportSpam):
-                return reportComment(state: state, commentID: commentID, reason: "spam")
-                
-            case .commentAction(let commentID, .blockTapped):
-                guard let comment = findComment(commentID: commentID, in: state.post)
-                else { return .none }
-                
-                return blockUser(
-                    currentUserID: state.currentUserID,
-                    targetUser: comment.author
-                )
-                
-            // MARK: Input Bar
-                
+                for parentIdx in state.post.comments.indices {
+                    if let replyIdx = state.post.comments[parentIdx].replies.firstIndex(where: { $0.id == id }) {
+                        state.post.comments[parentIdx].replies.remove(at: replyIdx)
+                        return .none
+                    }
+                }
+                return .none
+
+            case .commentAction(_, .reportBoardSettings):
+                return .none
+
+            case .commentAction(_, .reportAbuse):
+                return .none
+
+            case .commentAction(_, .reportSpam):
+                return .none
+
+            case .commentAction(_, .blockTapped):
+                return .none
+
             case .textChanged(let text):
                 state.text = text
                 return .none
-                
+
             case .sendTapped:
                 let trimmed = state.text.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty else { return .none }
-                
-                let postID = state.post.id
-                let currentUserID = state.currentUserID
-                let authorName = state.authorName
-                let parentCommentID = state.replyingToCommentID
-                let postAuthorID = state.post.author.id
-                let parentCommentAuthorID = parentCommentID.flatMap { pid in
-                    findComment(commentID: pid, in: state.post)?.author.id
+
+                let newComment = Comment(
+                    content: trimmed,
+                    author: Author(id: state.currentUserID, name: state.authorName, profileImageURL: nil),
+                    createdAt: Date()
+                )
+
+                if let parentID = state.replyingToCommentID,
+                   let parentIdx = state.post.comments.firstIndex(where: { $0.id == parentID }) {
+                    state.post.comments[parentIdx].replies.append(newComment)
+                } else {
+                    state.post.comments.append(newComment)
                 }
-                
+
                 state.text = ""
                 state.replyingToCommentID = nil
-                
-                return .run { send in
-                    var senderName = authorName
-                    if senderName.isEmpty {
-                        let profileService = UserProfileRemoteService()
-                        if let profile = try? await profileService.fetchProfiles(userIDs: [currentUserID])[currentUserID] {
-                            senderName = profile.nickname
-                        }
-                    }
-                    if senderName.isEmpty { senderName = "누군가" }
-                    
-                    await send(.commentCreationResponse(
-                        parentCommentID: parentCommentID,
-                        TaskResult {
-                            try await communityRepository.createComment(
-                                postID, currentUserID, authorName, trimmed, parentCommentID
-                            )
-                        }
-                    ))
-                    if postAuthorID != currentUserID {
-                        try? await communityRepository.createNotification(
-                            postAuthorID,
-                            "comment",
-                            senderName,
-                            postID,
-                            "\(senderName)님이 댓글을 남겼어요: \(trimmed)"
-                        )
-                    }
-                    if let parentAuthorID = parentCommentAuthorID,
-                       parentAuthorID != currentUserID,
-                       parentAuthorID != postAuthorID {
-                        try? await communityRepository.createNotification(
-                            parentAuthorID,
-                            "comment",
-                            senderName,
-                            postID,
-                            "\(senderName)님이 대댓글을 남겼어요: \(trimmed)"
-                        )
-                    }
-                }
-                
+                return .none
+
+            case .commentCreationResponse:
+                return .none
+
             case .outsideTapped:
                 state.replyingToCommentID = nil
                 return .none
-                
-            // MARK: Edit
-                
-            case let .edit(.presented(.delegate(.save(title, content, images)))):
-                state.edit = nil
-                
-                let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-                let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                
-                guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else {
-                    state.errorMessage = "제목과 내용을 입력해주세요."
-                    return .none
+
+            case .write(.presented(.delegate(.save(let title, let content, let images)))):
+                let imageURLs = images.compactMap { item -> String? in
+                    if case .remote(let url) = item.source { return url }
+                    return nil
                 }
-                
-                var updatedPost = state.post
-                updatedPost.title = trimmedTitle
-                updatedPost.content = trimmedContent
-                let payloads = images.compactMap(\.uploadPayload)
-                
-                return .run { send in
-                    await send(.postUpdateResponse(TaskResult {
-                        try await communityRepository.updatePost(updatedPost, payloads)
-                    }))
+                state.post.title = title
+                state.post.content = content
+                state.write = nil
+                return .run { [post = state.post, images] send in
+                    let payload = images.compactMap { $0.uploadPayload }
+                    let _ = try? await communityRepository.updatePost(post, payload)
                 }
-                
-            case .edit:
-                return .none
-                
-            // MARK: Responses
-                
-            case let .commentCreationResponse(parentCommentID, .success(comment)):
-                if let parentCommentID,
-                   let parentIndex = state.post.comments.firstIndex(where: { $0.id == parentCommentID }) {
-                    state.post.comments[parentIndex].replies.append(comment)
-                } else {
-                    state.post.comments.append(comment)
-                }
-                state.post.commentCount += 1
-                return .none
-                
-            case .commentCreationResponse(_, .failure(let error)):
-                state.errorMessage = error.localizedDescription
-                return .none
-                
-            case .commentDeletionResponse(.success(let commentID)):
-                if let index = state.post.comments.firstIndex(where: { $0.id == commentID }) {
-                    let removed = state.post.comments.remove(at: index)
-                    state.post.commentCount = max(0, state.post.commentCount - 1 - removed.replies.count)
-                    return .none
-                }
-                for parentIndex in state.post.comments.indices {
-                    if let replyIndex = state.post.comments[parentIndex].replies
-                        .firstIndex(where: { $0.id == commentID }) {
-                        state.post.comments[parentIndex].replies.remove(at: replyIndex)
-                        state.post.commentCount = max(0, state.post.commentCount - 1)
-                        break
-                    }
-                }
-                return .none
-                
-            case .commentDeletionResponse(.failure(let error)):
-                state.errorMessage = error.localizedDescription
-                return .none
-                
-            case .postDeletionResponse(.success(let postID)):
-                return .send(.delegate(.postDeleted(postID)))
-                
-            case .postDeletionResponse(.failure(let error)):
-                state.errorMessage = error.localizedDescription
-                return .none
-                
-            case .postUpdateResponse(.success(let updatedPost)):
-                state.post = updatedPost
-                return .none
-                
-            case .postUpdateResponse(.failure(let error)):
-                state.errorMessage = error.localizedDescription
-                return .none
-                
-            case .reportResponse(.success(let alreadyReported)):
-                if alreadyReported {
-                    state.showAlreadyReportedToast = true
-                } else {
-                    state.showReportToast = true
-                }
-                return .none
-                
-            case .reportToastDismissed:
-                state.showReportToast = false
+
+            case .write:
                 return .none
 
-            case .alreadyReportedToastDismissed:
-                state.showAlreadyReportedToast = false
-                return .none
-                
-            case .reportResponse(.failure(let error)):
-                state.errorMessage = error.localizedDescription
-                return .none
-                
-            case .blockResponse(let blockedUserID, .success):
-                return .send(.delegate(.userBlocked(blockedUserID)))
-                
-            case .blockResponse(_, .failure(let error)):
-                state.errorMessage = error.localizedDescription
-                return .none
-                
             case .delegate:
                 return .none
             }
         }
-        .ifLet(\.$edit, action: \.edit) {
+        .ifLet(\.$write, action: \.write) {
             CommunityWriteReducer()
-        }
-    }
-}
-
-// MARK: - Helpers
-
-private extension CommunityDetailReducer {
-    
-    func findComment(commentID: UUID, in post: Post) -> Comment? {
-        if let comment = post.comments.first(where: { $0.id == commentID }) {
-            return comment
-        }
-        for parent in post.comments {
-            if let reply = parent.replies.first(where: { $0.id == commentID }) {
-                return reply
-            }
-        }
-        return nil
-    }
-    
-    func reportPost(
-        state: CommunityDetailState,
-        reason: String
-    ) -> Effect<CommunityDetailAction> {
-        let currentUserID = state.currentUserID
-        let postID = state.post.id
-        let targetAuthorID = state.post.author.id
-        
-        return .run { send in
-            await send(.reportResponse(TaskResult {
-                let alreadyReported = try await communityRepository.hasReported(currentUserID, postID)
-                if alreadyReported { return true }
-                try await communityRepository.createReport(
-                    currentUserID, "post", postID, targetAuthorID, reason
-                )
-                return false
-            }))
-        }
-    }
-    
-    func reportComment(
-        state: CommunityDetailState,
-        commentID: UUID,
-        reason: String
-    ) -> Effect<CommunityDetailAction> {
-        let currentUserID = state.currentUserID
-        let targetAuthorID = findComment(commentID: commentID, in: state.post)?.author.id ?? ""
-        let targetID = commentID.uuidString
-        
-        return .run { send in
-            await send(.reportResponse(TaskResult {
-                let alreadyReported = try await communityRepository.hasReported(currentUserID, targetID)
-                if alreadyReported { return true }
-                try await communityRepository.createReport(
-                    currentUserID, "comment", targetID, targetAuthorID, reason
-                )
-                return false
-            }))
-        }
-    }
-    
-    func blockUser(
-        currentUserID: String,
-        targetUser: Author
-    ) -> Effect<CommunityDetailAction> {
-        let blockedUserID = targetUser.id
-        let blockedUserName = targetUser.name
-        
-        return .run { send in
-            await send(.blockResponse(
-                blockedUserID: blockedUserID,
-                TaskResult {
-                    try await communityRepository.blockUser(
-                        currentUserID, blockedUserID, blockedUserName
-                    )
-                    return true
-                }
-            ))
         }
     }
 }

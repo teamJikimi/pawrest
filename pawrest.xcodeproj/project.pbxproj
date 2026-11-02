@@ -11,6 +11,7 @@
 		43956F0F2F894EB0003FDE1F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F0E2F894EB0003FDE1F /* FirebaseAuth */; };
 		43956F112F894EB7003FDE1F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 43956F102F894EB7003FDE1F /* FirebaseFirestore */; };
 		AD003E5E306ABA3600899133 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = AD003E5D306ABA3600899133 /* FirebaseMessaging */; };
+		F66E881C30932507000720BF /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = F66E881B30932507000720BF /* Kingfisher */; };
 		F698733C30095C5E001D043F /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = F698733B30095C5E001D043F /* Lottie */; };
 		F6CD1C7A2FB8E97E0065FFC9 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = F6CD1C792FB8E97E0065FFC9 /* ComposableArchitecture */; };
 		F6CD1E892FBCF3C70065FFC9 /* Development.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F6CD1E852FBCF3C70065FFC9 /* Development.xcconfig */; };
@@ -57,6 +58,7 @@
 				43956F0F2F894EB0003FDE1F /* FirebaseAuth in Frameworks */,
 				AD003E5E306ABA3600899133 /* FirebaseMessaging in Frameworks */,
 				F6CD1C7A2FB8E97E0065FFC9 /* ComposableArchitecture in Frameworks */,
+				F66E881C30932507000720BF /* Kingfisher in Frameworks */,
 				F6FAD4242FBEC4E100040703 /* FirebaseStorage in Frameworks */,
 				43956F112F894EB7003FDE1F /* FirebaseFirestore in Frameworks */,
 				F698733C30095C5E001D043F /* Lottie in Frameworks */,
@@ -136,6 +138,7 @@
 				F6FAD4232FBEC4E100040703 /* FirebaseStorage */,
 				F698733B30095C5E001D043F /* Lottie */,
 				AD003E5D306ABA3600899133 /* FirebaseMessaging */,
+				F66E881B30932507000720BF /* Kingfisher */,
 			);
 			productName = pawrest;
 			productReference = 43BA8D832F7E2F8700540947 /* pawrest.app */;
@@ -170,6 +173,7 @@
 				43956F0A2F894D2D003FDE1F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				F6CD1C782FB8E97E0065FFC9 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				F698733A30095C5E001D043F /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				F66E881A30932507000720BF /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 43BA8D842F7E2F8700540947 /* Products */;
@@ -456,6 +460,14 @@
 				minimumVersion = 12.12.0;
 			};
 		};
+		F66E881A30932507000720BF /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.14.0;
+			};
+		};
 		F698733A30095C5E001D043F /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-ios";
@@ -494,6 +506,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 43956F0A2F894D2D003FDE1F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
+		};
+		F66E881B30932507000720BF /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F66E881A30932507000720BF /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 		F698733B30095C5E001D043F /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
