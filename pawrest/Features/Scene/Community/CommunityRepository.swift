@@ -66,6 +66,7 @@ struct CommunityRepository {
         _ postID: String,
         _ authorID: String,
         _ authorName: String,
+        _ authorProfileImageURL: String?,
         _ content: String,
         _ parentCommentID: UUID?
     ) async throws -> Comment
@@ -151,7 +152,7 @@ extension CommunityRepository: DependencyKey {
                 let posts = try await withThrowingTaskGroup(of: Post.self) { group in
                     for dto in postDTOs {
                         group.addTask {
-                            var post = dto.toDomain(profile: profiles[dto.authorID])
+                            var post = await MainActor.run { dto.toDomain(profile: profiles[dto.authorID]) }
                             post.isLiked = try await service.isPostLiked(
                                 postID: post.id,
                                 userID: userID
@@ -179,26 +180,28 @@ extension CommunityRepository: DependencyKey {
                     content: content,
                     imageURLs: imageURLs
                 )
-                return postDTO.toDomain()
+                return await MainActor.run { postDTO.toDomain() }
             },
 
             uploadImages: { authorID, postID, imageDatas in
+                let storageService = await MainActor.run { FirebaseStorageService() }
                 let uploaded = try await uploadCommunityImages(
                     imageDatas.enumerated().map { (index: $0.offset, data: $0.element) },
                     authorID: authorID,
                     postID: postID,
-                    storageService: FirebaseStorageService()
+                    storageService: storageService
                 )
                 return imageDatas.indices.compactMap { uploaded[$0] }
             },
 
             deletePost: { postID, imageURLs in
                 try await service.deletePost(postID: postID)
-                await FirebaseStorageService().delete(urls: imageURLs)
+                let storageService = await MainActor.run { FirebaseStorageService() }
+                await storageService.delete(urls: imageURLs)
             },
 
             updatePost: { post, images in
-                let storageService = FirebaseStorageService()
+                let storageService = await MainActor.run { FirebaseStorageService() }
 
                 let localItems: [(index: Int, data: Data)] = images
                     .enumerated()
@@ -259,15 +262,16 @@ extension CommunityRepository: DependencyKey {
                 service.observeComments(postID: postID)
             },
 
-            createComment: { postID, authorID, authorName, content, parentCommentID in
+            createComment: { postID, authorID, authorName, authorProfileImageURL, content, parentCommentID in
                 let dto = try await service.createComment(
                     postID: postID,
                     authorID: authorID,
                     authorName: authorName,
+                    authorProfileImageURL: authorProfileImageURL,
                     content: content,
                     parentCommentID: parentCommentID
                 )
-                return dto.toDomain()
+                return await MainActor.run { dto.toDomain() }
             },
 
             deleteComment: { postID, commentID in

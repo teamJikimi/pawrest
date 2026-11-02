@@ -100,7 +100,7 @@ final class CommunityFirestoreService {
     func toggleLike(postID: String, userID: String, isLiked: Bool) async throws {
         let postRef = firestore.collection("posts").document(postID)
         let likeRef = postRef.collection("likes").document(userID)
-        try await firestore.runTransaction { transaction, errorPointer in
+        _ = try await firestore.runTransaction { transaction, errorPointer in
             do {
                 let postSnapshot = try transaction.getDocument(postRef)
                 let currentLikeCount = postSnapshot.data()?["likeCount"] as? Int ?? 0
@@ -129,19 +129,21 @@ final class CommunityFirestoreService {
         return snapshot.documents.compactMap { CommunityCommentDTO(document: $0) }
     }
 
-    func observeComments(postID: String) -> AsyncStream<[CommunityCommentDTO]> {
+    nonisolated func observeComments(postID: String) -> AsyncStream<[CommunityCommentDTO]> {
         AsyncStream { continuation in
-            let listener = firestore
-                .collection("posts")
-                .document(postID)
-                .collection("comments")
-                .order(by: "createdAt", descending: false)
-                .addSnapshotListener { snapshot, _ in
-                    guard let snapshot else { return }
-                    let dtos = snapshot.documents.compactMap { CommunityCommentDTO(document: $0) }
-                    continuation.yield(dtos)
-                }
-            continuation.onTermination = { _ in listener.remove() }
+            Task { @MainActor in
+                let listener = self.firestore
+                    .collection("posts")
+                    .document(postID)
+                    .collection("comments")
+                    .order(by: "createdAt", descending: false)
+                    .addSnapshotListener { snapshot, _ in
+                        guard let snapshot else { return }
+                        let dtos = snapshot.documents.compactMap { CommunityCommentDTO(document: $0) }
+                        continuation.yield(dtos)
+                    }
+                continuation.onTermination = { _ in listener.remove() }
+            }
         }
     }
 
@@ -149,6 +151,7 @@ final class CommunityFirestoreService {
         postID: String,
         authorID: String,
         authorName: String,
+        authorProfileImageURL: String?,
         content: String,
         parentCommentID: UUID?
     ) async throws -> CommunityCommentDTO {
@@ -162,10 +165,13 @@ final class CommunityFirestoreService {
             "content": content,
             "createdAt": Timestamp(date: createdAt)
         ]
+        if let authorProfileImageURL {
+            data["authorProfileImageURL"] = authorProfileImageURL
+        }
         if let parentCommentID {
             data["parentCommentID"] = parentCommentID.uuidString
         }
-        try await firestore.runTransaction { transaction, errorPointer in
+        _ = try await firestore.runTransaction { transaction, errorPointer in
             do {
                 let postSnapshot = try transaction.getDocument(postRef)
                 let currentCommentCount = postSnapshot.data()?["commentCount"] as? Int ?? 0
@@ -181,6 +187,7 @@ final class CommunityFirestoreService {
             id: commentID,
             authorID: authorID,
             authorName: authorName,
+            authorProfileImageURL: authorProfileImageURL,
             content: content,
             createdAt: createdAt,
             parentCommentID: parentCommentID
@@ -300,17 +307,39 @@ final class CommunityFirestoreService {
     // MARK: - Account Deletion
 
     func deleteAllPostsByUser(authorID: String) async throws {
+        // 다른 사람 게시글에 단 내 댓글 삭제 + commentCount 차감
         let allComments = try await firestore
             .collectionGroup("comments")
             .whereField("authorID", isEqualTo: authorID)
             .getDocuments()
+
+        // postID별로 내 댓글 수 집계
+        var commentCountByPost: [String: Int] = [:]
+        for comment in allComments.documents {
+            // 경로: posts/{postID}/comments/{commentID}
+            guard let postID = comment.reference.parent.parent?.documentID else { continue }
+            commentCountByPost[postID, default: 0] += 1
+        }
+
+        // 댓글 삭제
         for comment in allComments.documents {
             try await comment.reference.delete()
         }
+
+        // 내 댓글이 달린 다른 사람 게시글의 commentCount 차감
+        for (postID, count) in commentCountByPost {
+            try? await firestore
+                .collection("posts")
+                .document(postID)
+                .updateData(["commentCount": FieldValue.increment(Int64(-count))])
+        }
+
+        // 내 게시글 전체 삭제 (게시글 자체가 삭제되므로 commentCount 별도 처리 불필요)
         let snapshot = try await firestore
             .collection("posts")
             .whereField("authorID", isEqualTo: authorID)
             .getDocuments()
+
         for document in snapshot.documents {
             let imageURLs = document.data()["imageURLs"] as? [String] ?? []
             let commentsSnapshot = try await document.reference.collection("comments").getDocuments()
@@ -318,8 +347,10 @@ final class CommunityFirestoreService {
             let likesSnapshot = try await document.reference.collection("likes").getDocuments()
             for like in likesSnapshot.documents { try await like.reference.delete() }
             try await document.reference.delete()
-            await FirebaseStorageService().delete(urls: imageURLs)
+            let storageService = await MainActor.run { FirebaseStorageService() }
+            await storageService.delete(urls: imageURLs)
         }
+
         let blocksSnapshot = try await firestore
             .collection("users")
             .document(authorID)

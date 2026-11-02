@@ -20,7 +20,8 @@ struct CommunityDetailState: Equatable {
     var authorName: String = "나"
 
     var replyingToCommentID: UUID? = nil
-
+    var authorProfileImageURL: String? = nil
+    
     var shouldDismiss: Bool = false
     var isDeleted: Bool = false
 
@@ -34,10 +35,11 @@ struct CommunityDetailState: Equatable {
         post.author.id == currentUserID
     }
 
-    init(post: Post, currentUserID: String, authorName: String = "나") {
+    init(post: Post, currentUserID: String, authorName: String = "나", authorProfileImageURL: String? = nil) {
         self.post = post
         self.currentUserID = currentUserID
         self.authorName = authorName
+        self.authorProfileImageURL = authorProfileImageURL
         self.navigationBar = NavigationBarState(
             title: "커뮤니티",
             leftButton: .back,
@@ -212,12 +214,13 @@ struct CommunityDetailReducer: Reducer {
                 let postID = state.post.id
                 let authorID = state.currentUserID
                 let authorName = state.authorName
+                let authorProfileImageURL = state.authorProfileImageURL
                 return .run { [communityRepository] _ in
                     let start = Date()
                     print("[Comment] createComment 시작")
                     do {
                         _ = try await communityRepository.createComment(
-                            postID, authorID, authorName, trimmed, replyingTo
+                            postID, authorID, authorName, authorProfileImageURL, trimmed, replyingTo
                         )
                         let elapsed = Date().timeIntervalSince(start)
                         print("[Comment] createComment 성공 - \(String(format: "%.2f", elapsed))초")
@@ -249,7 +252,7 @@ private func buildCommentTree(from dtos: [CommunityCommentDTO]) -> [Comment] {
     var replyMap: [UUID: [Comment]] = [:]
 
     for dto in dtos {
-        let author = Author(id: dto.authorID, name: dto.authorName, profileImageURL: nil)
+        let author = Author(id: dto.authorID, name: dto.authorName, profileImageURL: dto.authorProfileImageURL)
         let comment = Comment(id: dto.id, content: dto.content, author: author, createdAt: dto.createdAt)
         if let parentID = dto.parentCommentID {
             replyMap[parentID, default: []].append(comment)
