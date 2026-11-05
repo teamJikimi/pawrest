@@ -8,6 +8,7 @@
 import Foundation
 import ComposableArchitecture
 import FirebaseAuth
+import Kingfisher
 
 // MARK: - Tab
 
@@ -238,11 +239,13 @@ struct ProfileEditFeature: Reducer {
                 state.showBirthdayPicker = false
                 state.showDeathDayPicker = false
                 return .none
+           
             case .saveTapped:
                 state.showSavedToast = true
                 let nickname = state.nickname
                 let userImageData = state.userProfileImage
                 let isUserImageChanged = state.userProfileImage != state.originalUserProfileImage
+                let isNicknameChanged = state.nickname != state.originalNickname
                 let isPetImageChanged = state.petProfileImage != state.originalPetProfileImage
                 let petName = state.petName
                 let petImageData = state.petProfileImage
@@ -255,24 +258,55 @@ struct ProfileEditFeature: Reducer {
                 state.originalPetProfileImage = state.petProfileImage
                 state.originalBirthday = state.birthday
                 state.originalDeathDay = state.deathDay
-
+                
                 return .run { _ in
                     guard let uid = Auth.auth().currentUser?.uid else { return }
                     let remoteService = await MainActor.run { UserProfileRemoteService() }
-                    try? await remoteService.updateProfile(
-                        userID: uid,
-                        nickname: nickname,
-                        imageData: isUserImageChanged ? userImageData : nil,
-                        isImageChanged: isUserImageChanged
-                    )
-                    try? await UserFirestoreService.shared.savePetProfile(
-                        name: petName,
-                        profileImageData: isPetImageChanged ? petImageData : nil,
-                        birthday: birthday,
-                        deathDay: deathDay
-                    )
+                    try? await remoteService.updateProfile(userID: uid, nickname: nickname, imageData: isUserImageChanged ? userImageData : nil, isImageChanged: isUserImageChanged)
+                    if isUserImageChanged || isNicknameChanged {
+                        let communityService = await MainActor.run { CommunityFirestoreService() }
+                        if isUserImageChanged {
+                            await MainActor.run {
+                                ImageCache.default.clearMemoryCache()
+                            }
+                            let fetchedURL = try? await remoteService.fetchProfileImageURL(userID: uid)
+                            let isImageDeleted = fetchedURL == nil
+                            
+                            if let urlString = fetchedURL, let url = URL(string: urlString) {
+                                await MainActor.run {
+                                    ImagePrefetcher(urls: [url]).start()
+                                }
+                            }
+                            try? await communityService.updateAuthorProfileImageURL(
+                                authorID: uid,
+                                profileImageURL: fetchedURL,
+                                isImageDeleted: isImageDeleted,
+                                nickname: isNicknameChanged ? nickname : nil
+                            )
+                            try? await communityService.updateAuthorInPosts(
+                                authorID: uid,
+                                profileImageURL: fetchedURL,
+                                isImageDeleted: isImageDeleted,
+                                nickname: isNicknameChanged ? nickname : nil
+                            )
+                        } else if isNicknameChanged {
+                            try? await communityService.updateAuthorProfileImageURL(
+                                authorID: uid,
+                                profileImageURL: nil,
+                                isImageDeleted: false,
+                                nickname: nickname
+                            )
+                            try? await communityService.updateAuthorInPosts(
+                                authorID: uid,
+                                profileImageURL: nil,
+                                isImageDeleted: false,
+                                nickname: nickname
+                            )
+                        }
+                    }
+                    try? await UserFirestoreService.shared.savePetProfile(name: petName, profileImageData: isPetImageChanged ? petImageData : nil, birthday: birthday, deathDay: deathDay)
                 }
-
+                
             case .toastDismissed:
                 state.showSavedToast = false
                 return .none

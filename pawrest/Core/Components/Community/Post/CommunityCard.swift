@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct CommunityCard: View {
     
@@ -45,11 +46,8 @@ struct CommunityCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 20)
         .padding(.horizontal, 16)
-        
         .background(.gray0)
-        
         .cornerRadius(20, corners: .allCorners)
-        
         .overlay{
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.gray20, lineWidth: 1)
@@ -81,15 +79,12 @@ private extension CommunityCard {
         Color.clear
             .aspectRatio(1, contentMode: .fit)
             .overlay {
-                CachedAsyncImage(
-                    url: URL(string: post.imageURLs[0]),
-                    contentMode: .fill,
-                    maxPixelSize: 800
-                ) {
-                    Rectangle()
-                        .fill(.gray10)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                KFImage(URL(string: post.imageURLs[0]))
+                    .placeholder { ShimmerView() }
+                    .fade(duration: 0.2)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(alignment: .topTrailing) {
@@ -111,5 +106,40 @@ private extension CommunityCard {
         }
         .padding(16)
     }
+}
+
+// MARK: - ShimmerView
+
+struct ShimmerView: View {
+    @State private var phase: CGFloat = -1
     
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            Rectangle()
+                .fill(.gray10)
+                .overlay {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    .clear,
+                                    Color.white.opacity(0.4),
+                                    .clear
+                                ]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: w * 0.4)
+                        .offset(x: phase * w * 1.5)
+                }
+                .clipped()
+        }
+        .onAppear {
+            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
+                phase = 1
+            }
+        }
+    }
 }
