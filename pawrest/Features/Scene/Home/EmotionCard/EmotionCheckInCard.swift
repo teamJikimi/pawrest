@@ -16,7 +16,7 @@ struct EmotionCheckInCard: View {
     @Environment(\.modelContext) private var modelContext
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             headerSection
             emotionButtons
             if store.selectedEmotion != nil {
@@ -28,6 +28,7 @@ struct EmotionCheckInCard: View {
         .background(backgroundImage)
         .cornerRadius(20, corners: .allCorners)
         .animation(.none, value: store.selectedEmotion)
+        .onAppear { store.send(.onAppear) }
     }
 }
 
@@ -36,22 +37,13 @@ struct EmotionCheckInCard: View {
 private extension EmotionCheckInCard {
     var headerSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            TimelineView(.periodic(from: .now, by: 60)) { context in
-                Text(formattedDate(context.date))
-                    .typography(.date)
-                    .foregroundStyle(.gray60)
-            }
+            Text(store.dateText)
+                .typography(.date)
+                .foregroundStyle(.gray60)
             Text("지금 마음 상태는 어떤가요?")
-                .typography(.body1Accent)
+                .typography(.body1M)
                 .foregroundStyle(.gray90)
         }
-    }
-
-    func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "MM월 dd일 (E) HH:mm"
-        return formatter.string(from: date)
     }
     
     var emotionButtons: some View {
@@ -80,21 +72,20 @@ private extension EmotionCheckInCard {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
                 }
+                
                 TextEditor(text: Binding(
                     get: { store.memoText },
                     set: { newValue in
-                        let limited = String(newValue.prefix(100))
-                        store.send(.memoTextChanged(limited), animation: .none)
+                        store.send(.memoTextChanged(newValue), animation: .none)
                     }
                 ))
                 .typography(.body3R)
                 .foregroundStyle(.gray90)
                 .scrollContentBackground(.hidden)
                 .background(.clear)
-                .padding(.horizontal, 10)
-                .padding(.top, 8)
                 .frame(height: 104)
-                .clipped()
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
             }
             
             Button {
@@ -105,16 +96,15 @@ private extension EmotionCheckInCard {
                     memo: memo
                 )
                 modelContext.insert(record)
-                NotificationService.shared.cancelTodayEmotionReminder()
                 store.send(.submitTapped)
             } label: {
                 Text("마음 상태 저장하기")
                     .typography(.body2Accent)
                     .foregroundStyle(.gray0)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 40)
+                    .frame(height: 32)
                     .background(.pawPrimary)
-                    .cornerRadius(12, corners: .allCorners)
+                    .cornerRadius(24, corners: .allCorners)
             }
         }
     }

@@ -13,6 +13,7 @@ struct CommunityView: View {
     @Bindable var store: StoreOf<CommunityReducer>
     @FocusState private var isSearchFocused: Bool
     @Query private var userProfiles: [UserProfile]
+    @Binding var isTabBarHidden: Bool
 
     private var currentNickname: String? {
         userProfiles
@@ -20,7 +21,14 @@ struct CommunityView: View {
             .first?
             .nickname
     }
-
+    
+    private var currentProfileImageURL: String? {
+        userProfiles
+            .sorted { $0.createdAt > $1.createdAt }
+            .first?
+            .profileImageURL  // UserProfile 모델에 이 필드 있어야 해요
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             searchAndSortSection
@@ -34,11 +42,11 @@ struct CommunityView: View {
             }
         }
         .task {
-            store.send(.userProfileLoaded(currentNickname))
+            store.send(.userProfileLoaded(currentNickname, currentProfileImageURL))
             store.send(.onAppear)
         }
         .onChange(of: currentNickname) { _, newNickname in
-            store.send(.userProfileLoaded(newNickname))
+            store.send(.userProfileLoaded(newNickname, currentProfileImageURL))  
         }
         .onAppear {
             store.send(.refreshBlockedUsers)
@@ -53,16 +61,26 @@ struct CommunityView: View {
             item: $store.scope(state: \.myPost, action: \.myPost)
         ) { myPostStore in
             CommunityMyPostView(store: myPostStore)
+                .onAppear { isTabBarHidden = true }
+                .onDisappear { isTabBarHidden = false }
         }
         .navigationDestination(
             item: $store.scope(state: \.detail, action: \.detail)
         ) { detailStore in
             CommunityDetailView(store: detailStore)
+                .onAppear { isTabBarHidden = true }
+                .onDisappear {
+                    if store.detail == nil {
+                        isTabBarHidden = false
+                    }
+                }
         }
         .navigationDestination(
             item: $store.scope(state: \.write, action: \.write)
         ) { writeStore in
             CommunityWriteView(store: writeStore)
+                .onAppear { isTabBarHidden = true }
+                .onDisappear { isTabBarHidden = false }
         }
     }
 }
@@ -115,13 +133,8 @@ private extension CommunityView {
         .simultaneousGesture(
             TapGesture()
                 .onEnded { _ in
-                    if isSearchFocused {
-                        isSearchFocused = false
-                    }
-
-                    if store.isSortMenuOpen {
-                        store.send(.outsideTapped)
-                    }
+                    if isSearchFocused { isSearchFocused = false }
+                    if store.isSortMenuOpen { store.send(.outsideTapped) }
                 }
         )
     }
@@ -157,13 +170,8 @@ private extension CommunityView {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            if isSearchFocused {
-                isSearchFocused = false
-            }
-
-            if store.isSortMenuOpen {
-                store.send(.outsideTapped)
-            }
+            if isSearchFocused { isSearchFocused = false }
+            if store.isSortMenuOpen { store.send(.outsideTapped) }
         }
     }
 }

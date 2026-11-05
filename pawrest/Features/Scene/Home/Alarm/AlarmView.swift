@@ -12,18 +12,18 @@ import FirebaseAuth
 
 struct AlarmView: View {
     let store: StoreOf<AlarmFeature>
-    
+
     @Query(sort: \NotificationRecord.receivedAt, order: .reverse)
     private var notifications: [NotificationRecord]
-    
+
     @State private var selectedPost: Post? = nil
     @State private var isDetailPresented: Bool = false
-    
+
     var body: some View {
         ZStack {
             Color.gray10
                 .ignoresSafeArea()
-            
+
             if notifications.isEmpty {
                 VStack {
                     Spacer().frame(height: 248)
@@ -81,7 +81,7 @@ struct AlarmView: View {
 
 private struct AlarmRow: View {
     let record: NotificationRecord
-    
+
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             ZStack(alignment: .center) {
@@ -93,7 +93,7 @@ private struct AlarmRow: View {
                     .frame(width: 18, height: 18)
             }
             .frame(width: 32, height: 32)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(record.notificationType.displayTitle)
@@ -143,18 +143,18 @@ private extension Date {
     }
 }
 
-//MARK: - handle
+// MARK: - handle
+
 private extension AlarmView {
     func handleTap(record: NotificationRecord) {
         guard let postID = record.postID else { return }
-        guard let userID = Auth.auth().currentUser?.uid else { return }
-        
+
         Task {
             let service = await MainActor.run { CommunityFirestoreService() }
             let postDTOs = try? await service.fetchPosts()
             guard let dto = postDTOs?.first(where: { $0.id == postID }) else { return }
-            
-            let post = dto.toDomain()
+
+            let post = await MainActor.run { dto.toDomain() }
             await MainActor.run {
                 selectedPost = post
                 isDetailPresented = true

@@ -56,6 +56,11 @@ final class UserProfileRemoteService {
         return profiles
     }
     
+    func fetchProfileImageURL(userID: String) async throws -> String? {
+        let snapshot = try await firestore.collection("users").document(userID).getDocument()
+        return snapshot.data()?["profileImageURL"] as? String
+    }
+    
     // MARK: - Create
     
     func createProfileIfNeeded(
