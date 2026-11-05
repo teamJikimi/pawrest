@@ -258,7 +258,7 @@ struct ProfileEditFeature: Reducer {
                 state.originalPetProfileImage = state.petProfileImage
                 state.originalBirthday = state.birthday
                 state.originalDeathDay = state.deathDay
-
+                
                 return .run { _ in
                     guard let uid = Auth.auth().currentUser?.uid else { return }
                     let remoteService = await MainActor.run { UserProfileRemoteService() }
@@ -268,11 +268,22 @@ struct ProfileEditFeature: Reducer {
                         if isUserImageChanged {
                             await MainActor.run {
                                 ImageCache.default.clearMemoryCache()
-                                ImageCache.default.clearDiskCache()
                             }
                             let fetchedURL = try? await remoteService.fetchProfileImageURL(userID: uid)
                             let isImageDeleted = fetchedURL == nil
+                            
+                            if let urlString = fetchedURL, let url = URL(string: urlString) {
+                                await MainActor.run {
+                                    ImagePrefetcher(urls: [url]).start()
+                                }
+                            }
                             try? await communityService.updateAuthorProfileImageURL(
+                                authorID: uid,
+                                profileImageURL: fetchedURL,
+                                isImageDeleted: isImageDeleted,
+                                nickname: isNicknameChanged ? nickname : nil
+                            )
+                            try? await communityService.updateAuthorInPosts(
                                 authorID: uid,
                                 profileImageURL: fetchedURL,
                                 isImageDeleted: isImageDeleted,
@@ -280,6 +291,12 @@ struct ProfileEditFeature: Reducer {
                             )
                         } else if isNicknameChanged {
                             try? await communityService.updateAuthorProfileImageURL(
+                                authorID: uid,
+                                profileImageURL: nil,
+                                isImageDeleted: false,
+                                nickname: nickname
+                            )
+                            try? await communityService.updateAuthorInPosts(
                                 authorID: uid,
                                 profileImageURL: nil,
                                 isImageDeleted: false,

@@ -14,6 +14,7 @@ struct CommunityPostDTO {
     
     let authorID: String
     let authorName: String
+    let authorProfileImageURL: String?
     
     let title: String
     let content: String
@@ -31,6 +32,7 @@ struct CommunityPostDTO {
         id: String,
         authorID: String,
         authorName: String,
+        authorProfileImageURL: String? = nil,
         title: String,
         content: String,
         createdAt: Date,
@@ -41,6 +43,7 @@ struct CommunityPostDTO {
         self.id = id
         self.authorID = authorID
         self.authorName = authorName
+        self.authorProfileImageURL = authorProfileImageURL
         self.title = title
         self.content = content
         self.createdAt = createdAt
@@ -66,6 +69,7 @@ extension CommunityPostDTO {
         self.id = document.documentID
         self.authorID = authorID
         self.authorName = authorName
+        self.authorProfileImageURL = data["authorProfileImageURL"] as? String
         self.title = title
         self.content = content
         if let timestamp = data["createdAt"] as? Timestamp {
@@ -90,6 +94,7 @@ extension CommunityPostDTO {
         self.id = documentSnapshot.documentID
         self.authorID = authorID
         self.authorName = authorName
+        self.authorProfileImageURL = data["authorProfileImageURL"] as? String
         self.title = title
         self.content = content
         if let timestamp = data["createdAt"] as? Timestamp {
@@ -114,7 +119,7 @@ extension CommunityPostDTO {
             author: Author(
                 id: authorID,
                 name: profile?.nickname ?? authorName,
-                profileImageURL: profile?.profileImageURL
+                profileImageURL: profile?.profileImageURL ?? authorProfileImageURL   
             ),
             title: title,
             content: content,

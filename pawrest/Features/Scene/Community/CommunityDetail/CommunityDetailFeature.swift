@@ -57,6 +57,7 @@ enum CommunityDetailAction: Equatable {
 
     case onAppear
     case commentsLoaded([Comment])
+    case authorProfileURLLoaded(String?)
 
     case likeTapped
     case commentAction(commentID: UUID, action: CommunityCommentRow.Action)
@@ -154,6 +155,11 @@ struct CommunityDetailReducer: Reducer {
                             await send(.postRefreshed(post))
                         }
                     },
+                    .run { send in
+                        let remoteService = await MainActor.run { UserProfileRemoteService() }
+                        let url = try? await remoteService.fetchProfileImageURL(userID: currentUserID)
+                        await send(.authorProfileURLLoaded(url))
+                    },
                     .run { [communityRepository] send in
                         let stream = communityRepository.observeComments(postID)
                         for await dtos in stream {
@@ -163,6 +169,10 @@ struct CommunityDetailReducer: Reducer {
                     }
                     .cancellable(id: "communityDetail.observeComments", cancelInFlight: true)
                 )
+
+            case .authorProfileURLLoaded(let url):
+                state.authorProfileImageURL = url
+                return .none
 
             case .postRefreshed(let post):
                 state.post.imageURLs = post.imageURLs

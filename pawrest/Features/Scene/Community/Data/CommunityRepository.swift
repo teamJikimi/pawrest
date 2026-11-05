@@ -27,6 +27,7 @@ struct CommunityRepository {
         _ postID: String,
         _ authorID: String,
         _ authorName: String,
+        _ authorProfileImageURL: String?,
         _ title: String,
         _ content: String,
         _ imageURLs: [String]
@@ -186,11 +187,12 @@ extension CommunityRepository: DependencyKey {
                 return post
             },
 
-            createPost: { postID, authorID, authorName, title, content, imageURLs in
+            createPost: { postID, authorID, authorName, authorProfileImageURL, title, content, imageURLs in
                 let postDTO = try await service.createPost(
                     postID: postID,
                     authorID: authorID,
                     authorName: authorName,
+                    authorProfileImageURL: authorProfileImageURL,
                     title: title,
                     content: content,
                     imageURLs: imageURLs

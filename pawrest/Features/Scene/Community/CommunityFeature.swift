@@ -150,7 +150,6 @@ struct CommunityReducer: Reducer {
                 state.currentUserID = currentUserID
                 state.errorMessage = nil
 
-                // Firestore에서 프로필 항상 fetch (nickname + profileImageURL 둘 다)
                 let fetchProfileEffect = Effect<CommunityAction>.run { send in
                     let remoteService = await MainActor.run { UserProfileRemoteService() }
                     let profiles = try? await remoteService.fetchProfiles(userIDs: [currentUserID])
@@ -177,7 +176,9 @@ struct CommunityReducer: Reducer {
             case .postsResponse(.success(let posts)):
                 state.isLoading = false
                 state.hasLoadedPosts = true
-                state.posts = posts
+                let fetchedIDs = Set(posts.map { $0.id })
+                let optimisticPosts = state.posts.filter { !fetchedIDs.contains($0.id) }
+                state.posts = optimisticPosts + posts
                 let imageURLs = posts.compactMap { $0.imageURLs.first }.compactMap { URL(string: $0) }
                 let profileURLs = posts.compactMap { $0.author.profileImageURL }.compactMap { URL(string: $0) }
                 ImagePrefetcher(urls: imageURLs + profileURLs).start()
@@ -313,9 +314,10 @@ struct CommunityReducer: Reducer {
                     return image.resizedJPEGData()
                 }
                 let postID = UUID().uuidString
+                let authorProfileImageURL = state.authorProfileImageURL
                 let optimisticPost = Post(
                     id: postID,
-                    author: Author(id: currentUserID, name: authorName, profileImageURL: state.authorProfileImageURL),
+                    author: Author(id: currentUserID, name: authorName, profileImageURL: authorProfileImageURL),
                     title: trimmedTitle,
                     content: trimmedContent,
                     createdAt: Date(),
@@ -329,7 +331,7 @@ struct CommunityReducer: Reducer {
                     await send(.postCreationResponse(TaskResult {
                         let imageURLs = try await communityRepository.uploadImages(currentUserID, postID, imageDatas)
                         return try await communityRepository.createPost(
-                            postID, currentUserID, authorName, trimmedTitle, trimmedContent, imageURLs
+                            postID, currentUserID, authorName, authorProfileImageURL, trimmedTitle, trimmedContent, imageURLs
                         )
                     }))
                 }
@@ -346,8 +348,7 @@ struct CommunityReducer: Reducer {
                 }
                 let urls = post.imageURLs.compactMap { URL(string: $0) }
                 if !urls.isEmpty { ImagePrefetcher(urls: urls).start() }
-                guard let currentUserID = state.currentUserID else { return .none }
-                return fetchPosts(userID: currentUserID)
+                return .none  
                 
             case .postCreationResponse(.failure(let error)):
                 state.isLoading = false

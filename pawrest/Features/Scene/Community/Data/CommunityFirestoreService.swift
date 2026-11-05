@@ -34,13 +34,14 @@ final class CommunityFirestoreService {
         postID: String,
         authorID: String,
         authorName: String,
+        authorProfileImageURL: String?,
         title: String,
         content: String,
         imageURLs: [String]
     ) async throws -> CommunityPostDTO {
         let document = firestore.collection("posts").document(postID)
         let createdAt = Date()
-        try await document.setData([
+        var data: [String: Any] = [
             "authorID": authorID,
             "authorName": authorName,
             "title": title,
@@ -49,11 +50,16 @@ final class CommunityFirestoreService {
             "imageURLs": imageURLs,
             "likeCount": 0,
             "commentCount": 0
-        ])
+        ]
+        if let authorProfileImageURL {
+            data["authorProfileImageURL"] = authorProfileImageURL
+        }
+        try await document.setData(data)
         return CommunityPostDTO(
             id: document.documentID,
             authorID: authorID,
             authorName: authorName,
+            authorProfileImageURL: authorProfileImageURL,
             title: title,
             content: content,
             createdAt: createdAt,
@@ -277,6 +283,27 @@ final class CommunityFirestoreService {
     
     func updateAuthorProfileImageURL(authorID: String, profileImageURL: String?, isImageDeleted: Bool = false, nickname: String?) async throws {
         let snapshot = try await firestore.collectionGroup("comments")
+            .whereField("authorID", isEqualTo: authorID).getDocuments()
+        let batch = firestore.batch()
+        for doc in snapshot.documents {
+            var data: [String: Any] = [:]
+            if let url = profileImageURL {
+                data["authorProfileImageURL"] = url
+            } else if isImageDeleted {
+                data["authorProfileImageURL"] = FieldValue.delete()
+            }
+            if let nickname {
+                data["authorName"] = nickname
+            }
+            if !data.isEmpty {
+                batch.updateData(data, forDocument: doc.reference)
+            }
+        }
+        try await batch.commit()
+    }
+    
+    func updateAuthorInPosts(authorID: String, profileImageURL: String?, isImageDeleted: Bool = false, nickname: String?) async throws {
+        let snapshot = try await firestore.collection("posts")
             .whereField("authorID", isEqualTo: authorID).getDocuments()
         let batch = firestore.batch()
         for doc in snapshot.documents {
