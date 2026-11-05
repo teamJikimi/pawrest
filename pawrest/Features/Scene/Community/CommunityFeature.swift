@@ -315,7 +315,7 @@ struct CommunityReducer: Reducer {
                 let postID = UUID().uuidString
                 let optimisticPost = Post(
                     id: postID,
-                    author: Author(id: currentUserID, name: authorName, profileImageURL: nil),
+                    author: Author(id: currentUserID, name: authorName, profileImageURL: state.authorProfileImageURL),
                     title: trimmedTitle,
                     content: trimmedContent,
                     createdAt: Date(),
