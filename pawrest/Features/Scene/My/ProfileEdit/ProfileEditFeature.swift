@@ -265,19 +265,27 @@ struct ProfileEditFeature: Reducer {
                     try? await remoteService.updateProfile(userID: uid, nickname: nickname, imageData: isUserImageChanged ? userImageData : nil, isImageChanged: isUserImageChanged)
                     if isUserImageChanged || isNicknameChanged {
                         let communityService = await MainActor.run { CommunityFirestoreService() }
-                        let profileImageURL: String?
                         if isUserImageChanged {
-                            // 캐시 클리어
                             await MainActor.run {
                                 ImageCache.default.clearMemoryCache()
                                 ImageCache.default.clearDiskCache()
                             }
-                            profileImageURL = try? await remoteService.fetchProfileImageURL(userID: uid)
-                        } else {
-                            profileImageURL = nil
+                            let fetchedURL = try? await remoteService.fetchProfileImageURL(userID: uid)
+                            let isImageDeleted = fetchedURL == nil
+                            try? await communityService.updateAuthorProfileImageURL(
+                                authorID: uid,
+                                profileImageURL: fetchedURL,
+                                isImageDeleted: isImageDeleted,
+                                nickname: isNicknameChanged ? nickname : nil
+                            )
+                        } else if isNicknameChanged {
+                            try? await communityService.updateAuthorProfileImageURL(
+                                authorID: uid,
+                                profileImageURL: nil,
+                                isImageDeleted: false,
+                                nickname: nickname
+                            )
                         }
-                        let updatedNickname = isNicknameChanged ? nickname : nil
-                        try? await communityService.updateAuthorProfileImageURL(authorID: uid, profileImageURL: profileImageURL, nickname: updatedNickname)
                     }
                     try? await UserFirestoreService.shared.savePetProfile(name: petName, profileImageData: isPetImageChanged ? petImageData : nil, birthday: birthday, deathDay: deathDay)
                 }

@@ -275,7 +275,7 @@ final class CommunityFirestoreService {
             .updateData(["content": content])
     }
     
-    func updateAuthorProfileImageURL(authorID: String, profileImageURL: String?, nickname: String?) async throws {
+    func updateAuthorProfileImageURL(authorID: String, profileImageURL: String?, isImageDeleted: Bool = false, nickname: String?) async throws {
         let snapshot = try await firestore.collectionGroup("comments")
             .whereField("authorID", isEqualTo: authorID).getDocuments()
         let batch = firestore.batch()
@@ -283,6 +283,8 @@ final class CommunityFirestoreService {
             var data: [String: Any] = [:]
             if let url = profileImageURL {
                 data["authorProfileImageURL"] = url
+            } else if isImageDeleted {
+                data["authorProfileImageURL"] = FieldValue.delete()
             }
             if let nickname {
                 data["authorName"] = nickname
