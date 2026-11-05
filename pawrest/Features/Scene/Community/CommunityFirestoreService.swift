@@ -274,6 +274,23 @@ final class CommunityFirestoreService {
             .document(commentID.uuidString)
             .updateData(["content": content])
     }
+    
+    func updateAuthorProfileImageURL(authorID: String, profileImageURL: String?) async throws {
+        let snapshot = try await firestore
+            .collectionGroup("comments")
+            .whereField("authorID", isEqualTo: authorID)
+            .getDocuments()
+        
+        let batch = firestore.batch()
+        for doc in snapshot.documents {
+            if let url = profileImageURL {
+                batch.updateData(["authorProfileImageURL": url], forDocument: doc.reference)
+            } else {
+                batch.updateData(["authorProfileImageURL": FieldValue.delete()], forDocument: doc.reference)
+            }
+        }
+        try await batch.commit()
+    }
 
     // MARK: - Report
 

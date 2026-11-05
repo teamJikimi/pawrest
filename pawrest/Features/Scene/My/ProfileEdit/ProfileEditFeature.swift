@@ -259,12 +259,25 @@ struct ProfileEditFeature: Reducer {
                 return .run { _ in
                     guard let uid = Auth.auth().currentUser?.uid else { return }
                     let remoteService = await MainActor.run { UserProfileRemoteService() }
+                    
+                    // 프로필 이미지 업데이트
                     try? await remoteService.updateProfile(
                         userID: uid,
                         nickname: nickname,
                         imageData: isUserImageChanged ? userImageData : nil,
                         isImageChanged: isUserImageChanged
                     )
+                    
+                    // 댓글 authorProfileImageURL 업데이트 
+                    if isUserImageChanged {
+                        let communityService = CommunityFirestoreService()
+                        let profileImageURL = try? await remoteService.fetchProfileImageURL(userID: uid)
+                        try? await communityService.updateAuthorProfileImageURL(
+                            authorID: uid,
+                            profileImageURL: profileImageURL
+                        )
+                    }
+                    
                     try? await UserFirestoreService.shared.savePetProfile(
                         name: petName,
                         profileImageData: isPetImageChanged ? petImageData : nil,
@@ -272,7 +285,7 @@ struct ProfileEditFeature: Reducer {
                         deathDay: deathDay
                     )
                 }
-
+                
             case .toastDismissed:
                 state.showSavedToast = false
                 return .none
