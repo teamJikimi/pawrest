@@ -56,7 +56,8 @@ struct CommunityRepository {
     var toggleLike: @Sendable (
         _ postID: String,
         _ userID: String,
-        _ isLiked: Bool
+        _ isLiked: Bool,
+        _ senderName: String
     ) async throws -> Void
 
     var fetchComments: @Sendable (
@@ -263,9 +264,9 @@ extension CommunityRepository: DependencyKey {
             isPostLiked: { postID, userID in
                 try await service.isPostLiked(postID: postID, userID: userID)
             },
-
-            toggleLike: { postID, userID, isLiked in
-                try await service.toggleLike(postID: postID, userID: userID, isLiked: isLiked)
+            
+            toggleLike: { postID, userID, isLiked, senderName in
+                try await service.toggleLike(postID: postID, userID: userID, isLiked: isLiked, senderName: senderName)
             },
 
             fetchComments: { postID in

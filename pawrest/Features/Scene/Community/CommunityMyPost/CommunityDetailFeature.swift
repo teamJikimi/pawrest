@@ -178,10 +178,16 @@ struct CommunityDetailReducer: Reducer {
             // MARK: Post
 
             case .likeTapped:
+                let postID = state.post.id
+                let userID = state.currentUserID
+                let previousIsLiked = state.post.isLiked
+                let senderName = state.authorName
                 state.post.isLiked.toggle()
                 state.post.likeCount += state.post.isLiked ? 1 : -1
-                return .none
-
+                return .run { [communityRepository] _ in
+                    try? await communityRepository.toggleLike(postID, userID, previousIsLiked, senderName)
+                }
+                
             // MARK: Comment actions
 
             case .commentAction(let id, .replyTapped):

@@ -116,13 +116,14 @@ struct CommunityMyPostReducer: Reducer {
 
                 let previousIsLiked = state.posts[idx].isLiked
                 let userID = state.currentUserID
+                let senderName = state.authorName
 
                 state.posts[idx].isLiked.toggle()
                 state.posts[idx].likeCount += state.posts[idx].isLiked ? 1 : -1
 
                 return .run { send in
                     do {
-                        try await communityRepository.toggleLike(postID, userID, previousIsLiked)
+                        try await communityRepository.toggleLike(postID, userID, previousIsLiked, senderName)
                         await send(.likeResponse(postID: postID, previousIsLiked: previousIsLiked, success: true))
                     } catch {
                         await send(.likeResponse(postID: postID, previousIsLiked: previousIsLiked, success: false))

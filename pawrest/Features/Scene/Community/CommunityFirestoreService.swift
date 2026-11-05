@@ -103,7 +103,7 @@ final class CommunityFirestoreService {
         return document.exists
     }
 
-    func toggleLike(postID: String, userID: String, isLiked: Bool) async throws {
+    func toggleLike(postID: String, userID: String, isLiked: Bool, senderName: String) async throws {
         let postRef = firestore.collection("posts").document(postID)
         let likeRef = postRef.collection("likes").document(userID)
 
@@ -129,13 +129,17 @@ final class CommunityFirestoreService {
         }
 
         if !isLiked, let authorID = postAuthorID, authorID != userID {
-            try? await createNotification(
-                targetUserID: authorID,
-                type: "like",
-                senderName: "",
-                postID: postID,
-                body: "회원님의 게시글을 좋아합니다."
-            )
+            do {
+                try await createNotification(
+                    targetUserID: authorID,
+                    type: "like",
+                    senderName: senderName,
+                    postID: postID,
+                    body: "회원님의 게시글을 좋아합니다."
+                )
+            } catch {
+                print("[Notification] 좋아요 알림 전송 실패: \(error)")
+            }
         }
     }
 
