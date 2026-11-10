@@ -49,6 +49,7 @@ struct CommunityWriteState: Equatable {
     var title: String = ""
     var content: String = ""
     var images: [PostImageItem] = []
+    var isEditing: Bool = false
     
     var isSaveButtonEnabled: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -61,6 +62,7 @@ struct CommunityWriteState: Equatable {
         self.title = editingPost.title
         self.content = editingPost.content
         self.images = editingPost.imageURLs.map { PostImageItem(source: .remote($0)) }
+        self.isEditing = true
         self.navigationBar = NavigationBarState(
             title: "글 수정",
             leftButton: .back,

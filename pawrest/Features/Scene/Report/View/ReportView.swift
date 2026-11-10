@@ -23,7 +23,7 @@ struct ReportView: View {
     private var letters: [LetterModel]
 
     @Query private var petProfiles: [PetProfile]
-    
+
     private let deliveryInterval: TimeInterval = 24 * 60 * 60
 
     private var riskDetector: EmotionRiskDetector {
@@ -31,13 +31,22 @@ struct ReportView: View {
     }
 
     private var deliveredLetterCount: Int {
-        letters.filter { $0.sentAt.addingTimeInterval(deliveryInterval) <= Date() }.count
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        let weekStart = calendar.date(byAdding: .day, value: -6, to: yesterday)!
+        let weekEnd = calendar.date(byAdding: .day, value: 1, to: yesterday)!
+        return letters.filter {
+            $0.sentAt >= weekStart &&
+            $0.sentAt < weekEnd &&
+            $0.sentAt.addingTimeInterval(deliveryInterval) <= Date()
+        }.count
     }
 
     private var weeklyAssessmentRecords: [AssessmentRecord] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let weekStart = calendar.date(byAdding: .day, value: -28, to: today)!
+        let weekStart = calendar.date(byAdding: .day, value: -7, to: today)!
         return assessmentRecords.filter { $0.date >= weekStart && $0.date < today }
     }
 
@@ -147,7 +156,8 @@ struct ReportView: View {
         store.send(.onAppear(
             snapshots: snapshots,
             context: modelContext,
-            petName: petProfiles.first?.name ?? ""
+            petName: petProfiles.first?.name ?? "",
+            letters: letters
         ))
     }
 }

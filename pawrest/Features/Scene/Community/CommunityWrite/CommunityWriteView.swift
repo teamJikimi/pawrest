@@ -61,10 +61,11 @@ private extension CommunityWriteView {
         CommunityImageGrid(
             items: store.images,
             maxCount: CommunityWriteReducer.maxImageCount,
+            canAddImages: !store.isEditing,
             onImagesAdded: { store.send(.imagesAdded($0)) },
             onImageDeleted: { store.send(.imageDeleted($0)) }
         )
-        .frame(height: 135)
+        .frame(height: store.isEditing && store.images.isEmpty ? 0 : 135)
         .onAppear {
             requestPhotoLibraryPermission()
         }

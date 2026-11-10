@@ -14,6 +14,7 @@ struct CommunityImageGrid: View {
 
     let items: [PostImageItem]
     let maxCount: Int
+    let canAddImages: Bool
     let onImagesAdded: ([UIImage]) -> Void
     let onImageDeleted: (PostImageItem.ID) -> Void
 
@@ -24,21 +25,26 @@ struct CommunityImageGrid: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                ImagePickerGrid.AddButton(
-                    selectedCount: items.count,
-                    maxCount: maxCount,
-                    localPickerItems: $pickerItems,
-                    onItemsChanged: { oldItems, newItems in
-                        guard newItems.count > oldItems.count else { return }
-                        let addedItems = Array(newItems.suffix(newItems.count - oldItems.count))
-                        loadImages(from: addedItems)
-                    }
-                )
+                if canAddImages {
+                    ImagePickerGrid.AddButton(
+                        selectedCount: items.count,
+                        maxCount: maxCount,
+                        localPickerItems: $pickerItems,
+                        onItemsChanged: { oldItems, newItems in
+                            guard newItems.count > oldItems.count else { return }
+                            let addedItems = Array(newItems.suffix(newItems.count - oldItems.count))
+                            loadImages(from: addedItems)
+                        }
+                    )
+                }
 
                 ForEach(items) { item in
                     ImageCard(
                         item: item,
-                        onDelete: { onImageDeleted(item.id) }
+                        onDelete: {
+                            removePickerItem(for: item)
+                            onImageDeleted(item.id)
+                        }
                     )
                 }
             }
@@ -65,6 +71,19 @@ private extension CommunityImageGrid {
             }
 
             onImagesAdded(images)
+        }
+    }
+
+    func removePickerItem(for item: PostImageItem) {
+        guard case .local = item.source else { return }
+
+        let localItems = items.filter {
+            if case .local = $0.source { return true }
+            return false
+        }
+        if let localIndex = localItems.firstIndex(where: { $0.id == item.id }),
+           localIndex < pickerItems.count {
+            pickerItems.remove(at: localIndex)
         }
     }
 }
