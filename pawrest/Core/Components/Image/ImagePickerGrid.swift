@@ -95,10 +95,12 @@ extension ImagePickerGrid {
         @Binding var localPickerItems: [PhotosPickerItem]
         let onItemsChanged: ([PhotosPickerItem], [PhotosPickerItem]) -> Void
 
+        private var remaining: Int { maxCount - selectedCount }
+
         public var body: some View {
             PhotosPicker(
                 selection: $localPickerItems,
-                maxSelectionCount: maxCount,
+                maxSelectionCount: remaining,
                 matching: .images
             ) {
                 content
