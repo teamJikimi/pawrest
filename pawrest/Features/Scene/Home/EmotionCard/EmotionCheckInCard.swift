@@ -83,7 +83,7 @@ private extension EmotionCheckInCard {
                 .foregroundStyle(.gray90)
                 .scrollContentBackground(.hidden)
                 .background(.clear)
-                .frame(height: 104)
+                .frame(height: 88)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
             }
@@ -100,11 +100,11 @@ private extension EmotionCheckInCard {
             } label: {
                 Text("마음 상태 저장하기")
                     .typography(.body2Accent)
-                    .foregroundStyle(.gray0)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 32)
+                    .frame(height: 40)
                     .background(.pawPrimary)
-                    .cornerRadius(24, corners: .allCorners)
+                    .cornerRadius(12, corners: .allCorners)
             }
         }
     }
