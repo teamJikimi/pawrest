@@ -38,7 +38,10 @@ struct CommunityImageGrid: View {
                 ForEach(items) { item in
                     ImageCard(
                         item: item,
-                        onDelete: { onImageDeleted(item.id) }
+                        onDelete: {
+                            removePickerItem(for: item)
+                            onImageDeleted(item.id)
+                        }
                     )
                 }
             }
@@ -65,6 +68,21 @@ private extension CommunityImageGrid {
             }
 
             onImagesAdded(images)
+        }
+    }
+
+    func removePickerItem(for item: PostImageItem) {
+        // remote 이미지는 pickerItems에 대응 항목 없음
+        guard case .local = item.source else { return }
+
+        // 로컬 항목들 중에서 해당 item의 순서를 찾아 pickerItems에서 제거
+        let localItems = items.filter {
+            if case .local = $0.source { return true }
+            return false
+        }
+        if let localIndex = localItems.firstIndex(where: { $0.id == item.id }),
+           localIndex < pickerItems.count {
+            pickerItems.remove(at: localIndex)
         }
     }
 }

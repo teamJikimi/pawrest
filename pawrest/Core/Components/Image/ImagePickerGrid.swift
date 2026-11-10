@@ -57,26 +57,22 @@ public struct ImagePickerGrid: View {
     // MARK: - Actions
 
     private func handlePickerChange(from oldItems: [PhotosPickerItem], to newItems: [PhotosPickerItem]) {
-        guard oldItems != newItems else { return }
+        guard newItems.count > oldItems.count else { return }
 
-        if newItems.count >= oldItems.count {
-            let addedItems = Array(newItems.suffix(newItems.count - oldItems.count))
-            guard !addedItems.isEmpty else { return }
-            Task {
-                var addedImages: [UIImage] = []
-                for item in addedItems {
-                    if let data = try? await item.loadTransferable(type: Data.self),
-                       let uiImage = UIImage(data: data) {
-                        addedImages.append(uiImage)
-                    }
-                }
-                await MainActor.run {
-                    onImagesChanged(selectedImages + addedImages)
+        let addedItems = Array(newItems.suffix(newItems.count - oldItems.count))
+        guard !addedItems.isEmpty else { return }
+
+        Task {
+            var addedImages: [UIImage] = []
+            for item in addedItems {
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    addedImages.append(uiImage)
                 }
             }
-        } else {
-            let removedCount = oldItems.count - newItems.count
-            onImagesChanged(Array(selectedImages.dropLast(removedCount)))
+            await MainActor.run {
+                onImagesChanged(selectedImages + addedImages)
+            }
         }
     }
 
