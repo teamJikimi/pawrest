@@ -14,7 +14,7 @@ struct ReportSummaryBannerView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(data.summaryTitle == "이번 주 기록을 남겨보세요" ? .systemIconNoReport : .systemIconDownChart)
+            Image(data.summaryTitle == "최근 7일 동안 남긴 기록이 없어요" ? .systemIconNoReport : .systemIconDownChart)
                 .resizable()
                 .frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 4) {

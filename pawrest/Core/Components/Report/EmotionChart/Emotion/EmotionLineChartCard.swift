@@ -38,7 +38,7 @@ private extension EmotionLineChartCard {
                     .typography(.body1M)
                     .foregroundColor(.primary)
             }
-            Text("이번 주 날짜별 감정 추이")
+            Text("최근 7일 날짜별 감정 추이")
                 .typography(.caption)
                 .foregroundColor(.secondary)
         }

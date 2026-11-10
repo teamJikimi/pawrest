@@ -13,7 +13,7 @@ struct ReportStatsSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("이번 주 함께한 순간들")
+            Text("최근 7일 함께한 순간들")
                 .typography(.body1M)
                 .foregroundStyle(.gray80)
             VStack(spacing: 6) {

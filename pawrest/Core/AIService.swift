@@ -38,9 +38,9 @@ final class AIService {
 
         if count == 0 {
             return AIReportResult(
-                bannerTitle: "이번 주 기록을 남겨보세요",
+                bannerTitle: "최근 7일 동안 남긴 기록이 없어요",
                 bannerSummary: "기록이 쌓이면 변화를 확인할 수 있어요",
-                weeklySummary: "이번 주는 기록된 감정이 없어요.\n짧게라도 남겨두면 다음 주엔\n마음의 흐름을 함께 살펴볼 수 있어요.",
+                weeklySummary: "최근 7일 동안 기록된 감정이 없어요.\n기록이 쌓이면 마음의 흐름을 함께 살펴볼 수 있어요.",
                 dailyInsight: nil,
                 suggestion: nil
             )
@@ -257,9 +257,9 @@ final class AIService {
     private func fallbackResult(count: Int) -> AIReportResult {
         if count == 0 {
             return AIReportResult(
-                bannerTitle: "이번 주 기록을 남겨보세요",
+                bannerTitle: "최근 7일 동안 남긴 기록이 없어요",
                 bannerSummary: "기록이 쌓이면 변화를 확인할 수 있어요",
-                weeklySummary: "이번 주는 기록된 감정이 없어요.\n짧게라도 남겨두면 다음 주엔\n마음의 흐름을 함께 살펴볼 수 있어요.",
+                weeklySummary: "최근 7일 동안 기록된 감정이 없어요.\n기록이 쌓이면 마음의 흐름을 함께 살펴볼 수 있어요.",
                 dailyInsight: nil,
                 suggestion: nil
             )
