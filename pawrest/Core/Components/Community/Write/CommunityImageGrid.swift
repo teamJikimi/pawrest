@@ -14,6 +14,7 @@ struct CommunityImageGrid: View {
 
     let items: [PostImageItem]
     let maxCount: Int
+    let canAddImages: Bool
     let onImagesAdded: ([UIImage]) -> Void
     let onImageDeleted: (PostImageItem.ID) -> Void
 
@@ -24,16 +25,18 @@ struct CommunityImageGrid: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                ImagePickerGrid.AddButton(
-                    selectedCount: items.count,
-                    maxCount: maxCount,
-                    localPickerItems: $pickerItems,
-                    onItemsChanged: { oldItems, newItems in
-                        guard newItems.count > oldItems.count else { return }
-                        let addedItems = Array(newItems.suffix(newItems.count - oldItems.count))
-                        loadImages(from: addedItems)
-                    }
-                )
+                if canAddImages {
+                    ImagePickerGrid.AddButton(
+                        selectedCount: items.count,
+                        maxCount: maxCount,
+                        localPickerItems: $pickerItems,
+                        onItemsChanged: { oldItems, newItems in
+                            guard newItems.count > oldItems.count else { return }
+                            let addedItems = Array(newItems.suffix(newItems.count - oldItems.count))
+                            loadImages(from: addedItems)
+                        }
+                    )
+                }
 
                 ForEach(items) { item in
                     ImageCard(
