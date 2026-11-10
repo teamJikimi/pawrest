@@ -43,7 +43,7 @@ private extension TimeEmotionChartCard {
                     .typography(.body1M)
                     .foregroundColor(.primary)
             }
-            Text("이번 주 시간대별 감정 추이")
+            Text("최근 7일 시간대별 감정 추이")
                 .typography(.date)
                 .foregroundColor(.secondary)
         }

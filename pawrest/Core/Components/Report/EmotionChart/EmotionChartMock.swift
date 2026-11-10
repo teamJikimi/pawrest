@@ -25,7 +25,7 @@ extension WeeklyEmotionChartData {
             entries: makeEntries(levels: [
                 .frustrated, .normal, .depressed, .normal, .stable, .relaxed, .stable
             ]),
-            insight: "이번 주 초반엔 감정 기복이 있었지만, 후반부로 갈수록 점차 안정되는 모습이에요. 특히 금요일에 편안함이 크게 올라왔네요."
+            insight: "최근 7일 중 초반엔 감정 기복이 있었지만, 후반부로 갈수록 점차 안정되는 모습이에요. 특히 금요일에 편안함이 크게 올라왔네요."
         )
     }
 
