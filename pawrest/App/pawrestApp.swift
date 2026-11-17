@@ -150,11 +150,7 @@ struct pawrestApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     let store: StoreOf<AppReducer> = {
-        var state = AppState()
-        let context = ModelContext(sharedModelContainer)
-        let users = try? context.fetch(FetchDescriptor<UserProfile>())
-        state.destination = (users?.isEmpty == false) ? .tabBar : .splash
-        return Store(initialState: state) { AppReducer() }
+        Store(initialState: AppState()) { AppReducer() }
     }()
 
     var body: some Scene {

@@ -5,6 +5,7 @@
 //  Created by 곽예리 on 7/12/26.
 //
 
+import Foundation
 import ComposableArchitecture
 
 @ObservableState
@@ -78,6 +79,7 @@ struct AppReducer: Reducer {
 
             case .loginSucceeded(let hasProfile):
                 if hasProfile {
+                    UserDefaults.standard.set(true, forKey: "isOnboardingComplete")
                     state.destination = .tabBar
                 } else {
                     state.destination = .onboardingUserProfile
@@ -115,16 +117,19 @@ struct AppReducer: Reducer {
                 return .none
 
             case .onboardingIntroduce(.saveCompleted):
+                UserDefaults.standard.set(true, forKey: "isOnboardingComplete")
                 state.destination = .tabBar
                 return .none
 
             case .tabBar(.delegate(.logoutCompleted)):
+                UserDefaults.standard.removeObject(forKey: "isOnboardingComplete")
                 state.tabBar = TabBarFeature.State()
                 state.login = LoginState()
                 state.destination = .login
                 return .none
 
             case .tabBar(.delegate(.deleteAccountCompleted)):
+                UserDefaults.standard.removeObject(forKey: "isOnboardingComplete")
                 state.tabBar = TabBarFeature.State()
                 state.login = LoginState()
                 state.onboardingUserProfile = OnboardingUserProfileState()
