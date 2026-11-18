@@ -14,7 +14,7 @@ import ComposableArchitecture
 struct EmotionCheckInCard: View {
     let store: StoreOf<EmotionCheckInFeature>
     @Environment(\.modelContext) private var modelContext
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             headerSection
@@ -27,7 +27,6 @@ struct EmotionCheckInCard: View {
         .padding(20)
         .background(backgroundImage)
         .cornerRadius(20, corners: .allCorners)
-        .animation(.none, value: store.selectedEmotion)
         .onAppear { store.send(.onAppear) }
     }
 }
@@ -45,15 +44,20 @@ private extension EmotionCheckInCard {
                 .foregroundStyle(.gray90)
         }
     }
-    
+
     var emotionButtons: some View {
         HStack(spacing: 8) {
             ForEach(EmotionType.allCases, id: \.self) { emotion in
-                emotionButton(emotion)
+                EmotionButtonView(
+                    emotion: emotion,
+                    isSelected: store.selectedEmotion == emotion
+                ) {
+                    store.send(.emotionTapped(emotion))
+                }
             }
         }
     }
-    
+
     var memoSection: some View {
         VStack(spacing: 10) {
             ZStack(alignment: .topLeading) {
@@ -64,7 +68,7 @@ private extension EmotionCheckInCard {
                             .stroke(.gray20, lineWidth: 1)
                     )
                     .frame(height: 104)
-                
+
                 if store.memoText.isEmpty {
                     Text("현재 상태에 대해 간단히 메모해보세요.")
                         .typography(.body3R)
@@ -72,7 +76,7 @@ private extension EmotionCheckInCard {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
                 }
-                
+
                 TextEditor(text: Binding(
                     get: { store.memoText },
                     set: { newValue in
@@ -87,13 +91,12 @@ private extension EmotionCheckInCard {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
             }
-            
+
             Button {
                 guard let emotion = store.selectedEmotion else { return }
-                let memo = store.memoText
                 let record = EmotionRecordModel(
                     emotionType: emotion.rawValue,
-                    memo: memo
+                    memo: store.memoText
                 )
                 modelContext.insert(record)
                 store.send(.submitTapped)
@@ -106,42 +109,14 @@ private extension EmotionCheckInCard {
                     .background(.pawPrimary)
                     .cornerRadius(12, corners: .allCorners)
             }
+            .buttonStyle(BounceButtonStyle())
         }
     }
-    
+
     var backgroundImage: some View {
         Image(store.selectedEmotion != nil ? "emotions_background_long" : "emotions_background")
             .resizable()
             .scaledToFill()
             .ignoresSafeArea()
-    }
-    
-    func emotionButton(_ emotion: EmotionType) -> some View {
-        Button {
-            store.send(.emotionTapped(emotion))
-        } label: {
-            VStack(spacing: 6) {
-                Image(emotion.imageName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 32, height: 32)
-                
-                Text(emotion.label)
-                    .typography(.body3R)
-                    .foregroundStyle(.gray80)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.gray0)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(store.selectedEmotion == emotion ? .pawPrimary : Color.clear, lineWidth: 1)
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.25), value: store.selectedEmotion)
     }
 }
