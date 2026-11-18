@@ -23,33 +23,28 @@ struct LottieView: UIViewRepresentable {
         self.onComplete = onComplete
     }
 
-    func makeUIView(context: Context) -> UIView {
-        UIView()
-    }
-
-    func updateUIView(_ uiView: UIView, context: Context) {
+    func makeUIView(context: Context) -> LottieAnimationView {
         let animationView = LottieAnimationView()
+        animationView.contentMode = .scaleAspectFit
         animationView.translatesAutoresizingMaskIntoConstraints = false
-        uiView.addSubview(animationView)
-
-        NSLayoutConstraint.activate([
-            animationView.widthAnchor.constraint(equalTo: uiView.widthAnchor),
-            animationView.heightAnchor.constraint(equalTo: uiView.heightAnchor)
-        ])
 
         if let url = Bundle.main.url(forResource: animationName, withExtension: "lottie") {
             DotLottieFile.loadedFrom(url: url) { result in
                 switch result {
                 case .success(let file):
                     animationView.loadAnimation(from: file)
-                    animationView.loopMode = self.loopMode
+                    animationView.loopMode = loopMode
                     animationView.play { finished in
-                        if finished { self.onComplete?() }
+                        if finished { onComplete?() }
                     }
                 case .failure(let error):
                     print("Lottie 로드 실패: \(error)")
                 }
             }
         }
+
+        return animationView
     }
+
+    func updateUIView(_ uiView: LottieAnimationView, context: Context) {}
 }
