@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Lottie
 import ComposableArchitecture
 
 struct MemorialView: View {
@@ -18,6 +17,8 @@ struct MemorialView: View {
 
     @State private var selectedLetter: LetterModel? = nil
     @State private var petName: String = ""
+    @State private var newlyAddedLetterIDs: Set<UUID> = []
+    @State private var readyToAnimateIDs: Set<UUID> = []
 
     private let tabBarContentHeight: CGFloat = 62
     private let deliveryInterval: TimeInterval = 24 * 60 * 60
@@ -93,6 +94,13 @@ struct MemorialView: View {
                     .presentationDragIndicator(.hidden)
             }
         }
+        .onChange(of: store.isLetterPresented) { oldValue, newValue in
+            if oldValue && !newValue {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                    readyToAnimateIDs = newlyAddedLetterIDs
+                }
+            }
+        }
         .sheet(item: $selectedLetter) { letter in
             SentLetterView(letter: letter, deliveryInterval: deliveryInterval)
                 .presentationDetents([.fraction(0.55)])
@@ -105,6 +113,7 @@ struct MemorialView: View {
             modelContext.insert(model)
             try? modelContext.save()
             NotificationService.shared.scheduleLetterDelivery(letterId: model.id.uuidString)
+            newlyAddedLetterIDs.insert(model.id)
             store.send(.letterSaved)
             if let name = petProfiles.first?.name {
                 petName = name
@@ -211,26 +220,37 @@ struct MemorialView: View {
         let count = airplaneCount(now: now)
 
         if count >= 1 {
-            Button {
-                selectedLetter = active[0]
-            } label: {
-                LottieView(animationName: "Flow_9", loopMode: .loop)
-                    .frame(width: 160, height: 160)
+            let isPending = newlyAddedLetterIDs.contains(active[0].id) && !readyToAnimateIDs.contains(active[0].id)
+            let shouldAnimate = readyToAnimateIDs.contains(active[0].id)
+            if !isPending {
+                Button { selectedLetter = active[0] } label: {
+                    PlaneAnimationView(shouldAnimate: shouldAnimate)
+                        .frame(width: 200, height: 320)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .position(x: 86, y: 320)
+                .id("\(active[0].id)-\(shouldAnimate)")
             }
-            .buttonStyle(.plain)
-            .position(x: 93.84, y: 214.77)
         }
 
         if count >= 2 {
-            Button {
-                selectedLetter = active[1]
-            } label: {
-                LottieView(animationName: "Flow_9", loopMode: .loop)
-                    .frame(width: 160, height: 160)
-                    .rotationEffect(.degrees(-35))
+            let isPending = newlyAddedLetterIDs.contains(active[1].id) && !readyToAnimateIDs.contains(active[1].id)
+            let shouldAnimate = readyToAnimateIDs.contains(active[1].id)
+            if !isPending {
+                Button { selectedLetter = active[1] } label: {
+                    PlaneAnimationView(shouldAnimate: shouldAnimate, idleStartFrame: 96)
+                        .frame(width: 200, height: 320) 
+                        .rotationEffect(
+                            .degrees(-11),
+                            anchor: UnitPoint(x: 106.0 / 200.0, y: 60.0 / 320.0)
+                        )
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .position(x: 300, y: 450)
+                .id("\(active[1].id)-\(shouldAnimate)")
             }
-            .buttonStyle(.plain)
-            .position(x: 310, y: 280)
         }
     }
 }
